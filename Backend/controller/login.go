@@ -56,7 +56,7 @@ func Login(c *gin.Context) {
 		query := `SELECT Ma_SV, HoDem, Ten, GioiTinh, NgaySinh, NoiSinh, MatKhau
 		          FROM SinhVien WHERE Ma_SV = ? AND MatKhau = ?`
 		result := initialize.DB.Raw(query, req.Username, req.Password).Scan(&sv)
-		if result.Error != nil || sv.Ma_SV == "" {
+		if result.Error != nil || sv.MaSinhVien == "" {
 			c.JSON(http.StatusUnauthorized, LoginResponse{
 				Success: false,
 				Message: "Sai tài khoản hoặc mật khẩu",
@@ -64,7 +64,7 @@ func Login(c *gin.Context) {
 			return
 		}
 
-		token, _ := generateToken(sv.Ma_SV, "sinhvien")
+		token, _ := generateToken(sv.MaSinhVien, "sinhvien")
 
 		c.JSON(http.StatusOK, LoginResponse{
 			Success: true,
@@ -78,7 +78,7 @@ func Login(c *gin.Context) {
 		query := `SELECT Ma_GV, HoDem, Ten, GioiTinh, NgaySinh, QuocTich, MatKhau
 		          FROM GiangVien WHERE Ma_GV = ? AND MatKhau = ?`
 		result := initialize.DB.Raw(query, req.Username, req.Password).Scan(&gv)
-		if result.Error != nil || gv.Ma_GV == "" {
+		if result.Error != nil || gv.MaGiangVien == "" {
 			c.JSON(http.StatusUnauthorized, LoginResponse{
 				Success: false,
 				Message: "Sai tài khoản hoặc mật khẩu",
@@ -86,7 +86,7 @@ func Login(c *gin.Context) {
 			return
 		}
 
-		token, _ := generateToken(gv.Ma_GV, "giangvien")
+		token, _ := generateToken(gv.MaGiangVien, "giangvien")
 
 		c.JSON(http.StatusOK, LoginResponse{
 			Success: true,
