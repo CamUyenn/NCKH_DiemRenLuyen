@@ -5,7 +5,7 @@ type LopSinhHoatHocKy struct {
 	MaHocKy            string `json:"ma_hoc_ky"`
 	MaLopSinhHoat      string `json:"ma_lop_sinh_hoat"`
 	MaLopTruong        string `json:"ma_lop_truong"`
-	MaGiangVien        string `json:"ma_giang_vien"`
+	MaGiangVienCoVan   string `json:"ma_giang_vien_co_van"`
 	MaTruongKhoa       string `json:"ma_truong_khoa"`
 	MaChuyenVienDaoTao string `json:"ma_chuyen_vien_dao_tao"`
 	TongDiem           int    `json:"tong_diem"`
