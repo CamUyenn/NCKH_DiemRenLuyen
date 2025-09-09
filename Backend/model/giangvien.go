@@ -18,3 +18,7 @@ type GiangVien struct {
 func (GiangVien) TableName() string {
 	return "GiangVien"
 }
+
+func (GiangVien) TableName() string {
+	return "GiangVien"
+}
