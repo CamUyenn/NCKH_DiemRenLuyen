@@ -1,11 +1,19 @@
 package model
 
 type SinhVienDiemRenLuyen struct {
-	MaSinhVienDiemRenLuyen        string `json:"ma_sinh_vien_diem_ren_luyen" gorm:"primaryKey"`
-	MaSinhVien                    string `json:"ma_sinh_vien"`
-	MaBangDiem                    string `json:"ma_bang_diem"`
-	MaHocKy                       string `json:"ma_hoc_ky"`
+	MaSinhVienDiemRenLuyen        string `gorm:"size:256;primaryKey" json:"ma_sinh_vien_diem_ren_luyen"`
+	MaSinhVienThamChieu           string `gorm:"size:256" json:"ma_sinh_vien_tham_chieu"`
+	MaBangDiemThamChieu           string `gorm:"size:256" json:"ma_bang_diem_tham_chieu"`
+	MaHocKyThamChieu              string `gorm:"size:256" json:"ma_hoc_ky_tham_chieu"`
 	TrangThai                     string `json:"trang_thai"`
 	TongDiem                      int    `json:"tong_diem"`
 	MaSinhVienDiemRenLuyenChiTiet string `json:"ma_sinh_vien_diem_ren_luyen_chi_tiet"`
+
+	SinhVien                    SinhVien                      `gorm:"foreignKey:MaSinhVienThamChieu;references:MaSinhVien"`
+	SinhVienDiemRenLuyenChiTiet []SinhVienDiemRenLuyenChiTiet `gorm:"foreignKey:MaSinhVienDiemRenLuyenChiTiet;references:MaSinhVienDiemRenLuyen"`
+	HocKy                       HocKy                         `gorm:"foreignKey:MaHocKyThamChieu;references:MaHocKy"`
+}
+
+func (SinhVienDiemRenLuyen) TableName() string {
+	return "SinhVienDiemRenLuyen"
 }
