@@ -4,7 +4,8 @@ type BangDiemChiTiet struct {
 	MaTieuChi           string `gorm:"size:256;primaryKey" json:"ma_tieu_chi"`
 	MaBangDiemThamChieu string `gorm:"size:256" json:"ma_bang_diem_tham_chieu"`
 	TenTieuChi          string `json:"ten_tieu_chi"`
-	Muc                 int    `json:"muc"`
+	MucDiem             int    `json:"muc_diem"`
+	Muc                 string `json:"muc"`
 	Diem                int    `json:"diem"`
 	MoTaDiem            string `json:"mo_ta_diem"`
 	MaTieuChiCha        string `gorm:"size:256" json:"ma_tieu_chi_cha"`
