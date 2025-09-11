@@ -1,0 +1,119 @@
+.sidebar {
+  background: #fff;
+  padding: 20px;
+  border-right: 1px solid #003366;
+  min-height: 80vh;
+  width: 26vh;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+  text-decoration: none;
+  color: #333;
+  border-bottom: 1px solid #003366;
+  transform: scale(1);
+}
+.sidebar-item {
+  white-space: nowrap; /* Không cho xuống dòng */
+  overflow: hidden; /* Ẩn phần dư thừa nếu quá dài */
+  text-overflow: ellipsis; /* Nếu quá dài thì hiện "..." */
+}
+.text {
+  text-align: center;
+  font-size: 14px;
+  color: black;
+}
+
+.sidebar {
+  width: 200px;
+  float: left;
+  padding-left: 5px;
+  padding-right: 3px; /* hoặc auto */
+}
+
+.sidebar-item .icon {
+  margin-right: 12px;
+  font-size: 12px;
+}
+
+.form-content {
+  /* background-color: #fff; */
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 1024px) and (min-width: 768px) {
+  .sidebar {
+    width: 25vh;
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  .form-content {
+    padding: 30px;
+  }
+  .sidebar-item span {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  .sidebar-item:hover {
+    transform: scale(1.05);
+    background-color: #fff;
+  }
+
+  .sidebar-item:active {
+    transform: scale(1.1);
+  }
+  .sidebar-item.active {
+    background-color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.2);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .sidebar {
+    width: 10vh;
+  }
+
+  .sidebar-item {
+    justify-content: center;
+    padding: 12px 0;
+  }
+
+  .sidebar-item .icon {
+    margin-right: 0;
+    font-size: 20px;
+  }
+
+  .sidebar-item .icon:hover {
+    transform: scale(2);
+    /* color: #fff; */
+  }
+  .sidebar-item.active .icon:hover,
+  .sidebar-item .icon:active {
+    transform: scale(2);
+  }
+  .sidebar-item.active .icon {
+    transform: scale(1.8);
+    color: #fff;
+  }
+
+  .sidebar-item span:not(.icon) {
+    display: none;
+  }
+}
