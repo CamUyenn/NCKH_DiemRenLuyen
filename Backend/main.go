@@ -2,6 +2,7 @@ package main
 
 import (
 	"Backend/controller"
+	"Backend/controller/tieuchi"
 	"Backend/initialize"
 	"Backend/migrate"
 
@@ -19,6 +20,7 @@ func main() {
 	router := gin.Default()
 
 	router.POST("/api/login", controller.Login)
+	router.POST("/api/tieuchi", tieuchi.TaoTieuChi)
 
 	router.Run()
 }
