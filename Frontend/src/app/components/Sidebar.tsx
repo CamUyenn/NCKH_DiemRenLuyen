@@ -1,5 +1,5 @@
 import Link from "next/link";
-import "./styles/Sidebar.css";
+import "./../styles/Sidebar.css";
 
 interface SidebarItem {
   path: string;
