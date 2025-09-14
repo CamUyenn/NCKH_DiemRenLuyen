@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import "./../styles/Header.css";
+import "./../styles/HeaderTeacher.css";
 import logo from "../../../public/logo_nckh.png";
 
 function AppHeader({ children }: { children: React.ReactNode }) {
@@ -49,38 +49,15 @@ function AppHeader({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Menu */}
-      <div className="menu">
+      <div className="menu-teacher">
         <button
-          className="menu-logo-header"
+          className="menu-logo-headerteacher"
           onClick={reloadPage}
           style={{ cursor: "pointer", background: "none", border: "none" }}
         >
           <img src={logo.src} alt="Logo" />
         </button>
 
-        <div className="menu-buttons">
-          {/* Menu 1 */}
-          <div className="dropdown">
-            <button
-              className="menu-button"
-              onClick={() => toggleMenu("renluyen")}
-            >
-              Quản lý điểm rèn luyện{" "}
-              <span>{openMenu === "renluyen" ? "▲" : "▼"}</span>
-            </button>
-            {openMenu === "renluyen" && (
-              <div className="dropdown-content">
-                <button onClick={navigateChamDiem}>
-                  Đánh giá điểm rèn luyện
-                </button>
-                <button onClick={navigateKetQua}>Kết quả rèn luyện</button>
-                <button onClick={navigateXemds}>
-                  Xem danh sách sinh viên trong lớp
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Học kỳ */}
         <div className="semester-row">
