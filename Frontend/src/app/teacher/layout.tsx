@@ -7,7 +7,6 @@ import AppFooter from "./../components/Footer";
 import SidebarFormLayout from './../components/Sidebar';
 import tintuc from './../../../public/tintuc_thongbao.png'
 import userprofile from './../../../public/userprofile.png'
-import xemdanhsach from './../../../public/xemdanhsach.png'
 import logout from './../../../public/logout.png'
 import Image from 'next/image';
 
@@ -21,7 +20,6 @@ export default function StudentsLayout({
   const sidebarItems = [
     {icon: <Image src={tintuc} alt="Tin tức" width={24} height={24} />, label: 'Thông báo', path: '/teacher' },
     {icon: <Image src={userprofile} alt="Tài khoản" width={24} height={24} />, label: 'Thông tin tài khoản', path: '/teacher/teacherprofile' },
-    {icon: <Image src={xemdanhsach} alt="Xem danh sách" width={24} height={24} />, label: 'Xem danh sách', path: '/teacher/xemdanhsach' },
     {icon: <Image src={logout} alt="Đăng xuất" width={24} height={24} />, label: 'Đăng xuất', path: '/teacher/logout'},
   ];
 

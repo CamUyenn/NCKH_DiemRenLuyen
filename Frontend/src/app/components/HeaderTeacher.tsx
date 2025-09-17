@@ -13,7 +13,7 @@ function AppHeader({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const reloadPage = () => {
-    router.push("/students"); // quay về trang Home thay vì reload
+    router.push("/teacher"); // quay về trang Home thay vì reload
   };
 
   const handleSemesterChange = (
@@ -21,24 +21,9 @@ function AppHeader({ children }: { children: React.ReactNode }) {
   ) => {
     setSelectedSemester(event.target.value);
   };
-
-  const toggleMenu = (menuName: string) => {
-    setOpenMenu(openMenu === menuName ? null : menuName);
-  };
-
-  const navigateChamDiem = () => {
-    setOpenMenu(null); // đóng dropdown ngay khi click
-    router.push("/students/formchamdiem");
-  };
-
-  const navigateKetQua = () => {
+  const toggleMenu = () => {
     setOpenMenu(null);
-    router.push("/students/result");
-  };
-
-  const navigateXemds = () => {
-    setOpenMenu(null);
-    router.push("/students/classlist");
+    router.push("/teacher/xemdanhsach");
   };
 
   return (
@@ -58,6 +43,17 @@ function AppHeader({ children }: { children: React.ReactNode }) {
           <img src={logo.src} alt="Logo" />
         </button>
 
+        <div className="menu-buttons">
+          {/* Menu 1 */}
+          <div className="dropdown">
+            <button
+              className="menu-button"
+              onClick={() => toggleMenu()}
+            >
+              Xem danh sách sinh viên{" "}
+            </button>
+          </div>
+        </div>
 
         {/* Học kỳ */}
         <div className="semester-row">
