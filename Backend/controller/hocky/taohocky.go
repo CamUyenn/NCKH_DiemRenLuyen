@@ -7,46 +7,65 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func TaoHocKy(c *gin.Context, mahocky string) {
-	var hockycheck model.HocKy
+func TaoHocKy(c *gin.Context, hockycheck model.HocKy) {
 
-	result := initialize.DB.Where("ma_hoc_ky = ?", mahocky).First(&hockycheck)
+	// Check if HocKy already exists
+	var count int64
+	result := initialize.DB.Model(&model.HocKy{}).Where("ma_hoc_ky = ?", hockycheck.MaHocKy).Count(&count)
 	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			slice := strings.Split(mahocky, ".")
+		c.JSON(400, gin.H{
+			"error": "Count hocky in database failed",
+		})
+		return
+	}
 
-			// Create new HocKy
-			var err error
-			hockycheck.MaHocKy = mahocky
-
-			hockycheck.HocKy, err = strconv.Atoi(slice[1])
-			if err != nil {
-				c.JSON(400, gin.H{
-					"error": "Loi chyen doi dang so nguyen",
-				})
-				return
-			}
-
-			hockycheck.NamHoc = slice[0]
-
-			result = initialize.DB.Create(&hockycheck)
-			if result.Error != nil {
-				c.JSON(400, gin.H{
-					"error": "Tao hoc ky khong thanh cong",
-				})
-				return
-			}
-			return
-		} else {
+	if count != 0 {
+		c.JSON(200, gin.H{
+			"error": "Hocky already exists",
+		})
+	} else {
+		// Check the format of mahocky
+		if !strings.Contains(hockycheck.MaHocKy, ".") || len(hockycheck.MaHocKy) != 11 {
 			c.JSON(400, gin.H{
-				"error": "Loi database",
+				"error": "Invalid mahocky format",
 			})
 			return
+		} else {
+			// Create new hocky
+			slice := strings.Split(hockycheck.MaHocKy, ".")
+
+			// Check the format of namhoc
+			if !strings.Contains(slice[0], "-") || len(slice[0]) != 9 {
+				c.JSON(400, gin.H{
+					"error": "Invalid namhoc format",
+				})
+				return
+			} else {
+				hockycheck.NamHoc = slice[0]
+				// Convert hocky to integer
+				var err error
+				hockycheck.HocKy, err = strconv.Atoi(slice[1])
+				if err != nil {
+					c.JSON(400, gin.H{
+						"error": "Failed to convert to integer",
+					})
+					return
+				}
+				// Save hocky to database
+				result = initialize.DB.Create(&hockycheck)
+				if result.Error != nil {
+					c.JSON(400, gin.H{
+						"error": "Create hocky failed",
+					})
+					return
+				} else {
+					c.JSON(200, gin.H{
+						"message": "Create hocky successfully",
+					})
+				}
+			}
 		}
-	} else {
-		return
 	}
 }
