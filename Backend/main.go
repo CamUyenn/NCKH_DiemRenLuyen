@@ -39,6 +39,7 @@ func main() {
 	router.DELETE("/api/xoahocky/:id", hocky.XoaHocKy)
 	router.GET("/api/xembangdiem", bangdiem.XemBangDiem)
 	router.GET("/api/xemtieuchi", tieuchi.XemTieuChi)
+	router.GET("/api/xemhocky", hocky.XemHocKy)
 
 	router.Run()
 }
