@@ -3,17 +3,49 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import "./../styles/Header.css";
-import logo from "../../../public/logo_nckh.png";
+import defaultLogo from "../../../public/logo_nckh.png";
 
-function AppHeader({ children }: { children: React.ReactNode }) {
+// Interface định nghĩa props
+interface MenuButton {
+  label: string;
+  onClick: () => void;
+}
+
+interface DropdownMenu {
+  title: string;
+  buttons: MenuButton[];
+}
+
+interface SimpleMenu {
+  label: string;
+  onClick: () => void;
+}
+
+interface AppHeaderProps {
+  children: React.ReactNode;
+  logo?: any; // logo đầy đủ (bao gồm cả hình và chữ)
+  homeRoute?: string; // route khi click logo
+  dropdownMenus?: DropdownMenu[]; // các menu dropdown
+  simpleMenus?: SimpleMenu[]; // các menu đơn giản không dropdown
+  userRole?: string; // vai trò: "student", "teacher", "admin"
+}
+
+function AppHeader({ 
+  children, 
+  logo = defaultLogo,
+  homeRoute = "/students",
+  dropdownMenus = [],
+  simpleMenus = [],
+  userRole = "student"
+}: AppHeaderProps) {
   const [selectedSemester, setSelectedSemester] = useState(
     "Học kỳ 1, năm học 2023-2024"
   );
-  const [openMenu, setOpenMenu] = useState<string | null>(null); // quản lý menu nào đang mở
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
   const router = useRouter();
 
   const reloadPage = () => {
-    router.push("/students"); // quay về trang Home thay vì reload
+    router.push(homeRoute);
   };
 
   const handleSemesterChange = (
@@ -26,19 +58,9 @@ function AppHeader({ children }: { children: React.ReactNode }) {
     setOpenMenu(openMenu === menuName ? null : menuName);
   };
 
-  const navigateChamDiem = () => {
-    setOpenMenu(null); // đóng dropdown ngay khi click
-    router.push("/students/formchamdiem");
-  };
-
-  const navigateKetQua = () => {
-    setOpenMenu(null);
-    router.push("/students/result");
-  };
-
-  const navigateXemds = () => {
-    setOpenMenu(null);
-    router.push("/students/classlist");
+  const handleMenuClick = (onClick: () => void) => {
+    setOpenMenu(null); // đóng dropdown khi click
+    onClick();
   };
 
   return (
@@ -59,57 +81,73 @@ function AppHeader({ children }: { children: React.ReactNode }) {
         </button>
 
         <div className="menu-buttons">
-          {/* Menu 1 */}
-          <div className="dropdown">
+          {/* Render các simple menu (không dropdown) */}
+          {simpleMenus.map((menu, index) => (
             <button
-              className="menu-button"
-              onClick={() => toggleMenu("renluyen")}
+              key={`simple-${index}`}
+              className="menu-button simple-menu"
+              onClick={menu.onClick}
             >
-              Quản lý điểm rèn luyện{" "}
-              <span>{openMenu === "renluyen" ? "▲" : "▼"}</span>
+              {menu.label}
             </button>
-            {openMenu === "renluyen" && (
-              <div className="dropdown-content">
-                <button onClick={navigateChamDiem}>
-                  Đánh giá điểm rèn luyện
-                </button>
-                <button onClick={navigateKetQua}>Kết quả rèn luyện</button>
-                <button onClick={navigateXemds}>
-                  Xem danh sách sinh viên trong lớp
-                </button>
-              </div>
-            )}
-          </div>
+          ))}
+
+          {/* Render các dropdown menu */}
+          {dropdownMenus.map((menu, index) => (
+            <div key={`dropdown-${index}`} className="dropdown">
+              <button
+                className="menu-button"
+                onClick={() => toggleMenu(menu.title)}
+              >
+                {menu.title}{" "}
+                <span>{openMenu === menu.title ? "▲" : "▼"}</span>
+              </button>
+              {openMenu === menu.title && (
+                <div className="dropdown-content">
+                  {menu.buttons.map((button, buttonIndex) => (
+                    <button 
+                      key={buttonIndex}
+                      onClick={() => handleMenuClick(button.onClick)}
+                    >
+                      {button.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Học kỳ */}
-        <div className="semester-row">
-          <div className="semester-box">
-            <span className="semester-label">Khóa học:</span>
-            <span className="semester-value">46 (2022-2026)</span>
+        {/* Học kỳ: chỉ hiển thị nếu không phải admin */}
+        {userRole !== "admin" && (
+          <div className="semester-row">
+            <div className="semester-box">
+              <span className="semester-label">Khóa học:</span>
+              <span className="semester-value">46 (2022-2026)</span>
+            </div>
+            <div className="semester-box">
+              <span className="semester-label">Học kỳ:</span>
+              <select
+                className="semester-dropdown"
+                value={selectedSemester}
+                onChange={handleSemesterChange}
+              >
+                <option value="Học kỳ 1, năm học 2023-2024">
+                  Học kỳ 1, năm học 2023-2024
+                </option>
+                <option value="Học kỳ 2, năm học 2023-2024">
+                  Học kỳ 2, năm học 2023-2024
+                </option>
+                <option value="Học kỳ 1, năm học 2024-2025">
+                  Học kỳ 1, năm học 2024-2025
+                </option>
+                <option value="Học kỳ 2, năm học 2024-2025">
+                  Học kỳ 2, năm học 2024-2025
+                </option>
+              </select>
+            </div>
           </div>
-          <div className="semester-box">
-            <span className="semester-label">Học kỳ:</span>
-            <select
-              className="semester-dropdown"
-              value={selectedSemester}
-              onChange={handleSemesterChange}
-            >
-              <option value="Học kỳ 1, năm học 2023-2024">
-                Học kỳ 1, năm học 2023-2024
-              </option>
-              <option value="Học kỳ 2, năm học 2023-2024">
-                Học kỳ 2, năm học 2023-2024
-              </option>
-              <option value="Học kỳ 1, năm học 2024-2025">
-                Học kỳ 1, năm học 2024-2025
-              </option>
-              <option value="Học kỳ 2, năm học 2024-2025">
-                Học kỳ 2, năm học 2024-2025
-              </option>
-            </select>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Nội dung chính */}
