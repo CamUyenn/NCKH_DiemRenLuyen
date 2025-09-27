@@ -27,13 +27,19 @@ const GroupedCriteriaTable: React.FC = () => {
   ]);
 
   // 👉 Lưu chỉnh sửa và điều hướng
+  // 👉 Lưu chỉnh sửa và điều hướng
   const handleLuuChinhSua = () => {
     if (raw) {
-      router.push(`/admin/themmoibangdiem?raw=${raw}`);
+      // ✅ Lưu rows xuống localStorage
+      localStorage.setItem(`bangdiem_${raw}`, JSON.stringify(rows));
+
+      // Điều hướng
+      router.push(`/admin/luuchinhsua?raw=${raw}`);
     } else {
       alert("Không tìm thấy thông tin raw!");
     }
   };
+
   // Xử lý thay đổi dữ liệu
   const handleChange = (index: number, field: keyof RowData, value: string) => {
     const updatedRows = [...rows];
@@ -112,7 +118,7 @@ const GroupedCriteriaTable: React.FC = () => {
       }
     }
   };
-  
+
   return (
     <div className="bangdiem-container">
       <h2 className="bangdiem-title">Chỉnh sửa bảng điểm</h2>
@@ -245,7 +251,7 @@ const GroupedCriteriaTable: React.FC = () => {
         </tbody>
       </table>
 
-       {/* ✅ Khi click sẽ quay về xembangdiem với đúng raw */}
+      {/* ✅ Khi click sẽ quay về xembangdiem với đúng raw */}
       <button onClick={handleLuuChinhSua} className="luubangdiem-button">
         Chỉnh sửa và Thêm mới
       </button>

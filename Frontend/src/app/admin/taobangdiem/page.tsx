@@ -58,17 +58,22 @@ const GroupedCriteriaTable: React.FC = () => {
   };
 
   const handleThemBangDiem = () => {
-  // Lọc bỏ các hàng rỗng
-  const validRows = rows.filter(
-    (row) =>
-      row.level && row.section && row.type && row.content && row.score
-  );
+    // Lọc bỏ các hàng rỗng
+    const validRows = rows.filter(
+      (row) => row.level && row.section && row.type && row.content && row.score
+    );
+    const converted = validRows.map((row) => ({
+      muc: row.section,
+      mucLevel: parseInt(row.level, 10),
+      mucCha: row.mucCha || "",
+      loai: row.type,
+      noiDung: row.content,
+      diem: row.score,
+    }));
 
-  localStorage.setItem(`bangdiem_${raw}`, JSON.stringify(validRows));
-  router.push(`/admin/taobangdiemxong?raw=${raw}`);
-};
-
-
+    localStorage.setItem(`bangdiem_${raw}`, JSON.stringify(converted));
+    router.push(`/admin/dataobangdiem?raw=${raw}`);
+  };
 
   const getMucOptions = (level: string) => {
     if (level === "1") return mucLevel1;

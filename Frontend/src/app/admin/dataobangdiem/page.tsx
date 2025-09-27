@@ -17,19 +17,20 @@ export default function ThemMoiBangDiem() {
   const searchParams = useSearchParams();
   const raw = searchParams.get("raw");
   const [rows, setRows] = useState<RowData[]>([]);
-    const router = useRouter();
+  const router = useRouter();
 
   useEffect(() => {
     if (raw) {
       const saved = localStorage.getItem(`bangdiem_${raw}`);
       if (saved) {
-        setRows(JSON.parse(saved));
+        setRows(JSON.parse(saved)); // vì đã đúng format rồi
       }
     }
   }, [raw]);
+
   function handleClose() {
     router.push(`/admin`);
-}
+  }
   return (
     <div className="bangdiem-container">
       <h2 className="bangdiem-title">Bảng điểm đã lưu</h2>
@@ -58,7 +59,9 @@ export default function ThemMoiBangDiem() {
           ))}
         </tbody>
       </table>
-      <button onClick={handleClose} className="button-closebangdiem">Đóng</button>
+      <button onClick={handleClose} className="button-closebangdiem">
+        Đóng
+      </button>
     </div>
   );
 }

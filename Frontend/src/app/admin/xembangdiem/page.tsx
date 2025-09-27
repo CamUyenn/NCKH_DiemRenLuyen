@@ -4,6 +4,9 @@ import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { diemData, Diem } from "./../data"; 
 import "./../../styles/Admin/BangDiem.css";
+//sao chép -> đã tạo bd
+//chỉnh sửa -> lưu chỉnh sửa
+//tạo mới -> đã tạo bd
 
 export default function BangDiem() {
   const router = useRouter();
@@ -28,7 +31,7 @@ export default function BangDiem() {
     localStorage.setItem(`bangdiem_${raw}`, JSON.stringify(diemData));
     alert("Đã sao chép thành công!");
     // Nếu muốn điều hướng sau khi sao chép thì giữ lại:
-    router.push(`/admin/taobangdiemxong?raw=${raw}`);
+    router.push(`/admin/dataobangdiem?raw=${raw}`);
   }
 
   return (
