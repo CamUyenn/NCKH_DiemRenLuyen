@@ -1,22 +1,39 @@
 "use client";
 
 import React from "react";
-import { useRouter,  useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { diemData, Diem } from "./../data"; 
 import "./../../styles/Admin/BangDiem.css";
+//sao chép -> đã tạo bd
+//chỉnh sửa -> lưu chỉnh sửa
+//tạo mới -> đã tạo bd
 
 export default function BangDiem() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const raw = searchParams.get("raw"); // lấy raw từ URL hiện tại
   const bigSections = ["I", "II", "III", "IV", "V", "VI"];
+
   function handleCreate() {
     if (raw) {
-      router.push(`/admin/chinhsuabangdiem?raw=${raw}`);
+      router.push(`/admin`);
     } else {
       alert("Không tìm thấy thông tin raw trong URL!");
     }
   }
+
+  function handleCopy() {
+    if (!raw) {
+      alert("Không tìm thấy thông tin raw trong URL!");
+      return;
+    }
+    // Lưu dữ liệu hiện tại vào localStorage
+    localStorage.setItem(`bangdiem_${raw}`, JSON.stringify(diemData));
+    alert("Đã sao chép thành công!");
+    // Nếu muốn điều hướng sau khi sao chép thì giữ lại:
+    router.push(`/admin/dataobangdiem?raw=${raw}`);
+  }
+
   return (
     <div className="bangDiem-container">
       <h2>Bảng điểm rèn luyện</h2>
@@ -47,7 +64,9 @@ export default function BangDiem() {
       </table>
 
       <div className="bangDiem-buttons">
-        <button onClick={handleCreate} className="bangDiem-btn">Đóng</button>
+        <button onClick={handleCreate} className="bangDiem-btn">
+          Đóng
+        </button>
       </div>
     </div>
   );
