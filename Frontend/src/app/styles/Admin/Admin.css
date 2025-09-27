@@ -1,0 +1,56 @@
+.hocKy-container {
+  height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.hocKy-table {
+  width: 100%;
+  border-collapse: collapse;
+  flex: 1;
+  table-layout: fixed;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.hocKy-table th,
+.hocKy-table td {
+  border: 1px solid #999;
+  padding: 12px;
+  text-align: center; /* căn giữa ngang */
+  vertical-align: middle; /* căn giữa dọc */
+}
+
+.hocKy-table thead {
+  background-color: #ccc;
+}
+
+.hocKy-link {
+  color: blue;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.hocKy-button {
+  align-self: flex-end;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.hocKy-button:hover {
+  background-color: #0055a5;
+}
+
+.hocKy-empty-row td {
+  height: 50px;
+  background-color: #f9f9f9;
+}

@@ -34,9 +34,6 @@
   width: 26vh;
   flex: 0.42;
 }
-.menu-logo-header img {
-  height: 40px;
-}
 
 .menu-buttons {
   display: flex;
@@ -140,4 +137,27 @@
 
 .dropdown-content button:hover {
   background: #e6f0ff;
+}
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* logo bên trái, menu bên phải */
+  padding: 0 20px;
+}
+
+.menu-logo-header img {
+  width: 180px;  /* cố định kích thước logo */
+  height: 60px;
+  object-fit: contain;
+}
+
+.menu-logo-header {
+  flex: 0 0 auto; /* không cho flex tự co */
+  display: flex;
+  align-items: center;
+}
+
+.menu-buttons {
+  display: flex;
+  gap: 10px; /* khoảng cách giữa các button */
 }

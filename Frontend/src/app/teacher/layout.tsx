@@ -1,6 +1,6 @@
 'use client';
 
-import './../styles/LayoutStudent.css';
+import './../styles/Layout.css';
 import AppHeader from './../components/Header';
 import { usePathname, useRouter } from 'next/navigation';
 import AppFooter from "./../components/Footer";
@@ -10,7 +10,7 @@ import Image from 'next/image';
 import tintuc from '../../../public/tintuc_thongbao.png';
 import userprofile from '../../../public/userprofile.png';
 import logout from '../../../public/logout.png';
-import studentOfficeLogo from '../../../public/logo_nckh.png';
+import studentOfficeLogo from '../../../public/logo_teacher.png';
 
 export default function StudentsLayout({
   children,

@@ -1,0 +1,56 @@
+.bangDiem-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.bangDiem-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+   table-layout: fixed;
+   margin-top: 20px;
+}
+
+.bangDiem-table th,
+.bangDiem-table td {
+  border: 1px solid #999;
+  padding: 8px 12px;
+  /* text-align: center; */
+  vertical-align: middle;
+}
+.bangDiem-table th:first-child,
+.bangDiem-table td:first-child {
+  width: 60px; /* cột Mục */
+}
+
+.bangDiem-table th:last-child,
+.bangDiem-table td:last-child {
+  width: 100px; /* cột Mô tả */
+}
+.bangDiem-table thead {
+  background-color: #ccc;
+}
+
+.bangDiem-buttons {
+  display: flex;
+  justify-content: flex-end; /* đẩy về bên phải */
+  gap: 10px;
+  margin-top: 20px;
+}
+
+
+.bangDiem-btn {
+  padding: 10px 20px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.bangDiem-btn:hover {
+  background-color: #0055a5;
+}

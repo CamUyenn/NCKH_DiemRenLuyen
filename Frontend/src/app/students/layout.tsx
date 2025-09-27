@@ -1,6 +1,6 @@
 'use client';
 
-import './../styles/LayoutStudent.css';
+import './../styles/Layout.css';
 import AppHeader from './../components/Header';
 import { usePathname, useRouter } from 'next/navigation';
 import AppFooter from "./../components/Footer";
