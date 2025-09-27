@@ -1,6 +1,6 @@
 'use client';
 
-import './../styles/LayoutStudent.css';
+import './../styles/Layout.css';
 import AppHeader from './../components/Header';
 import AppFooter from "./../components/Footer";
 import SidebarFormLayout from './../components/Sidebar';
@@ -17,8 +17,8 @@ export default function AdminLayout({
 }) {
   // Sidebar cho admin, sửa lại path cho đúng
   const sidebarItems = [
-    {icon: <Image src={tintuc} alt="Tin tức" width={24} height={24} />, label: 'Tin tức - Thông báo', path: '/admin' },
-    {icon: <Image src={userprofile} alt="Tài khoản" width={24} height={24} />, label: 'Thông tin tài khoản', path: '/admin/userprofile' },
+    {icon: <Image src={tintuc} alt="Home" width={24} height={24} />, label: 'Tin tức - Thông báo', path: '/admin' },
+    {icon: <Image src={userprofile} alt="Thông tin admin" width={24} height={24} />, label: 'Thông tin admin', path: '/admin/userprofile' },
     {icon: <Image src={logout} alt="Đăng xuất" width={24} height={24} />, label: 'Đăng xuất', path: '/admin/logout' },
   ];
 

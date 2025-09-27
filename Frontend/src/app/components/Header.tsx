@@ -30,13 +30,13 @@ interface AppHeaderProps {
   userRole?: string; // vai trò: "student", "teacher", "admin"
 }
 
-function AppHeader({ 
-  children, 
-  logo = defaultLogo,
+function AppHeader({
+  children,
+  logo,
   homeRoute = "/students",
   dropdownMenus = [],
   simpleMenus = [],
-  userRole = "student"
+  userRole = "student",
 }: AppHeaderProps) {
   const [selectedSemester, setSelectedSemester] = useState(
     "Học kỳ 1, năm học 2023-2024"
@@ -77,7 +77,7 @@ function AppHeader({
           onClick={reloadPage}
           style={{ cursor: "pointer", background: "none", border: "none" }}
         >
-          <img src={logo.src} alt="Logo" />
+          <img src={logo?.src || defaultLogo.src} alt="Logo" />
         </button>
 
         <div className="menu-buttons">
@@ -99,13 +99,12 @@ function AppHeader({
                 className="menu-button"
                 onClick={() => toggleMenu(menu.title)}
               >
-                {menu.title}{" "}
-                <span>{openMenu === menu.title ? "▲" : "▼"}</span>
+                {menu.title} <span>{openMenu === menu.title ? "▲" : "▼"}</span>
               </button>
               {openMenu === menu.title && (
                 <div className="dropdown-content">
                   {menu.buttons.map((button, buttonIndex) => (
-                    <button 
+                    <button
                       key={buttonIndex}
                       onClick={() => handleMenuClick(button.onClick)}
                     >

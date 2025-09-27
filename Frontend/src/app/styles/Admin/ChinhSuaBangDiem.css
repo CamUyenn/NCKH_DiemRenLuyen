@@ -1,0 +1,71 @@
+.bangdiem-container {
+  padding: 20px;
+  width: 100%;
+   display: flex;
+  flex-direction: column;
+}
+
+.bangdiem-title {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.bangdiem-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 16px;
+}
+
+.bangdiem-th {
+  border: 1px solid #999;
+  padding: 10px;
+  text-align: center;
+  background: #f2f2f2;
+}
+
+.bangdiem-tr {
+  text-align: center;
+}
+
+.bangdiem-td {
+  border: 1px solid #999;
+  padding: 10px;
+  vertical-align: middle;
+}
+
+.bangdiem-select,
+.bangdiem-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.luubangdiem-button{
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  align-self: flex-end;
+  
+}
+
+.luubangdiem-button:hover {
+  background-color: #0055a5;
+}
+
+.bangdiem-delete-button{
+  padding: 6px 10px;
+  background-color: #dc3545;  
+  color: #ffffff;
+  border-radius: 8px;
+}
