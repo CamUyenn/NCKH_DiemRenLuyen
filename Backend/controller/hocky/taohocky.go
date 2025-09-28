@@ -9,11 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func TaoHocKy(c *gin.Context, hockycheck model.HocKy) {
+func TaoHocKy(c *gin.Context, mahockyinput string) {
+	var hockycheck model.HocKy
+	hockycheck.MaHocKy = mahockyinput
 
 	// Check if HocKy already exists
 	var count int64
-	result := initialize.DB.Model(&model.HocKy{}).Where("ma_hoc_ky = ?", hockycheck.MaHocKy).Count(&count)
+	result := initialize.DB.Model(&model.HocKy{}).Where("ma_hoc_ky = ?", mahockyinput).Count(&count)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Count hocky in database failed",
@@ -27,14 +29,14 @@ func TaoHocKy(c *gin.Context, hockycheck model.HocKy) {
 		})
 	} else {
 		// Check the format of mahocky
-		if !strings.Contains(hockycheck.MaHocKy, ".") || len(hockycheck.MaHocKy) != 11 {
+		if !strings.Contains(mahockyinput, ".") || len(mahockyinput) != 11 {
 			c.JSON(400, gin.H{
 				"error": "Invalid mahocky format",
 			})
 			return
 		} else {
 			// Create new hocky
-			slice := strings.Split(hockycheck.MaHocKy, ".")
+			slice := strings.Split(mahockyinput, ".")
 
 			// Check the format of namhoc
 			if !strings.Contains(slice[0], "-") || len(slice[0]) != 9 {
