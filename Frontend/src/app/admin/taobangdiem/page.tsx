@@ -6,7 +6,7 @@ import React, { useState } from "react";
 
 interface RowData {
   level: string; // Mức
-  mucCha?: string; // Mức cha
+  mucCha?: string; // Mục cha
   section: string; // Mục
   type: string;
   content: string;
@@ -14,12 +14,24 @@ interface RowData {
 }
 
 // Các danh sách mục theo level
-const mucLevel1 = ["I", "II", "III", "IV", "V", "VI"];
-const mucLevel2 = ["1", "2", "3", "4", "5", "6", "7", "8"];
-const mucLevel3 = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "k"];
+const mucLevel1 = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+const mucLevel2 = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+const mucLevel3 = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t"];
 
 const levels = ["1", "2", "3"];
 const types = ["Checkbox", "Radio", "None"];
+
+const namHocOptions = [
+  "2022-2023",
+  "2023-2024",
+  "2024-2025",
+  "2025-2026"
+];
+
+const hocKyOptions = [
+  "Học kỳ 1",
+  "Học kỳ 2"
+];
 
 const GroupedCriteriaTable: React.FC = () => {
   const router = useRouter();
@@ -29,6 +41,8 @@ const GroupedCriteriaTable: React.FC = () => {
   const [rows, setRows] = useState<RowData[]>([
     { level: "", section: "", type: "", content: "", score: "" },
   ]);
+  const [namHoc, setNamHoc] = useState(namHocOptions[0]);
+  const [hocKy, setHocKy] = useState(hocKyOptions[0]);
 
   const handleChange = (index: number, field: keyof RowData, value: string) => {
     const updatedRows = [...rows];
@@ -98,7 +112,7 @@ const GroupedCriteriaTable: React.FC = () => {
         <thead>
           <tr>
             <th className="bangdiem-th">Mức</th>
-            <th className="bangdiem-th">Mức cha</th>
+            <th className="bangdiem-th">Mục cha</th>
             <th className="bangdiem-th">Mục</th>
             <th className="bangdiem-th">Loại tiêu chí</th>
             <th className="bangdiem-th">Nội dung tiêu chí</th>
@@ -219,9 +233,41 @@ const GroupedCriteriaTable: React.FC = () => {
         </tbody>
       </table>
 
-      <button onClick={handleThemBangDiem} className="luubangdiem-button">
-        Lưu bảng điểm
-      </button>
+      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "16px" }}>
+        {/* Chọn năm học */}
+        <label>Năm học</label>
+        <select
+          value={namHoc}
+          onChange={e => setNamHoc(e.target.value)}
+          className="bangdiem-select"
+          style={{ width: 120 }}
+        >
+          {namHocOptions.map(nh => (
+            <option key={nh} value={nh}>{nh}</option>
+          ))}
+        </select>
+
+        {/* Chọn học kỳ */}
+        <label>Học kỳ</label>
+        <select
+          value={hocKy}
+          onChange={e => setHocKy(e.target.value)}
+          className="bangdiem-select"
+          style={{ width: 100 }}
+        >
+          {hocKyOptions.map(hk => (
+            <option key={hk} value={hk}>{hk}</option>
+          ))}
+        </select>
+
+        {/* Nút lưu bảng điểm */}
+        <button onClick={handleThemBangDiem} 
+                className="luubangdiem-button"
+                style={{ marginLeft: "auto" }}
+        >
+          Lưu bảng điểm
+        </button>
+      </div>
     </div>
   );
 };
