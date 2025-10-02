@@ -1,35 +1,37 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./../styles/Admin/Admin.css";
 
-interface HocKy {
-  id: number;
-  raw: string;
+interface BangDiem {
+  ma_bang_diem: string;
+  hoc_ky: number;
+  nam_hoc: string;
+  bang_diem: string;
 }
 
 export default function HocKyTable() {
   const router = useRouter();
+  const [bangDiemList, setBangDiemList] = useState<BangDiem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const hocKyData: HocKy[] = [
-    { id: 1, raw: "2020-2022.1_BD0" },
-    { id: 2, raw: "2020-2021.2_BD1" },
-    { id: 3, raw: "2021-2022.1_BD0" },
-    { id: 4, raw: "2021-2022.2_BD0" },
-    { id: 5, raw: "2022-2023.1_BD1" },
-    { id: 6, raw: "2022-2023.2_BD0" },
-    { id: 7, raw: "2023-2024.1_BD0" },
-    { id: 8, raw: "2023-2024.2_BD1" },
-    { id: 9, raw: "2024-2025.1_BD0" },
-  ];
+  useEffect(() => {
+    fetch("http://localhost:8080/api/xembangdiem")
+      .then((res) => res.json())
+      .then((data) => {
+        setBangDiemList(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(() => {
+        setBangDiemList([]);
+        setLoading(false);
+      });
+  }, []);
 
   function handleCreate() {
-    router.push("admin/taobangdiem");
+    router.push("/admin/taobangdiem");
   }
-
-  // Luôn tạo 10 hàng
-  const rows = Array.from({ length: 10 }, (_, i) => hocKyData[i]);
 
   return (
     <div className="hocKy-container">
@@ -44,41 +46,31 @@ export default function HocKyTable() {
           </tr>
         </thead>
         <tbody>
-          {rows.map((item, index) => {
-            if (item) {
-              const parts = item.raw.split(".");
-              const namhoc = parts[0];
-              const hockyNumber = parts[1].split("_")[0];
-
-              return (
-                <tr key={item.id}>
-                  <td>{index + 1}</td>
-                  <td>{namhoc}</td>
-                  <td>{hockyNumber}</td>
-                  <td>
-                    <span
-                      className="hocKy-link"
-                      onClick={() =>
-                        router.push(`/admin/xembangdiem?raw=${item.raw}`)
-                      }
-                      style={{ cursor: "pointer" }}
-                    >
-                      Xem
-                    </span>
-                  </td>
-                </tr>
-              );
-            } else {
-              return (
-                <tr key={`empty-${index}`} className="hocKy-empty-row">
-                  <td>{index + 1}</td>
-                  <td>&nbsp;</td>
-                  <td>&nbsp;</td>
-                  <td>&nbsp;</td>
-                </tr>
-              );
-            }
-          })}
+          {bangDiemList.map((item, index) => (
+            <tr key={item.ma_bang_diem}>
+              <td>{index + 1}</td>
+              <td>{item.nam_hoc}</td>
+              <td>{item.hoc_ky}</td>
+              <td>
+                <span
+                  className="hocKy-link"
+                  onClick={() =>
+                    router.push(`/admin/xembangdiem?raw=${item.ma_bang_diem}`)
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  Xem
+                </span>
+              </td>
+            </tr>
+          ))}
+          {bangDiemList.length === 0 && (
+            <tr>
+              <td colSpan={4} style={{ textAlign: "center", color: "#888" }}>
+                Không có dữ liệu bảng điểm
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
 

@@ -19,6 +19,9 @@ const LoginForm = () => {
     }
 
     setLoading(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     try {
       const response = await fetch('http://localhost:8080/api/login', {
         method: 'POST',
@@ -28,7 +31,9 @@ const LoginForm = () => {
           password: password,
           type: role, // 'sv' cho sinh viên, 'gv' cho giảng viên
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         if (response.status === 401) {
