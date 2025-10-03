@@ -22,6 +22,7 @@
   padding: 12px;
   text-align: center; /* căn giữa ngang */
   vertical-align: middle; /* căn giữa dọc */
+  width: 70px !important;
 }
 
 .hocKy-table thead {

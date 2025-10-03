@@ -1,6 +1,7 @@
 package bangdiem
 
 import (
+	"Backend/controller/bangdiemcham"
 	"Backend/controller/hocky"
 	"Backend/initialize"
 	"Backend/model"
@@ -34,7 +35,7 @@ func TaoBangDiem(c *gin.Context) {
 
 	if count == 0 {
 		// Create HocKy
-		hocky.TaoHocKy(c, hockycheck)
+		hocky.TaoHocKy(c, hockycheck.MaHocKy)
 	}
 	// Check if BangDiem already exists
 	result = initialize.DB.Model(&model.BangDiem{}).Where("ma_hoc_ky_tham_chieu = ?", hockycheck.MaHocKy).Count(&count)
@@ -63,6 +64,9 @@ func TaoBangDiem(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"message": "Create bangdiem successfully",
 			})
+
+			// Create BangDiemCham
+			bangdiemcham.TaoBangDiemCham(c, bangdiemcheck.MaBangDiem)
 			return
 		}
 	} else {
@@ -71,4 +75,5 @@ func TaoBangDiem(c *gin.Context) {
 		})
 		return
 	}
+
 }
