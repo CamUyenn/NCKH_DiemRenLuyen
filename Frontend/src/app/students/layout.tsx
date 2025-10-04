@@ -28,7 +28,7 @@ export default function StudentsLayout({
   // Định nghĩa menu dựa trên pathname
   const getHeaderProps = () => {
     // Menu cho trang quản lý điểm rèn luyện (formchamdiem, result, classlist)
-    if (pathname.includes('/formchamdiem') || pathname.includes('/result') || pathname.includes('/userprofile')) {
+    if (pathname.includes('/formchamdiem') || pathname.includes('/ketquarenluyen') || pathname.includes('/xemdssinhvien')) {
       return {
         dropdownMenus: [
           {
@@ -40,11 +40,11 @@ export default function StudentsLayout({
               },
               {
                 label: "Kết quả rèn luyện", 
-                onClick: () => router.push("/students/result")
+                onClick: () => router.push("/students/ketquarenluyen")
               },
               {
                 label: "Xem danh sách sinh viên trong lớp",
-                onClick: () => router.push("/students/userprofile")
+                onClick: () => router.push("/students/xemdssinhvien")
               }
             ]
           }
@@ -85,11 +85,11 @@ export default function StudentsLayout({
           },
           {
             label: "Kết quả rèn luyện",
-            onClick: () => router.push("/students/result")
+            onClick: () => router.push("/students/ketquarenluyen")
           },
           {
             label: "Xem danh sách sinh viên trong lớp",
-            onClick: () => router.push("/students/userprofile")
+            onClick: () => router.push("/students/xemdssinhvien")
           }
         ]
       }

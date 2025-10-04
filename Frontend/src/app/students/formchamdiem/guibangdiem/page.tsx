@@ -1,17 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { diemData, Diem } from "../../admin/data";
-import "./../../styles/students/bangchamdiem.css";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { diemData, Diem } from "../../../admin/data";
+import "../../../styles/students/bangchamdiem.css";
 
-export default function ChamDiem() {
+export default function GuiBangDiem() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const raw = searchParams.get("raw");
-
   const bigSections = ["I", "II", "III", "IV", "V"];
 
+  // giới hạn điểm tối đa cho từng mục lớn
   const maxPoints: Record<string, number> = {
     I: 20,
     II: 25,
@@ -24,33 +22,17 @@ export default function ChamDiem() {
     Record<string, string[]>
   >({});
 
-  // 🔹 Khi vào ChamDiem, load dữ liệu đã lưu nháp (nếu có)
-  useEffect(() => {
-    const saved = localStorage.getItem("luuNhapBangDiem");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setSelectedValues(parsed.selectedValues || {});
-    }
-  }, []);
-
-  function handleCreate() {
-    alert("Bạn có chắc chắn muốn gửi bảng điểm không?");
-     localStorage.setItem(
-        "guiBangDiem",
-        JSON.stringify({ selectedValues })
-      );
-      router.push(`/students/formchamdiem/guibangdiem`);
+  // 🔹 load dữ liệu đã lưu từ localStorage
+ useEffect(() => {
+  const saved = localStorage.getItem("guiBangDiem");
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    setSelectedValues(parsed.selectedValues || {});
   }
+}, []);
 
-  // 🔹 Khi bấm Lưu nháp ở ChamDiem → ghi lại state + chuyển sang trang LuuNhap
-  function handleCopy() {
-    const saveData = { selectedValues };
-    localStorage.setItem("luuNhapBangDiem", JSON.stringify(saveData));
-    alert("Đã lưu nháp thành công!");
-    router.push(`/students/formchamdiem/luunhap`);
-  }
 
-  //Xep loai
+  //Xếp loại
   const getRank = () => {
     const total = calcAllTotal();
     if (total >= 90) return "Xuất sắc";
@@ -58,28 +40,6 @@ export default function ChamDiem() {
     if (total >= 65) return "Khá";
     if (total >= 50) return "Trung bình";
     return "Yếu";
-  };
-
-  // checkbox
-  const handleCheckbox = (item: Diem) => {
-    setSelectedValues((prev) => {
-      const group = item.mucCha || item.muc;
-      const current = prev[group] || [];
-      if (current.includes(item.muc)) {
-        return { ...prev, [group]: current.filter((v) => v !== item.muc) };
-      } else {
-        return { ...prev, [group]: [...current, item.muc] };
-      }
-    });
-  };
-
-  // radio
-  const handleRadio = (item: Diem) => {
-    const group = item.mucCha!;
-    setSelectedValues((prev) => ({
-      ...prev,
-      [group]: [item.muc],
-    }));
   };
 
   // tính tổng điểm của section với giới hạn
@@ -107,11 +67,10 @@ export default function ChamDiem() {
       return sum;
     }, 0);
 
-    // giới hạn điểm tối đa
     return Math.min(total, maxPoints[section] || total);
   };
 
-  // tổng toàn bảng = tổng đã giới hạn
+  // tổng toàn bảng
   const calcAllTotal = () => {
     return bigSections.reduce(
       (sum, section) => sum + calcSectionTotal(section),
@@ -121,15 +80,15 @@ export default function ChamDiem() {
 
   return (
     <div className="bangdiem_students-container">
-      <h2>Bảng điểm rèn luyện</h2>
+      <h2>Xem lại bảng điểm đánh giá</h2>
       <table className="bangdiem_students-table">
         <thead>
           <tr>
             <th>Mục</th>
             <th>Nội dung đánh giá</th>
             <th>Mô tả</th>
-            <th>Hành động</th>
-            <th>Sinh viên tự đánh giá</th>
+            <th>Người dùng chọn</th>
+            <th>Điểm</th>
           </tr>
         </thead>
         <tbody>
@@ -163,47 +122,19 @@ export default function ChamDiem() {
                       <td>{item.diem || ""}</td>
                       <td>
                         {item.loai === "checkbox" && (
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => handleCheckbox(item)}
-                          />
+                          <input type="checkbox" checked={isSelected} disabled />
                         )}
                         {item.loai === "radio" && (
                           <input
                             type="radio"
                             name={item.mucCha}
                             checked={isSelected}
-                            onChange={() => handleRadio(item)}
+                            disabled
                           />
                         )}
                         {item.loai === "none" && <span>-</span>}
                         {item.loai === "counter" && (
-                          <input
-                            type="number"
-                            min={0}
-                            max={3}
-                            step={1}
-                            value={selectedValues[item.muc]?.[0] || "-"}
-                            onChange={(e) => {
-                              const rawVal = e.target.value;
-                              if (rawVal === "-" || rawVal === "") {
-                                setSelectedValues((prev) => ({
-                                  ...prev,
-                                  [item.muc]: ["-"],
-                                }));
-                                return;
-                              }
-                              const val = Math.max(
-                                1,
-                                Math.min(5, parseInt(rawVal) || 1)
-                              );
-                              setSelectedValues((prev) => ({
-                                ...prev,
-                                [item.muc]: [String(val)],
-                              }));
-                            }}
-                          />
+                          <span>{selectedValues[item.muc]?.[0] || 0}</span>
                         )}
                       </td>
                       <td style={{ fontWeight: "bold" }}>
@@ -249,11 +180,11 @@ export default function ChamDiem() {
       </table>
 
       <div className="bangdiem_students-buttons">
-        <button onClick={handleCopy} className="bangdiem_students-btn">
-          Lưu nháp
-        </button>
-        <button onClick={handleCreate} className="bangdiem_students-btn">
-          Gửi bảng điểm
+        <button
+          onClick={() => router.push("/students")}
+          className="bangdiem_students-btn"
+        >
+          Quay lại
         </button>
       </div>
     </div>

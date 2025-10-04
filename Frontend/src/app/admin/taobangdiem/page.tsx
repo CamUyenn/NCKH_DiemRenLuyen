@@ -33,7 +33,7 @@ const hocKyOptions = [
   "Học kỳ 2"
 ];
 
-const GroupedCriteriaTable: React.FC = () => {
+const DaTaoBangDiem: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const raw = searchParams.get("raw");
@@ -272,4 +272,4 @@ const GroupedCriteriaTable: React.FC = () => {
   );
 };
 
-export default GroupedCriteriaTable;
+export default DaTaoBangDiem;
