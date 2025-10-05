@@ -25,7 +25,6 @@ func XemBangDiem(c *gin.Context) {
 		Mabangdiem string `json:"ma_bang_diem"`
 		Hocky      int    `json:"hoc_ky"`
 		Namhoc     string `json:"nam_hoc"`
-		Bangdiem   string `json:"bang_diem"`
 	}
 	var count int64
 	result = initialize.DB.Model(&model.BangDiem{}).Count(&count)
@@ -43,7 +42,6 @@ func XemBangDiem(c *gin.Context) {
 		bangdiemoutputlist[run].Mabangdiem = bangdiemxuly.MaBangDiem
 
 		latcat := strings.Split(bangdiemxuly.MaBangDiem, "_")
-		bangdiemoutputlist[run].Bangdiem = latcat[1]
 
 		latcat = strings.Split(latcat[0], ".")
 		bangdiemoutputlist[run].Hocky, _ = strconv.Atoi(latcat[1])
