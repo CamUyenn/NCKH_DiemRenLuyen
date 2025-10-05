@@ -1,7 +1,6 @@
 package main
 
 import (
-	"Backend/controller"
 	"Backend/controller/bangdiem"
 	"Backend/controller/hocky"
 	"Backend/controller/tieuchi"
@@ -31,15 +30,18 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	router.POST("/api/login", controller.Login)
 	router.POST("/api/taotieuchi", tieuchi.TaoTieuChi)
 	router.POST("/api/taobangdiem", bangdiem.TaoBangDiem)
-	router.DELETE("/api/xoatieuchi/:id", tieuchi.XoaTieuChi)
-	router.DELETE("/api/xoabangdiem/:id", bangdiem.XoaBangDiem)
-	router.DELETE("/api/xoahocky/:id", hocky.XoaHocKy)
+	router.POST("/api/saochepbangdiem", bangdiem.SaoChepBangDiem)
+	router.POST("/api/suatieuchi", tieuchi.SuaTieuChi)
+	router.POST("/api/phatbangdiem", bangdiem.PhatBangDiem)
+
 	router.GET("/api/xembangdiem", bangdiem.XemBangDiem)
-	router.GET("/api/xemtieuchi", tieuchi.XemTieuChi)
+	router.GET("/api/xemtieuchi/:mabangdiem", tieuchi.XemTieuChi)
 	router.GET("/api/xemhocky", hocky.XemHocKy)
+
+	router.DELETE("/api/xoahocky/:mahocky", hocky.XoaHocKy)
+	router.DELETE("/api/xoabangdiem/:mabangdiem", bangdiem.XoaBangDiem)
 
 	router.Run()
 }
