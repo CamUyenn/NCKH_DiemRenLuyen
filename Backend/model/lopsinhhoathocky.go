@@ -8,7 +8,6 @@ type LopSinhHoatHocKy struct {
 	MaGiangVienCoVan       string `gorm:"size:256" json:"ma_giang_vien_co_van"`
 	MaTruongKhoa           string `gorm:"size:256" json:"ma_truong_khoa"`
 	MaChuyenVienDaoTao     string `gorm:"size:256" json:"ma_chuyen_vien_dao_tao"`
-	TongDiem               int    `json:"tong_diem"`
 
 	Lop   LopSinhHoat `gorm:"foreignKey:MaLopSinhHoatThamChieu;references:MaLopSinhHoat"`
 	HocKy HocKy       `gorm:"foreignKey:MaHocKyThamChieu;references:MaHocKy"`
