@@ -17,7 +17,7 @@ interface RowData {
 const mucLevels = [1, 2, 3, 4];
 const loaiOptions = ["checkbox", "radio", "none"];
 
-const GroupedCriteriaTable: React.FC = () => {
+const ChinhSuaBangDiem: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const raw = searchParams.get("raw"); // ✅ lấy raw từ URL
@@ -26,8 +26,6 @@ const GroupedCriteriaTable: React.FC = () => {
     { muc: "", mucCha: "", mucLevel: 1, loai: "none", noiDung: "", diem: "" },
   ]);
 
-  // 👉 Lưu chỉnh sửa và điều hướng
-  // 👉 Lưu chỉnh sửa và điều hướng
   const handleLuuChinhSua = () => {
     if (raw) {
       // ✅ Lưu rows xuống localStorage
@@ -259,4 +257,4 @@ const GroupedCriteriaTable: React.FC = () => {
   );
 };
 
-export default GroupedCriteriaTable;
+export default ChinhSuaBangDiem;

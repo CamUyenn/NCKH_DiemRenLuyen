@@ -1,17 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { diemData, Diem } from "../../admin/data";
-import "./../../styles/students/bangchamdiem.css";
+import { diemData, Diem } from "../../../admin/data";
+import "../../../styles/students/bangchamdiem.css";
 
-export default function ChamDiem() {
+export default function LuuNhap() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const raw = searchParams.get("raw");
 
   const bigSections = ["I", "II", "III", "IV", "V"];
 
+  // giới hạn điểm tối đa cho từng mục lớn
   const maxPoints: Record<string, number> = {
     I: 20,
     II: 25,
@@ -23,34 +24,46 @@ export default function ChamDiem() {
   const [selectedValues, setSelectedValues] = useState<
     Record<string, string[]>
   >({});
+  const [loaded, setLoaded] = useState(false);
 
-  // 🔹 Khi vào ChamDiem, load dữ liệu đã lưu nháp (nếu có)
+  // 🔹 load dữ liệu đã lưu từ localStorage
   useEffect(() => {
     const saved = localStorage.getItem("luuNhapBangDiem");
     if (saved) {
       const parsed = JSON.parse(saved);
       setSelectedValues(parsed.selectedValues || {});
     }
+    setLoaded(true);
   }, []);
 
-  function handleCreate() {
-    alert("Bạn có chắc chắn muốn gửi bảng điểm không?");
-     localStorage.setItem(
-        "guiBangDiem",
+  // 🔹 chỉ lưu lại khi đã load xong dữ liệu cũ
+  useEffect(() => {
+    if (loaded) {
+      localStorage.setItem(
+        "luuNhapBangDiem",
         JSON.stringify({ selectedValues })
       );
-      router.push(`/students/formchamdiem/guibangdiem`);
-  }
-
-  // 🔹 Khi bấm Lưu nháp ở ChamDiem → ghi lại state + chuyển sang trang LuuNhap
-  function handleCopy() {
+    }
+  }, [selectedValues, loaded]);
+  // 🔹 lưu lại (ghi đè localStorage)
+  function handleSaveDraft() {
     const saveData = { selectedValues };
     localStorage.setItem("luuNhapBangDiem", JSON.stringify(saveData));
-    alert("Đã lưu nháp thành công!");
-    router.push(`/students/formchamdiem/luunhap`);
+    alert("Đã cập nhật lưu nháp!");
+    router.push(`/students/formchamdiem`); // quay lại form chấm điểm
   }
+function handleCreate() {
+  // luôn đồng bộ bản nháp mới nhất trước khi gửi
+  localStorage.setItem("luuNhapBangDiem", JSON.stringify({ selectedValues }));
 
-  //Xep loai
+  // lưu bản gửi cuối cùng
+  localStorage.setItem("guiBangDiem", JSON.stringify({ selectedValues }));
+
+  alert("Đã gửi bảng điểm!");
+  router.push(`/students/formchamdiem/guibangdiem`);
+}
+
+  //Xếp loại
   const getRank = () => {
     const total = calcAllTotal();
     if (total >= 90) return "Xuất sắc";
@@ -107,11 +120,10 @@ export default function ChamDiem() {
       return sum;
     }, 0);
 
-    // giới hạn điểm tối đa
     return Math.min(total, maxPoints[section] || total);
   };
 
-  // tổng toàn bảng = tổng đã giới hạn
+  // tổng toàn bảng
   const calcAllTotal = () => {
     return bigSections.reduce(
       (sum, section) => sum + calcSectionTotal(section),
@@ -121,7 +133,7 @@ export default function ChamDiem() {
 
   return (
     <div className="bangdiem_students-container">
-      <h2>Bảng điểm rèn luyện</h2>
+      <h2>Bảng điểm lưu nháp</h2>
       <table className="bangdiem_students-table">
         <thead>
           <tr>
@@ -184,7 +196,7 @@ export default function ChamDiem() {
                             min={0}
                             max={3}
                             step={1}
-                            value={selectedValues[item.muc]?.[0] || "-"}
+                            value={selectedValues[item.muc]?.[0] || ""}
                             onChange={(e) => {
                               const rawVal = e.target.value;
                               if (rawVal === "-" || rawVal === "") {
@@ -249,8 +261,8 @@ export default function ChamDiem() {
       </table>
 
       <div className="bangdiem_students-buttons">
-        <button onClick={handleCopy} className="bangdiem_students-btn">
-          Lưu nháp
+        <button onClick={handleSaveDraft} className="bangdiem_students-btn">
+          Lưu lại
         </button>
         <button onClick={handleCreate} className="bangdiem_students-btn">
           Gửi bảng điểm
