@@ -30,15 +30,6 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	// Config CORS
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // FE dev server
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-	}))
-
 	router.POST("/api/login", controller.Login)
 	router.POST("/api/taotieuchi", tieuchi.TaoTieuChi)
 	router.POST("/api/taobangdiem", bangdiem.TaoBangDiem)
