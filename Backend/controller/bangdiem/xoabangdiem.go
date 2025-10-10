@@ -3,26 +3,34 @@ package bangdiem
 import (
 	"Backend/initialize"
 	"Backend/model"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func XoaBangDiem(c *gin.Context) {
-	mabangdiem := c.Param("id")
+	// Fetch mahocky from URL
+	mabangdiem := c.Param("mabangdiem")
+
+	// Delete tieuchi is mabangdiemthamchieu equal mabangdiem
 	result := initialize.DB.Delete(&model.BangDiemChiTiet{}, "ma_bang_diem_tham_chieu = ?", mabangdiem)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete tieuchi foresign key"})
+		c.JSON(400, gin.H{
+			"error": "Failed to delete tieuchi foresign key",
+		})
 		return
 	}
 
-	if mabangdiem == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID is required"})
-		return
-	}
+	// Delete bangdiem
 	result = initialize.DB.Delete(&model.BangDiem{}, "ma_bang_diem = ?", mabangdiem)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete bangdiem"})
+		c.JSON(400, gin.H{
+			"error": "Failed to delete bangdiem",
+		})
+		return
+	} else {
+		c.JSON(200, gin.H{
+			"message": "Delete bangdiem succesful",
+		})
 		return
 	}
 }

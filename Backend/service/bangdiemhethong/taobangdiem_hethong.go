@@ -1,4 +1,4 @@
-package bangdiem
+package bangdiemhethong
 
 import (
 	"Backend/initialize"
@@ -8,24 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func TaoBangDiem(c *gin.Context) {
-	var hockycheck model.HocKy
+func TaoBangDiemHeThong(c *gin.Context, mahocky string) {
 	var bangdiemcheck model.BangDiem
 
-	// Fetch mahocky from JSON
-	if err := c.ShouldBindJSON(&hockycheck); err != nil {
-		c.JSON(400, gin.H{
-			"error": "Fetch mahocky from JSON failed",
-		})
-		return
-	}
-
 	// Create HocKy
-	hockyhethong.TaoHocKyHeThong(c, hockycheck.MaHocKy)
+	hockyhethong.TaoHocKyHeThong(c, mahocky)
 
 	// Create MaBangDiem
-	bangdiemcheck.MaBangDiem = hockycheck.MaHocKy + "_BD"
-	bangdiemcheck.MaHocKyThamChieu = hockycheck.MaHocKy
+	bangdiemcheck.MaBangDiem = mahocky + "_BD"
+	bangdiemcheck.MaHocKyThamChieu = mahocky
 
 	// Create BangDiem
 	result := initialize.DB.Create(&bangdiemcheck)

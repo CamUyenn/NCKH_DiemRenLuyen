@@ -9,8 +9,8 @@ import (
 )
 
 type Input struct {
-	Mabangdiemcheck string                `json:"ma_bang_diem"`
-	Tieuchi         model.BangDiemChiTiet `json:"tieuchi"`
+	Mabangdiemcheck string `json:"ma_bang_diem"`
+	Tieuchi         []model.BangDiemChiTiet
 }
 
 func TaoTieuChi(c *gin.Context) {
@@ -24,53 +24,21 @@ func TaoTieuChi(c *gin.Context) {
 		return
 	}
 
-	// Check tieuchi is exist in database
-	var count int64
-	var tieuchicheck []model.BangDiemChiTiet
-	result := initialize.DB.Model(&model.BangDiemChiTiet{}).Where("ma_bang_diem_tham_chieu = ?", input.Mabangdiemcheck).Count(&count)
-	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"error": "Count tieuchi in database failed",
-		})
-		return
-	}
-
-	result = initialize.DB.Where("ma_bang_diem_tham_chieu = ?", input.Mabangdiemcheck).Find(&tieuchicheck)
-	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"error": "Fetch tieuchi from DataBase failed",
-		})
-		return
-	}
-
 	// Generate matieuchi
-	input.Tieuchi.MaTieuChi = input.Mabangdiemcheck + "+" + strconv.Itoa(input.Tieuchi.MucDiem) + ":" + input.Tieuchi.Muc
-
-	flash := 0
-	for _, TieuChiCheck := range tieuchicheck {
-		// If TieuChi already exists in database, update data
-		if TieuChiCheck.MaTieuChi == input.Tieuchi.MaTieuChi {
-			result = initialize.DB.Model(&model.BangDiemChiTiet{}).Where("ma_tieu_chi = ?", input.Tieuchi.MaTieuChi).Updates(input.Tieuchi)
-			if result.Error != nil {
-				c.JSON(400, gin.H{
-					"error": "Update tieuchi failed",
-				})
-				return
-			}
-			flash = 1
-			break
-		}
+	for i, inputxuly := range input.Tieuchi {
+		input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + strconv.Itoa(inputxuly.MucDiem) + "," + inputxuly.Muc
+		input.Tieuchi[i].MaBangDiemThamChieu = input.Mabangdiemcheck
 	}
 
-	// If TieuChi does not exist in database, create tieuchi
-	if flash == 0 {
-		input.Tieuchi.MaBangDiemThamChieu = input.Mabangdiemcheck
-		result = initialize.DB.Create(&input.Tieuchi)
-		if result.Error != nil {
-			c.JSON(400, gin.H{
-				"error": "Create tieuchi failed",
-			})
-			return
-		}
+	// Create new tieuchi
+	result := initialize.DB.Create(&input.Tieuchi)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Fail to create tieuchi",
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"message": "Create tieuchi successful",
+		})
 	}
 }
