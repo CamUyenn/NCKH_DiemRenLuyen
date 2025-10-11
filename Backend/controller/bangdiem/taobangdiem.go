@@ -36,7 +36,7 @@ func TaoBangDiem(c *gin.Context) {
 		return
 	} else {
 		c.JSON(200, gin.H{
-			"message": "Create bangdiem successfully",
+			"mabangdiem": bangdiemcheck.MaBangDiem,
 		})
 		return
 	}
