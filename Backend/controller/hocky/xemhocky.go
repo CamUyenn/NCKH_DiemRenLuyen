@@ -28,7 +28,7 @@ func XemHocKy(c *gin.Context) {
 	for i := 0; i < 10; i++ {
 		yearup := year + i
 		yeardown := year - i
-		hockycreate = append(hockycreate, strconv.Itoa(yearup)+"-"+strconv.Itoa(yearup+1)+".1", strconv.Itoa(yearup)+"-"+strconv.Itoa(yearup+1)+".2", strconv.Itoa(yearup)+"-"+strconv.Itoa(yearup+1)+".3", strconv.Itoa(yeardown-1)+"-"+strconv.Itoa(yeardown)+".1", strconv.Itoa(yeardown-1)+"-"+strconv.Itoa(yeardown)+".2", strconv.Itoa(yeardown-1)+"-"+strconv.Itoa(yeardown)+".3")
+		hockycreate = append(hockycreate, strconv.Itoa(yearup)+"-"+strconv.Itoa(yearup+1)+".1", strconv.Itoa(yearup)+"-"+strconv.Itoa(yearup+1)+".2", strconv.Itoa(yeardown-1)+"-"+strconv.Itoa(yeardown)+".1", strconv.Itoa(yeardown-1)+"-"+strconv.Itoa(yeardown)+".2")
 	}
 
 	// Remove hocky that already exist
