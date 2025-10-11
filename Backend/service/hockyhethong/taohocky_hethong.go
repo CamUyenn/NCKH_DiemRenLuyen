@@ -33,8 +33,6 @@ func TaoHocKyHeThong(c *gin.Context, mahocky string) {
 		})
 		return
 	} else {
-		c.JSON(200, gin.H{
-			"message": "Create new hocky successful",
-		})
+		return
 	}
 }
