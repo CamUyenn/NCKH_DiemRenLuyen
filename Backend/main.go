@@ -19,6 +19,7 @@ func init() {
 func main() {
 	migrate.MigrateData()
 
+	// Tạo router chính của Gin
 	router := gin.Default()
 
 	// Config CORS
