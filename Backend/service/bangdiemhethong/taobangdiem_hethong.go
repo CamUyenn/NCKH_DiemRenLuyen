@@ -26,9 +26,6 @@ func TaoBangDiemHeThong(c *gin.Context, mahocky string) {
 		})
 		return
 	} else {
-		c.JSON(200, gin.H{
-			"message": "Create bangdiem successfully",
-		})
 		return
 	}
 }
