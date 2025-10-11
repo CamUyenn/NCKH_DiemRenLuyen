@@ -1,13 +1,13 @@
 package main
 
 import (
-	"net/http"
-
-	"Backend/controller/auth_middle"
-	"Backend/controller/login"
+	"Backend/controller/bangdiem"
+	"Backend/controller/hocky"
+	"Backend/controller/tieuchi"
 	"Backend/initialize"
 	"Backend/migrate"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,68 +22,27 @@ func main() {
 	// Tạo router chính của Gin
 	router := gin.Default()
 
-	// Endpoint Đăng nhập / Refresh token
-	router.POST("/api/login", login.Login)
-	router.POST("/api/refresh", login.RefreshToken)
+	// Config CORS
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"}, // FE dev server
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
-	// Nhóm API yêu cầu xác thực (dùng AuthMiddleware)
-	api := router.Group("/api")
-	api.Use(auth_middle.AuthMiddleware())
-	{
-		// /api/me → Lấy thông tin hiện tại trong token
-		api.GET("/me", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{
-				"user_id":   c.GetString("user_id"),
-				"user_type": c.GetString("user_type"),
-				"hoc_ky_id": c.GetString("hoc_ky_id"),
-			})
-		})
+	router.POST("/api/taotieuchi", tieuchi.TaoTieuChi)
+	router.POST("/api/taobangdiem", bangdiem.TaoBangDiem)
+	router.POST("/api/saochepbangdiem", bangdiem.SaoChepBangDiem)
+	router.POST("/api/suatieuchi", tieuchi.SuaTieuChi)
+	router.POST("/api/phatbangdiem", bangdiem.PhatBangDiem)
 
-		// ----------------------------------------------------
-		// /api/session/select-hocky → Chọn học kỳ
-		//    - Dùng để cập nhật user_type theo học kỳ
-		//    - Toàn bộ logic nằm trong controller.SelectHocKy
-		// ----------------------------------------------------
-		api.POST("/session/select-hocky", auth_middle.SelectHocKy)
+	router.GET("/api/xembangdiem", bangdiem.XemBangDiem)
+	router.GET("/api/xemtieuchi/:mabangdiem", tieuchi.XemTieuChi)
+	router.GET("/api/xemhocky", hocky.XemHocKy)
 
-		// ----------------------------------------------------
-		// Ví dụ 1: API tạo tiêu chí (cho giảng viên trở lên)
-		// ----------------------------------------------------
-		// api.POST("/tieuchi",
-		// 	tieuchi.RequireUserTypes("giangvien", "truongkhoa", "chuyenviendaotao"),
-		// 	tieuchi.TaoTieuChi,
-		// )
-
-		// ----------------------------------------------------
-		// Ví dụ 2: Dashboard lớp trưởng
-		// ----------------------------------------------------
-		api.GET("/loptruong/dashboard",
-			auth_middle.RequireUserTypes("loptruong"),
-			func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"ok": true, "msg": "Dashboard lớp trưởng"})
-			},
-		)
-
-		// ----------------------------------------------------
-		// Ví dụ 3: Trang phê duyệt cho Trưởng khoa
-		// ----------------------------------------------------
-		api.GET("/khoa/pheduyet",
-			auth_middle.RequireUserTypes("truongkhoa"),
-			func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"ok": true, "msg": "Xin chào Trưởng khoa"})
-			},
-		)
-
-		// ----------------------------------------------------
-		// Ví dụ 4: Panel dành cho Chuyên viên Đào tạo
-		// ----------------------------------------------------
-		api.GET("/cvdt/panel",
-			auth_middle.RequireUserTypes("chuyenviendaotao"),
-			func(c *gin.Context) {
-				c.JSON(http.StatusOK, gin.H{"ok": true, "msg": "Panel Chuyên viên Đào tạo"})
-			},
-		)
-	}
+	router.DELETE("/api/xoahocky/:mahocky", hocky.XoaHocKy)
+	router.DELETE("/api/xoabangdiem/:mabangdiem", bangdiem.XoaBangDiem)
 
 	router.Run()
 }

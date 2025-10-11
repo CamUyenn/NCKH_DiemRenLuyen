@@ -1,8 +1,6 @@
 package tieuchi
 
 import (
-	"Backend/controller/bangdiem"
-	"Backend/controller/hocky"
 	"Backend/initialize"
 	"Backend/model"
 	"strconv"
@@ -10,41 +8,37 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type HocKy_DanhSachTieuChi struct {
-	MaHocKy         string                  `json:"ma_hoc_ky"`
-	DanhSachTieuChi []model.BangDiemChiTiet `json:"danh_sach_tieu_chi"`
+type Input struct {
+	Mabangdiemcheck string `json:"ma_bang_diem"`
+	Tieuchi         []model.BangDiemChiTiet
 }
 
 func TaoTieuChi(c *gin.Context) {
-	var tieuchi HocKy_DanhSachTieuChi
+	var input Input
 
-	// Extract data from JSON
-	if err := c.ShouldBindJSON(&tieuchi); err != nil {
+	// Fetch input data from JSON
+	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(400, gin.H{
-			"error": "Khong lay duoc du lieu tu JSON",
+			"error": "Fetch input from JSON failed",
 		})
 		return
 	}
 
-	// Create HocKy
-	hocky.TaoHocKy(c, tieuchi.MaHocKy)
+	// Generate matieuchi
+	for i, inputxuly := range input.Tieuchi {
+		input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + strconv.Itoa(inputxuly.MucDiem) + "," + inputxuly.Muc
+		input.Tieuchi[i].MaBangDiemThamChieu = input.Mabangdiemcheck
+	}
 
-	// Create BangDiem
-	MaBangDiem := tieuchi.MaHocKy + "_BD"
-	bangdiem.TaoBangDiem(c, MaBangDiem)
-
-	// Create BangDiemChiTiet
-	for _, TieuChi := range tieuchi.DanhSachTieuChi {
-		MucDiem := strconv.Itoa(TieuChi.MucDiem)
-		TieuChi.MaTieuChi = MaBangDiem + "_" + MucDiem + "_" + TieuChi.Muc
-		TieuChi.MaBangDiemThamChieu = MaBangDiem
-
-		result := initialize.DB.Create(&TieuChi)
-		if result.Error != nil {
-			c.JSON(400, gin.H{
-				"error": "Tao tieu chi khong thanh cong",
-			})
-			return
-		}
+	// Create new tieuchi
+	result := initialize.DB.Create(&input.Tieuchi)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Fail to create tieuchi",
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"message": "Create tieuchi successful",
+		})
 	}
 }
