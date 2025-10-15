@@ -3,6 +3,7 @@ package main
 import (
 	"Backend/controller/bangdiem"
 	"Backend/controller/hocky"
+	"Backend/controller/login"
 	"Backend/controller/tieuchi"
 	"Backend/initialize"
 	"Backend/migrate"
@@ -35,6 +36,7 @@ func main() {
 	router.POST("/api/saochepbangdiem", bangdiem.SaoChepBangDiem)
 	router.POST("/api/suatieuchi", tieuchi.SuaTieuChi)
 	router.POST("/api/phatbangdiem", bangdiem.PhatBangDiem)
+	router.POST("/api/sauloginsinhvien", login.SauLoginSinhVien)
 
 	router.GET("/api/xembangdiem", bangdiem.XemBangDiem)
 	router.GET("/api/xemtieuchi/:mabangdiem", tieuchi.XemTieuChi)
