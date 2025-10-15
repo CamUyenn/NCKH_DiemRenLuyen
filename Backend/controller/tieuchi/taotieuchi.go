@@ -36,6 +36,7 @@ func TaoTieuChi(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"error": "Fail to create tieuchi",
 		})
+		return
 	} else {
 		c.JSON(200, gin.H{
 			"message": "Create tieuchi successful",

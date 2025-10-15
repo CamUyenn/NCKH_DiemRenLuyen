@@ -30,6 +30,7 @@ func SuaTieuChi(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"error": "Failed to delete danhsachtieuchi",
 		})
+		return
 	}
 
 	// Create new matieuchi
@@ -47,8 +48,7 @@ func SuaTieuChi(c *gin.Context) {
 		return
 	} else {
 		c.JSON(200, gin.H{
-			"error": "Update tieuchi successful",
+			"message": "Update tieuchi successful",
 		})
-		return
 	}
 }
