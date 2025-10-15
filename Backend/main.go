@@ -41,6 +41,7 @@ func main() {
 	router.GET("/api/xembangdiem", bangdiem.XemBangDiem)
 	router.GET("/api/xemtieuchi/:mabangdiem", tieuchi.XemTieuChi)
 	router.GET("/api/xemhocky", hocky.XemHocKy)
+	router.GET("/api/xemdanhsachhocky/:manguoidung/:type", hocky.XemDanhSachHocKy)
 
 	router.DELETE("/api/xoahocky/:mahocky", hocky.XoaHocKy)
 	router.DELETE("/api/xoabangdiem/:mabangdiem", bangdiem.XoaBangDiem)
