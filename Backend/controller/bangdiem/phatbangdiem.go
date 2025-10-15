@@ -36,7 +36,7 @@ func PhatBangDiem(c *gin.Context) {
 		return
 	}
 
-	// Create masinhviendiemrenluyen
+	// Create sinhviendiemrenluyen
 	danhsachsinhviendiemrenluyen := make([]model.SinhVienDiemRenLuyen, len(danhsachsinhvien))
 
 	for i := range danhsachsinhviendiemrenluyen {
@@ -44,6 +44,7 @@ func PhatBangDiem(c *gin.Context) {
 		danhsachsinhviendiemrenluyen[i].MaHocKyThamChieu = datainput.Mahocky
 		danhsachsinhviendiemrenluyen[i].MaBangDiemThamChieu = datainput.Mabangdiem
 		danhsachsinhviendiemrenluyen[i].MaSinhVienThamChieu = danhsachsinhvien[i]
+		danhsachsinhviendiemrenluyen[i].TrangThai = "Đã Phát"
 	}
 
 	// Create new sinhviendiemrenluyen
