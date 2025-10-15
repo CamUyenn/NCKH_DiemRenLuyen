@@ -37,7 +37,13 @@ func SaoChepBangDiem(c *gin.Context) {
 	}
 
 	// Create new bangdiem
-	bangdiemhethong.TaoBangDiemHeThong(c, datainput.Mahocky)
+	resultString := bangdiemhethong.TaoBangDiemHeThong(datainput.Mahocky)
+	if resultString != "Create bangdiem successful" {
+		c.JSON(400, gin.H{
+			"error": "Tao bangdiemhethong failed: " + resultString,
+		})
+		return
+	}
 
 	// Update matieuchi and mabangdiemthamchieu of danhsachtieuchi
 	mabangdiemupdate := datainput.Mahocky + "_BD"
@@ -56,7 +62,7 @@ func SaoChepBangDiem(c *gin.Context) {
 		return
 	} else {
 		c.JSON(200, gin.H{
-			"error": "Create new tieuchisaochep successful",
+			"message": "Create new tieuchisaochep successful",
 		})
 		return
 	}

@@ -53,10 +53,6 @@ func PhatBangDiem(c *gin.Context) {
 			"error": "Create new sinhviendiemrenluyen failed",
 		})
 		return
-	} else {
-		c.JSON(200, gin.H{
-			"message": "Create new sinhviendiemrenluyen succesful",
-		})
 	}
 
 	// Query danhsachtieuchi by mabangdiem
@@ -103,19 +99,6 @@ func PhatBangDiem(c *gin.Context) {
 		}
 	}
 
-	// Create new sinhviendiemrenluyenchitiet in database
-	result = initialize.DB.Create(&danhsachsinhviendiemrenluyenchitiet)
-	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"error": "Create new sinhviendiemrenluyenchitiet failed",
-		})
-		return
-	} else {
-		c.JSON(200, gin.H{
-			"error": "Create new sinhviendiemrenluyenchitiet successful",
-		})
-	}
-
 	// Update ngayphat and thoihannop
 	now := time.Now()
 
@@ -130,5 +113,18 @@ func PhatBangDiem(c *gin.Context) {
 			"error": "Update ngayphat and thoihannop failed",
 		})
 		return
+	}
+
+	// Create new sinhviendiemrenluyenchitiet in database
+	result = initialize.DB.Create(&danhsachsinhviendiemrenluyenchitiet)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Create new sinhviendiemrenluyenchitiet failed",
+		})
+		return
+	} else {
+		c.JSON(200, gin.H{
+			"message": "Create new sinhviendiemrenluyenchitiet successful",
+		})
 	}
 }

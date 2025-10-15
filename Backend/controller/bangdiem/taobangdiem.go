@@ -20,8 +20,14 @@ func TaoBangDiem(c *gin.Context) {
 		return
 	}
 
-	// Create HocKy
-	hockyhethong.TaoHocKyHeThong(c, hockycheck.MaHocKy)
+	// Create HocKy và kiểm tra giá trị trả về
+	returnString := hockyhethong.TaoHocKyHeThong(hockycheck.MaHocKy)
+	if returnString != "Create hocky successful" {
+		c.JSON(400, gin.H{
+			"error": "Tao hocky failed: " + returnString,
+		})
+		return
+	}
 
 	// Create MaBangDiem
 	bangdiemcheck.MaBangDiem = hockycheck.MaHocKy + "_BD"
@@ -36,7 +42,7 @@ func TaoBangDiem(c *gin.Context) {
 		return
 	} else {
 		c.JSON(200, gin.H{
-			"mabangdiem": bangdiemcheck.MaBangDiem,
+			"message": "Create bangdiem successful",
 		})
 		return
 	}
