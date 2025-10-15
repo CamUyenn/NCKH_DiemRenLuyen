@@ -40,7 +40,7 @@ func PhatBangDiem(c *gin.Context) {
 	danhsachsinhviendiemrenluyen := make([]model.SinhVienDiemRenLuyen, len(danhsachsinhvien))
 
 	for i := range danhsachsinhviendiemrenluyen {
-		danhsachsinhviendiemrenluyen[i].MaSinhVienDiemRenLuyen = danhsachsinhvien[i] + "#" + datainput.Mabangdiem
+		danhsachsinhviendiemrenluyen[i].MaSinhVienDiemRenLuyen = danhsachsinhvien[i] + "~" + datainput.Mabangdiem
 		danhsachsinhviendiemrenluyen[i].MaHocKyThamChieu = datainput.Mahocky
 		danhsachsinhviendiemrenluyen[i].MaBangDiemThamChieu = datainput.Mabangdiem
 		danhsachsinhviendiemrenluyen[i].MaSinhVienThamChieu = danhsachsinhvien[i]
@@ -71,7 +71,7 @@ func PhatBangDiem(c *gin.Context) {
 
 	for _, tieuchixuly := range danhsachtieuchi {
 		for _, masinhvienxuly := range danhsachsinhvien {
-			danhsachmasinhviendiemrenluyenchitiet = append(danhsachmasinhviendiemrenluyenchitiet, masinhvienxuly+"#"+tieuchixuly.MaTieuChi)
+			danhsachmasinhviendiemrenluyenchitiet = append(danhsachmasinhviendiemrenluyenchitiet, masinhvienxuly+"~"+tieuchixuly.MaTieuChi)
 		}
 	}
 
@@ -80,7 +80,7 @@ func PhatBangDiem(c *gin.Context) {
 	for _, tieuchixuly := range danhsachtieuchi {
 		for i := range danhsachsinhviendiemrenluyenchitiet {
 			// Verify matieuchi
-			slices := strings.Split(danhsachmasinhviendiemrenluyenchitiet[i], "#")
+			slices := strings.Split(danhsachmasinhviendiemrenluyenchitiet[i], "~")
 
 			if tieuchixuly.MaTieuChi == slices[1] {
 				danhsachsinhviendiemrenluyenchitiet[i].MaSinhVienDiemRenLuyenChiTiet = danhsachmasinhviendiemrenluyenchitiet[i]
