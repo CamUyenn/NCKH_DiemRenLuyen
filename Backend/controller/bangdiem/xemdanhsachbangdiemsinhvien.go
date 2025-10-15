@@ -11,6 +11,7 @@ func XemDanhSachBangDiemSinhVien(c *gin.Context) {
 	malopsinhhoat := c.Param("malopsinhhoat")
 	mahocky := c.Param("mahocky")
 
+	//Create struct for listthongtintrave
 	type Listthongtintrave struct {
 		MaSinhVien               string `json:"ma_sinh_vien"`
 		HoDem                    string `json:"ho_dem"`
@@ -29,6 +30,7 @@ func XemDanhSachBangDiemSinhVien(c *gin.Context) {
 		TongDiemChuyenVienDaoTao int    `json:"tong_diem_chuyen_vien_dao_tao"`
 	}
 
+	//Query listthongtintrave
 	var listthongtintrave []Listthongtintrave
 	result := initialize.DB.Model(model.LopSinhHoatSinhVien{}).
 		Joins("JOIN SinhVien ON LopSinhHoatSinhVien.ma_sinh_vien_tham_chieu = SinhVien.ma_sinh_vien").
