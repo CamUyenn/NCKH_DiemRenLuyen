@@ -4,15 +4,16 @@ import (
 	"Backend/initialize"
 	"Backend/model"
 	"Backend/service/hockyhethong"
-
-	"github.com/gin-gonic/gin"
 )
 
-func TaoBangDiemHeThong(c *gin.Context, mahocky string) {
+func TaoBangDiemHeThong(mahocky string) string {
 	var bangdiemcheck model.BangDiem
 
-	// Create HocKy
-	hockyhethong.TaoHocKyHeThong(c, mahocky)
+	// Create HocKy và kiểm tra giá trị trả về
+	returnString := hockyhethong.TaoHocKyHeThong(mahocky)
+	if returnString != "Create hocky successful" {
+		return "Tao hoc ky failed: " + returnString
+	}
 
 	// Create MaBangDiem
 	bangdiemcheck.MaBangDiem = mahocky + "_BD"
@@ -21,11 +22,7 @@ func TaoBangDiemHeThong(c *gin.Context, mahocky string) {
 	// Create BangDiem
 	result := initialize.DB.Create(&bangdiemcheck)
 	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"error": "Create bangdiem failed",
-		})
-		return
-	} else {
-		return
+		return "Create bangdiem failed"
 	}
+	return "Create bangdiem successful"
 }
