@@ -4,7 +4,7 @@ import (
 	"Backend/initialize"
 	"Backend/model"
 	"Backend/service/bangdiemhethong"
-	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +50,8 @@ func SaoChepBangDiem(c *gin.Context) {
 
 	for i, tieuchixuly := range danhsachtieuchi {
 		danhsachtieuchi[i].MaBangDiemThamChieu = mabangdiemupdate
-		danhsachtieuchi[i].MaTieuChi = mabangdiemupdate + "+" + strconv.Itoa(tieuchixuly.MucDiem) + "," + tieuchixuly.Muc
+		hockysplit := strings.Split(tieuchixuly.MaTieuChi, "_")
+		danhsachtieuchi[i].MaTieuChi = datainput.Mahocky + "_" + hockysplit[1]
 	}
 
 	// Create new tieuchisaochep in database

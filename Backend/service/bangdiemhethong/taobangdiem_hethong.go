@@ -18,6 +18,7 @@ func TaoBangDiemHeThong(mahocky string) string {
 	// Create MaBangDiem
 	bangdiemcheck.MaBangDiem = mahocky + "_BD"
 	bangdiemcheck.MaHocKyThamChieu = mahocky
+	bangdiemcheck.TrangThai = "Chưa Phát"
 
 	// Create BangDiem
 	result := initialize.DB.Create(&bangdiemcheck)
