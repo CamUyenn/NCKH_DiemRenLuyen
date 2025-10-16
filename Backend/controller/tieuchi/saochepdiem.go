@@ -2,6 +2,7 @@ package tieuchi
 
 import (
 	"Backend/initialize"
+	"Backend/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,6 +32,16 @@ func SaoChepDiem(c *gin.Context) {
 			})
 			return
 		}
+
+		trangthai := "Lớp Trưởng Đã Chấm"
+		result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", datainput.MaBangDiem).Update("trang_thai", trangthai)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Update trangthai failed",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Copy diemsinhviendanhgia success",
 		})
@@ -42,6 +53,16 @@ func SaoChepDiem(c *gin.Context) {
 			})
 			return
 		}
+
+		trangthai := "Giảng Viên Đã Chấm"
+		result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", datainput.MaBangDiem).Update("trang_thai", trangthai)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Update trangthai failed",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Copy diemgiangviendanhgia success",
 		})
@@ -53,6 +74,16 @@ func SaoChepDiem(c *gin.Context) {
 			})
 			return
 		}
+
+		trangthai := "Trưởng Khoa Đã Duyệt"
+		result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", datainput.MaBangDiem).Update("trang_thai", trangthai)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Update trangthai failed",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Copy diemtruongkhoadanhgia success",
 		})
@@ -64,6 +95,16 @@ func SaoChepDiem(c *gin.Context) {
 			})
 			return
 		}
+
+		trangthai := "Chuyên Viên Đào Tạo Đã Duyệt"
+		result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", datainput.MaBangDiem).Update("trang_thai", trangthai)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Update trangthai failed",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Copy diemchuyenviendaotao success",
 		})
