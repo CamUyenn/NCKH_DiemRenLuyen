@@ -42,6 +42,7 @@ func main() {
 	router.POST("/api/thaydoitrangthai", bangdiem.ThayDoiTrangThai)
 	router.POST("/api/saochepdiem", tieuchi.SaoChepDiem)
 	router.POST("/api/saocheptoanbodiem", tieuchi.SaoChepToanBoDiem)
+	router.POST("/api/saulogingiangvien", login.SauLoginGiangVien)
 
 	router.GET("/api/xembangdiem", bangdiem.XemBangDiem)
 	router.GET("/api/xemtieuchi/:mabangdiem", tieuchi.XemTieuChi)
