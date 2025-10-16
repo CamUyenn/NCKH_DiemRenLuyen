@@ -32,6 +32,7 @@ func TaoBangDiem(c *gin.Context) {
 	// Create MaBangDiem
 	bangdiemcheck.MaBangDiem = hockycheck.MaHocKy + "_BD"
 	bangdiemcheck.MaHocKyThamChieu = hockycheck.MaHocKy
+	bangdiemcheck.TrangThai = "Chưa Phát"
 
 	// Create BangDiem
 	result := initialize.DB.Create(&bangdiemcheck)
