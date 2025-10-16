@@ -34,7 +34,7 @@ func SuaTieuChi(c *gin.Context) {
 		return
 	}
 
-	if bangdiem.TrangThai != "Chưa Phát" {
+	if bangdiem.TrangThai == "Chưa Phát" {
 		// Delete danhsachtieuchi in database by mabangdiemthamchieu
 		result = initialize.DB.Delete(&model.BangDiemChiTiet{}, "ma_bang_diem_tham_chieu = ?", input.Mabangdiemcheck)
 		if result.Error != nil {
