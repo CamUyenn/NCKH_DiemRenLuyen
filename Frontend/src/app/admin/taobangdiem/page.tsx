@@ -5,12 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 
 interface RowData {
-  level: string; // Mức
-  mucCha?: string; // Mục cha
-  section: string; // Mục
-  type: string;
-  content: string;
-  score: string;
+  tenTieuChi: string; // Tên tiêu chí
+  mucDiem: string;    // Mức điểm (int)
+  muc: string;        // Mục
+  diem: string;       // Điểm (int)
+  moTaDiem?: string;  // Mô tả điểm
+  maTieuChiCha?: string; // Mã tiêu chí cha
+  loaiTieuChi: string;   // Loại tiêu chí
+  soLan?: string;        // Số lần tối đa (int)
 }
 
 // Các danh sách mục theo level
@@ -19,30 +21,36 @@ const mucLevel2 = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 const mucLevel3 = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t"];
 
 const levels = ["1", "2", "3"];
-const types = ["Checkbox", "Radio", "None"];
-
-const namHocOptions = [
-  "2022-2023",
-  "2023-2024",
-  "2024-2025",
-  "2025-2026"
-];
-
-const hocKyOptions = [
-  "Học kỳ 1",
-  "Học kỳ 2"
-];
+const types = ["Checkbox", "Radio", "Textbox", "None"];
 
 const DaTaoBangDiem: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const raw = searchParams.get("raw");
+
+  // Lấy mã học kỳ từ query params
+  const hocKyRaw = searchParams.get("hocky") || "";
+
+  // Tách năm học và học kỳ từ chuỗi, ví dụ: "2024-2025.1"
+  let namHoc = "";
+  let hocKy = "";
+  if (hocKyRaw) {
+    const parts = hocKyRaw.split(".");
+    namHoc = parts[0] || "";
+    hocKy = parts[1] === "1" ? "1" : parts[1] === "2" ? "2" : "";
+  }
 
   const [rows, setRows] = useState<RowData[]>([
-    { level: "", section: "", type: "", content: "", score: "" },
+    {
+      tenTieuChi: "",
+      mucDiem: "",
+      muc: "",
+      diem: "",
+      moTaDiem: "",
+      maTieuChiCha: "",
+      loaiTieuChi: "",
+      soLan: "",
+    },
   ]);
-  const [namHoc, setNamHoc] = useState(namHocOptions[0]);
-  const [hocKy, setHocKy] = useState(hocKyOptions[0]);
 
   const handleChange = (index: number, field: keyof RowData, value: string) => {
     const updatedRows = [...rows];
@@ -52,41 +60,72 @@ const DaTaoBangDiem: React.FC = () => {
     // Khi dòng cuối đã nhập đủ thì thêm dòng mới
     if (
       index === rows.length - 1 &&
-      updatedRows[index].level &&
-      (updatedRows[index].level === "1" || updatedRows[index].mucCha) &&
-      updatedRows[index].section &&
-      updatedRows[index].type &&
-      updatedRows[index].content
+      updatedRows[index].mucDiem &&
+      (updatedRows[index].mucDiem === "1" || updatedRows[index].maTieuChiCha) &&
+      updatedRows[index].muc &&
+      updatedRows[index].loaiTieuChi &&
+      updatedRows[index].tenTieuChi &&
+      updatedRows[index].diem
     ) {
       setRows([
         ...updatedRows,
         {
-          level: "",
-          section: "",
-          type: "",
-          content: "",
-          score: "",
+          tenTieuChi: "",
+          mucDiem: "",
+          muc: "",
+          diem: "",
+          moTaDiem: "",
+          maTieuChiCha: "",
+          loaiTieuChi: "",
+          soLan: "",
         },
       ]);
     }
   };
 
-  const handleThemBangDiem = () => {
-    // Lọc bỏ các hàng rỗng
+  const raw = `${namHoc}__${hocKy}`; // Tạo raw từ năm học và học kỳ
+
+  const handleThemBangDiem = async () => {
     const validRows = rows.filter(
-      (row) => row.level && row.section && row.type && row.content && row.score
+      (row) =>
+        row.mucDiem &&
+        row.muc &&
+        row.loaiTieuChi &&
+        row.tenTieuChi &&
+        row.diem
     );
-    const converted = validRows.map((row) => ({
-      muc: row.section,
-      mucLevel: parseInt(row.level, 10),
-      mucCha: row.mucCha || "",
-      loai: row.type,
-      noiDung: row.content,
-      diem: row.score,
+    const tieuchi = validRows.map((row) => ({
+      TenTieuChi: row.tenTieuChi,
+      MucDiem: parseInt(row.mucDiem, 10),
+      Muc: row.muc,
+      Diem: parseInt(row.diem, 10),
+      MoTaDiem: row.moTaDiem || "",
+      MaTieuChiCha: row.maTieuChiCha || "",
+      LoaiTieuChi: row.loaiTieuChi,
+      SoLan: row.loaiTieuChi === "Textbox" ? parseInt(row.soLan || "0", 10) : 0,
     }));
 
-    localStorage.setItem(`bangdiem_${raw}`, JSON.stringify(converted));
-    router.push(`/admin/dataobangdiem?raw=${raw}`);
+    const mabangdiemcheck = `${namHoc}.${hocKy}_BD`;
+
+    try {
+      const res = await fetch("http://localhost:8080/api/taotieuchi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ma_bang_diem: mabangdiemcheck,
+          tieuchi: tieuchi,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data && data.message === "Create tieuchi successful") {
+        alert("Lưu bảng điểm thành công!");
+        router.push(`/admin/dataobangdiem?raw=${mabangdiemcheck}`);
+      } else {
+        alert(data.error || "Lưu bảng điểm thất bại!");
+      }
+    } catch (error) {
+      alert("Có lỗi khi kết nối tới server!");
+    }
   };
 
   const getMucOptions = (level: string) => {
@@ -98,40 +137,47 @@ const DaTaoBangDiem: React.FC = () => {
 
   const getMucChaOptions = (level: string) => {
     if (level === "2")
-      return rows.filter((r) => r.level === "1").map((r) => r.section);
+      return rows.filter((r) => r.mucDiem === "1").map((r) => r.muc);
     if (level === "3")
-      return rows.filter((r) => r.level === "2").map((r) => r.section);
+      return rows.filter((r) => r.mucDiem === "2").map((r) => r.muc);
     return [];
   };
 
   return (
     <div className="bangdiem-container">
-      <h2 className="bangdiem-title">Bảng tiêu chí đánh giá</h2>
+      <h2 className="bangdiem-title">
+        Bảng tiêu chí đánh giá
+        {hocKyRaw && (
+          <span style={{ display: "block", fontSize: 18, marginTop: 8, color: "#003366", fontWeight: 600 }}>
+            Năm học: {namHoc} &nbsp;|&nbsp; Học kỳ: {hocKy}
+          </span>
+        )}
+      </h2>
 
       <table className="bangdiem-table">
         <thead>
           <tr>
-            <th className="bangdiem-th">Mức</th>
+            <th className="bangdiem-th">Mức điểm</th>
             <th className="bangdiem-th">Mục cha</th>
             <th className="bangdiem-th">Mục</th>
             <th className="bangdiem-th">Loại tiêu chí</th>
-            <th className="bangdiem-th">Nội dung tiêu chí</th>
+            <th className="bangdiem-th">Tên tiêu chí</th>
+            <th className="bangdiem-th">Mô tả điểm</th>
             <th className="bangdiem-th">Điểm</th>
+            <th className="bangdiem-th">Số lần tối đa</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((item, index) => {
-            const mucLevel = item.level;
+            const mucLevel = item.mucDiem;
 
             return (
               <tr key={index} className="bangdiem-tr">
-                {/* Mức */}
+                {/* Mức điểm */}
                 <td className="bangdiem-td">
                   <select
-                    value={item.level}
-                    onChange={(e) =>
-                      handleChange(index, "level", e.target.value)
-                    }
+                    value={item.mucDiem}
+                    onChange={(e) => handleChange(index, "mucDiem", e.target.value)}
                     className="bangdiem-select"
                   >
                     <option value="">-- Chọn mức --</option>
@@ -143,13 +189,11 @@ const DaTaoBangDiem: React.FC = () => {
                   </select>
                 </td>
 
-                {/* Mức cha */}
+                {/* Mục cha */}
                 <td className="bangdiem-td">
                   <select
-                    value={item.mucCha || ""}
-                    onChange={(e) =>
-                      handleChange(index, "mucCha", e.target.value)
-                    }
+                    value={item.maTieuChiCha || ""}
+                    onChange={(e) => handleChange(index, "maTieuChiCha", e.target.value)}
                     className="bangdiem-select"
                     disabled={mucLevel === "1"} // ✅ mức 1 thì không chọn cha
                   >
@@ -165,15 +209,13 @@ const DaTaoBangDiem: React.FC = () => {
                 {/* Mục */}
                 <td className="bangdiem-td">
                   <select
-                    value={item.section}
-                    onChange={(e) =>
-                      handleChange(index, "section", e.target.value)
-                    }
+                    value={item.muc}
+                    onChange={(e) => handleChange(index, "muc", e.target.value)}
                     className="bangdiem-select"
-                    disabled={!item.level} // chưa chọn mức thì chưa cho chọn mục
+                    disabled={!item.mucDiem} // chưa chọn mức thì chưa cho chọn mục
                   >
                     <option value="">-- Chọn mục --</option>
-                    {getMucOptions(item.level).map((s) => (
+                    {getMucOptions(item.mucDiem).map((s) => (
                       <option key={s} value={s}>
                         {s}
                       </option>
@@ -184,12 +226,10 @@ const DaTaoBangDiem: React.FC = () => {
                 {/* Loại tiêu chí */}
                 <td className="bangdiem-td">
                   <select
-                    value={item.type}
-                    onChange={(e) =>
-                      handleChange(index, "type", e.target.value)
-                    }
+                    value={item.loaiTieuChi}
+                    onChange={(e) => handleChange(index, "loaiTieuChi", e.target.value)}
                     className="bangdiem-select"
-                    disabled={mucLevel !== "1" && !item.mucCha} // phải có mức cha nếu > 1
+                    disabled={mucLevel !== "1" && !item.maTieuChiCha} // phải có mức cha nếu > 1
                   >
                     <option value="">--</option>
                     {types.map((t) => (
@@ -200,17 +240,27 @@ const DaTaoBangDiem: React.FC = () => {
                   </select>
                 </td>
 
-                {/* Nội dung */}
+                {/* Tên tiêu chí */}
                 <td className="bangdiem-td">
                   <input
                     type="text"
-                    value={item.content}
-                    onChange={(e) =>
-                      handleChange(index, "content", e.target.value)
-                    }
-                    placeholder="Nhập nội dung..."
+                    value={item.tenTieuChi}
+                    onChange={(e) => handleChange(index, "tenTieuChi", e.target.value)}
+                    placeholder="Nhập tên tiêu chí..."
                     className="bangdiem-input"
-                    disabled={mucLevel !== "1" && !item.mucCha}
+                    disabled={mucLevel !== "1" && !item.maTieuChiCha}
+                  />
+                </td>
+
+                {/* Mô tả điểm */}
+                <td className="bangdiem-td">
+                  <input
+                    type="text"
+                    value={item.moTaDiem || ""}
+                    onChange={(e) => handleChange(index, "moTaDiem", e.target.value)}
+                    placeholder="Nhập mô tả điểm..."
+                    className="bangdiem-input"
+                    disabled={mucLevel !== "1" && !item.maTieuChiCha}
                   />
                 </td>
 
@@ -218,13 +268,24 @@ const DaTaoBangDiem: React.FC = () => {
                 <td className="bangdiem-td">
                   <input
                     type="text"
-                    value={item.score}
-                    onChange={(e) =>
-                      handleChange(index, "score", e.target.value)
-                    }
+                    value={item.diem}
+                    onChange={(e) => handleChange(index, "diem", e.target.value)}
                     placeholder="Nhập điểm..."
                     className="bangdiem-input"
-                    disabled={mucLevel !== "1" && !item.mucCha}
+                    disabled={mucLevel !== "1" && !item.maTieuChiCha}
+                  />
+                </td>
+
+                {/* Số lần tối đa */}
+                <td className="bangdiem-td">
+                  <input
+                    type="number"
+                    min={0}
+                    value={item.soLan || ""}
+                    onChange={(e) => handleChange(index, "soLan", e.target.value)}
+                    placeholder="Số lần tối đa"
+                    className="bangdiem-input"
+                    disabled={item.loaiTieuChi !== "Textbox" || mucLevel !== "1" && !item.maTieuChiCha}
                   />
                 </td>
               </tr>
@@ -234,36 +295,10 @@ const DaTaoBangDiem: React.FC = () => {
       </table>
 
       <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "16px" }}>
-        {/* Chọn năm học */}
-        <label>Năm học</label>
-        <select
-          value={namHoc}
-          onChange={e => setNamHoc(e.target.value)}
-          className="bangdiem-select"
-          style={{ width: 120 }}
-        >
-          {namHocOptions.map(nh => (
-            <option key={nh} value={nh}>{nh}</option>
-          ))}
-        </select>
-
-        {/* Chọn học kỳ */}
-        <label>Học kỳ</label>
-        <select
-          value={hocKy}
-          onChange={e => setHocKy(e.target.value)}
-          className="bangdiem-select"
-          style={{ width: 100 }}
-        >
-          {hocKyOptions.map(hk => (
-            <option key={hk} value={hk}>{hk}</option>
-          ))}
-        </select>
-
-        {/* Nút lưu bảng điểm */}
-        <button onClick={handleThemBangDiem} 
-                className="luubangdiem-button"
-                style={{ marginLeft: "auto" }}
+        <button
+          onClick={handleThemBangDiem}
+          className="luubangdiem-button"
+          style={{ marginLeft: "auto" }}
         >
           Lưu bảng điểm
         </button>
