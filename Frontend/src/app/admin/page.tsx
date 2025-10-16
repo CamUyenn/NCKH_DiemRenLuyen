@@ -30,7 +30,7 @@ export default function HocKyTable() {
   }, []);
 
   function handleCreate() {
-    router.push("/admin/taobangdiem");
+    router.push("/admin/taohocky");
   }
 
   return (
