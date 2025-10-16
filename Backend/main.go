@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Backend/controller"
 	"Backend/controller/bangdiem"
 	"Backend/controller/hocky"
 	"Backend/controller/tieuchi"
@@ -29,6 +30,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	router.POST("/api/login", controller.Login)
 	router.POST("/api/taotieuchi", tieuchi.TaoTieuChi)
 	router.POST("/api/taobangdiem", bangdiem.TaoBangDiem)
 	router.POST("/api/saochepbangdiem", bangdiem.SaoChepBangDiem)
