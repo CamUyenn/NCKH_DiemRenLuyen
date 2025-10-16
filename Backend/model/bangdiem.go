@@ -8,6 +8,7 @@ type BangDiem struct {
 	NgayPhat         time.Time `json:"ngay_phat"`
 	TongDiem         int       `json:"tong_diem"`
 	ThoiHanNop       time.Time `json:"thoi_han_hop"`
+	TrangThai        string    `json:"trang_thai"`
 
 	HocKy                HocKy                `gorm:"foreignKey:MaHocKyThamChieu;references:MaHocKy"`
 	BangDiemChiTiet      []BangDiemChiTiet    `gorm:"foreignKey:MaBangDiemThamChieu;references:MaBangDiem"`
