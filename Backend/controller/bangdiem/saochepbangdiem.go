@@ -52,6 +52,11 @@ func SaoChepBangDiem(c *gin.Context) {
 		danhsachtieuchi[i].MaBangDiemThamChieu = mabangdiemupdate
 		hockysplit := strings.Split(tieuchixuly.MaTieuChi, "_")
 		danhsachtieuchi[i].MaTieuChi = datainput.Mahocky + "_" + hockysplit[1]
+		if tieuchixuly.MaTieuChiCha == "" {
+			continue
+		} else {
+			danhsachtieuchi[i].MaTieuChiCha = datainput.Mahocky + "_" + strings.Split(tieuchixuly.MaTieuChiCha, "_")[1]
+		}
 	}
 
 	// Create new tieuchisaochep in database
