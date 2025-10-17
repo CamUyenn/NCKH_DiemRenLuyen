@@ -40,36 +40,72 @@ func SaoChepToanBoDiem(c *gin.Context) {
 			})
 			return
 		}
+
+		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyen SET trang_thai = N'Lớp Trưởng Đã Chấm' WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Sinh Viên Đã Chấm'", listmasinhvien, datainput.Mahocky)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Failed to update trangthai",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{"message": "Copy diemloptruongdanhgia successful"})
 		return
 	case "giangvien":
-		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET SinhVienDiemRenLuyenChiTiet.diem_giang_vien_danh_gia = SinhVienDiemRenLuyenChiTiet.diem_lop_truong_danh_gia FROM SinhVienDiemRenLuyen JOIN SinhVienDiemRenLuyenChiTiet ON SinhVienDiemRenLuyen.ma_sinh_vien_diem_ren_luyen = SinhVienDiemRenLuyenChiTiet.ma_sinh_vien_diem_ren_luyen_tham_chieu WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Sinh Viên Đã Chấm'", listmasinhvien, datainput.Mahocky)
+		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET SinhVienDiemRenLuyenChiTiet.diem_giang_vien_danh_gia = SinhVienDiemRenLuyenChiTiet.diem_lop_truong_danh_gia FROM SinhVienDiemRenLuyen JOIN SinhVienDiemRenLuyenChiTiet ON SinhVienDiemRenLuyen.ma_sinh_vien_diem_ren_luyen = SinhVienDiemRenLuyenChiTiet.ma_sinh_vien_diem_ren_luyen_tham_chieu WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Lớp Trưởng Đã Chấm'", listmasinhvien, datainput.Mahocky)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"error": "Failed to copy diemgiangviendanhgia",
 			})
 			return
 		}
+
+		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyen SET trang_thai = N'Giảng Viên Đã Chấm' WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Lớp Trưởng Đã Chấm'", listmasinhvien, datainput.Mahocky)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Failed to update trangthai",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{"message": "Copy diemgiangviendanhgia successful"})
 		return
 	case "truongkhoa":
-		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET SinhVienDiemRenLuyenChiTiet.diem_truong_khoa_danh_gia = SinhVienDiemRenLuyenChiTiet.diem_giang_vien_danh_gia FROM SinhVienDiemRenLuyen JOIN SinhVienDiemRenLuyenChiTiet ON SinhVienDiemRenLuyen.ma_sinh_vien_diem_ren_luyen = SinhVienDiemRenLuyenChiTiet.ma_sinh_vien_diem_ren_luyen_tham_chieu WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Sinh Viên Đã Chấm'", listmasinhvien, datainput.Mahocky)
+		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET SinhVienDiemRenLuyenChiTiet.diem_truong_khoa_danh_gia = SinhVienDiemRenLuyenChiTiet.diem_giang_vien_danh_gia FROM SinhVienDiemRenLuyen JOIN SinhVienDiemRenLuyenChiTiet ON SinhVienDiemRenLuyen.ma_sinh_vien_diem_ren_luyen = SinhVienDiemRenLuyenChiTiet.ma_sinh_vien_diem_ren_luyen_tham_chieu WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Giảng Viên Đã Chấm'", listmasinhvien, datainput.Mahocky)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"error": "Failed to copy diemtruongkhoadanhgia",
 			})
 			return
 		}
+
+		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyen SET trang_thai = N'Trưởng Khoa Đã Duyệt' WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Giảng Viên Đã Chấm'", listmasinhvien, datainput.Mahocky)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Failed to update trangthai",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{"message": "Copy diemtruongkhoadanhgia successful"})
 		return
 	case "chuyenviencovan":
-		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET SinhVienDiemRenLuyenChiTiet.diem_chuyen_vien_co_van = SinhVienDiemRenLuyenChiTiet.diem_truong_khoa_danh_gia FROM SinhVienDiemRenLuyen JOIN SinhVienDiemRenLuyenChiTiet ON SinhVienDiemRenLuyen.ma_sinh_vien_diem_ren_luyen = SinhVienDiemRenLuyenChiTiet.ma_sinh_vien_diem_ren_luyen_tham_chieu WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Sinh Viên Đã Chấm'", listmasinhvien, datainput.Mahocky)
+		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET SinhVienDiemRenLuyenChiTiet.diem_chuyen_vien_co_van = SinhVienDiemRenLuyenChiTiet.diem_truong_khoa_danh_gia FROM SinhVienDiemRenLuyen JOIN SinhVienDiemRenLuyenChiTiet ON SinhVienDiemRenLuyen.ma_sinh_vien_diem_ren_luyen = SinhVienDiemRenLuyenChiTiet.ma_sinh_vien_diem_ren_luyen_tham_chieu WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Trưởng Khoa Đã Duyệt'", listmasinhvien, datainput.Mahocky)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"error": "Failed to copy diemchuyenviencovan",
 			})
 			return
 		}
+
+		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyen SET trang_thai = N'Chuyên Viên Đào Tạo Đã Duyệt' WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Trưởng Khoa Đã Duyệt'", listmasinhvien, datainput.Mahocky)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Failed to update trangthai",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{"message": "Copy diemchuyenviencovan successful"})
 		return
 	}

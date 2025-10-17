@@ -106,6 +106,7 @@ func PhatBangDiem(c *gin.Context) {
 	updateData := model.BangDiem{
 		NgayPhat:   now,
 		ThoiHanNop: now.AddDate(0, 1, 0),
+		TrangThai:  "Đã Phát",
 	}
 
 	result = initialize.DB.Model(&model.BangDiem{}).Where("ma_bang_diem = ?", datainput.Mabangdiem).Updates(updateData)
@@ -124,6 +125,7 @@ func PhatBangDiem(c *gin.Context) {
 		})
 		return
 	} else {
+
 		c.JSON(200, gin.H{
 			"message": "Create new sinhviendiemrenluyenchitiet successful",
 		})
