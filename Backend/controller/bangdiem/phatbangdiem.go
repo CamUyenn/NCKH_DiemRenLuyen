@@ -48,7 +48,7 @@ func PhatBangDiem(c *gin.Context) {
 	}
 
 	// Create new sinhviendiemrenluyen
-	result = initialize.DB.Create(&danhsachsinhviendiemrenluyen)
+	result = initialize.DB.CreateInBatches(&danhsachsinhviendiemrenluyen, 100)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Create new sinhviendiemrenluyen failed",
@@ -118,7 +118,7 @@ func PhatBangDiem(c *gin.Context) {
 	}
 
 	// Create new sinhviendiemrenluyenchitiet in database
-	result = initialize.DB.Create(&danhsachsinhviendiemrenluyenchitiet)
+	result = initialize.DB.CreateInBatches(&danhsachsinhviendiemrenluyenchitiet, 100)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Create new sinhviendiemrenluyenchitiet failed",
