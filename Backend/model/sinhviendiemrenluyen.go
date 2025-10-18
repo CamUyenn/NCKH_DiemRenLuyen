@@ -9,7 +9,7 @@ type SinhVienDiemRenLuyen struct {
 	TongDiem               int    `json:"tong_diem"`
 
 	SinhVien                    SinhVien                      `gorm:"foreignKey:MaSinhVienThamChieu;references:MaSinhVien"`
-	SinhVienDiemRenLuyenChiTiet []SinhVienDiemRenLuyenChiTiet `gorm:"foreignKey:MaSinhVienDiemRenLuyenChiTiet;references:MaSinhVienDiemRenLuyen"`
+	SinhVienDiemRenLuyenChiTiet []SinhVienDiemRenLuyenChiTiet `gorm:"foreignKey:MaSinhVienDiemRenLuyenThamChieu;references:MaSinhVienDiemRenLuyen"`
 	HocKy                       HocKy                         `gorm:"foreignKey:MaHocKyThamChieu;references:MaHocKy"`
 }
 

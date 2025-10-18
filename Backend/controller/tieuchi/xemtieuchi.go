@@ -8,20 +8,10 @@ import (
 )
 
 func XemTieuChi(c *gin.Context) {
-	// Fetch input data from JSON
-	type Mabangdiemcheck struct {
-		MabangdiemcheckJSON string ` json:"ma_bang_diem"`
-	}
-	var mabangdiemcheck Mabangdiemcheck
+	// Fetch input mabangdiem from URL
+	mabangdiem := c.Param("mabangdiem")
 
-	if err := c.ShouldBindJSON(&mabangdiemcheck); err != nil {
-		c.JSON(400, gin.H{
-			"error": "Fetch input from JSON failed",
-		})
-		return
-	}
-
-	// Retrieve tieuchi from database
+	// Query tieuchi in the database by mabangdiem
 	type BangDiemChiTietOutPut struct {
 		MaTieuChi           string `json:"ma_tieu_chi"`
 		MaBangDiemThamChieu string `json:"ma_bang_diem_tham_chieu"`
@@ -35,14 +25,16 @@ func XemTieuChi(c *gin.Context) {
 		SoLan               int    `json:"so_lan"`
 	}
 
-	var tieuchi []BangDiemChiTietOutPut
-	result := initialize.DB.Model(&model.BangDiemChiTiet{}).Where("ma_bang_diem_tham_chieu = ?", mabangdiemcheck.MabangdiemcheckJSON).Find(&tieuchi)
+	var danhsachtieuchi []BangDiemChiTietOutPut
+
+	result := initialize.DB.Model(&model.BangDiemChiTiet{}).Where("ma_bang_diem_tham_chieu = ?", mabangdiem).Find(&danhsachtieuchi)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
-			"error": "Fetch tieuchi from DataBase failed",
+			"error": "Query tieuchi from DataBase failed",
 		})
 		return
 	}
 
-	c.JSON(200, tieuchi)
+	// Return danhsachtieuchi JSON for frontend
+	c.JSON(200, danhsachtieuchi)
 }

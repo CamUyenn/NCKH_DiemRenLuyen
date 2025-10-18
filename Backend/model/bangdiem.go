@@ -5,7 +5,7 @@ import "time"
 type BangDiem struct {
 	MaBangDiem       string    `gorm:"size:256;primaryKey" json:"ma_bang_diem"`
 	MaHocKyThamChieu string    `gorm:"size:256" json:"ma_hoc_ky_tham_chieu"`
-	NgayTao          time.Time `json:"ngay_tao"`
+	NgayPhat         time.Time `json:"ngay_phat"`
 	TongDiem         int       `json:"tong_diem"`
 	ThoiHanNop       time.Time `json:"thoi_han_hop"`
 

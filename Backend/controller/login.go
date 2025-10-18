@@ -53,8 +53,8 @@ func Login(c *gin.Context) {
 
 	if req.Type == "sv" {
 		var sv model.SinhVien
-		query := `SELECT MaSinhVien, HoDem, Ten, GioiTinh, NgaySinh, NoiSinh, MatKhau
-		          FROM SinhVien WHERE MaSinhVien = ? AND MatKhau = ?`
+		query := `SELECT ma_sinh_vien, ho_dem, ten, gioi_tinh, ngay_sinh, noi_sinh, mat_khau
+		          FROM SinhVien WHERE ma_sinh_vien = ? AND mat_khau = ?`
 		result := initialize.DB.Raw(query, req.Username, req.Password).Scan(&sv)
 		if result.Error != nil || sv.MaSinhVien == "" {
 			c.JSON(http.StatusUnauthorized, LoginResponse{
@@ -75,8 +75,8 @@ func Login(c *gin.Context) {
 		return
 	} else if req.Type == "gv" {
 		var gv model.GiangVien
-		query := `SELECT MaGiangVien, HoDem, Ten, GioiTinh, NgaySinh, QuocTich, MatKhau
-		          FROM GiangVien WHERE MaGiangVien = ? AND MatKhau = ?`
+		query := `SELECT ma_giang_vien, ho_dem, ten, gioi_tinh, ngay_sinh, quoc_tich, mat_khau
+		          FROM GiangVien WHERE ma_giang_vien = ? AND mat_khau = ?`
 		result := initialize.DB.Raw(query, req.Username, req.Password).Scan(&gv)
 		if result.Error != nil || gv.MaGiangVien == "" {
 			c.JSON(http.StatusUnauthorized, LoginResponse{

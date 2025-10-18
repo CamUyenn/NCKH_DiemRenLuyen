@@ -27,10 +27,9 @@ export default function BangDiem() {
 
   useEffect(() => {
     if (!raw) return;
-    fetch("http://localhost:8080/api/xemtieuchi", {
-      method: "POST",
+    fetch(`http://localhost:8080/api/xemtieuchi/${raw}`, {
+      method: "GET",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ma_bang_diem: raw }),
     })
       .then((res) => res.json())
       .then((data) => {
