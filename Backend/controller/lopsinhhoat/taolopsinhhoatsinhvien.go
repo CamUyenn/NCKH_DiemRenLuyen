@@ -39,7 +39,6 @@ func TaoLopSinhHoatSinhVien(c *gin.Context) {
 			MaSinhVienThamChieu:    maSV,
 			MaLopSinhHoatThamChieu: maLopSH,
 			MaHocKyThamChieu:       maHocKy,
-			DiemRenLuyen:           0,
 		}
 		lophkSvRecords = append(lophkSvRecords, lophkSv)
 	}

@@ -17,7 +17,6 @@ type SinhVienDiemRenLuyenChiTiet struct {
 	DiemGiangVienDanhGia            int    `json:"diem_giang_vien_danh_gia"`
 	DiemTruongKhoaDanhGia           int    `json:"diem_truong_khoa_danh_gia"`
 	DiemChuyenVienDaoTao            int    `json:"diem_chuyen_vien_dao_tao"`
-	XepLoai                         string `json:"xep_loai"`
 
 	SinhVienDiemRenLuyen SinhVienDiemRenLuyen `gorm:"foreignKey:MaSinhVienDiemRenLuyenThamChieu;references:MaSinhVienDiemRenLuyen"`
 }
