@@ -63,32 +63,6 @@ func AuthMiddleware() gin.HandlerFunc {
 }
 
 // =======================
-//  AUTHZ: Phân quyền gọn
-// =======================
-
-// Chặn theo user_type (ví dụ: RequireUserTypes("giangvien","truongkhoa"), hoặc ("loptruong"), ("admin") ...)
-func RequireUserTypes(allowed ...string) gin.HandlerFunc {
-	allow := make(map[string]struct{}, len(allowed))
-	for _, a := range allowed {
-		allow[strings.ToLower(strings.TrimSpace(a))] = struct{}{}
-	}
-	return func(c *gin.Context) {
-		ut := strings.ToLower(strings.TrimSpace(c.GetString("user_type")))
-		if ut == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			c.Abort()
-			return
-		}
-		if _, ok := allow[ut]; ok {
-			c.Next()
-			return
-		}
-		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: insufficient role"})
-		c.Abort()
-	}
-}
-
-// =======================
 //  Helper: ký access token mới với học kỳ
 // =======================
 

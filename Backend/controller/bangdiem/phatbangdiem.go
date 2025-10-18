@@ -36,14 +36,15 @@ func PhatBangDiem(c *gin.Context) {
 		return
 	}
 
-	// Create masinhviendiemrenluyen
+	// Create sinhviendiemrenluyen
 	danhsachsinhviendiemrenluyen := make([]model.SinhVienDiemRenLuyen, len(danhsachsinhvien))
 
 	for i := range danhsachsinhviendiemrenluyen {
-		danhsachsinhviendiemrenluyen[i].MaSinhVienDiemRenLuyen = danhsachsinhvien[i] + "#" + datainput.Mabangdiem
+		danhsachsinhviendiemrenluyen[i].MaSinhVienDiemRenLuyen = danhsachsinhvien[i] + "~" + datainput.Mabangdiem
 		danhsachsinhviendiemrenluyen[i].MaHocKyThamChieu = datainput.Mahocky
 		danhsachsinhviendiemrenluyen[i].MaBangDiemThamChieu = datainput.Mabangdiem
 		danhsachsinhviendiemrenluyen[i].MaSinhVienThamChieu = danhsachsinhvien[i]
+		danhsachsinhviendiemrenluyen[i].TrangThai = "Đã Phát"
 	}
 
 	// Create new sinhviendiemrenluyen
@@ -53,10 +54,6 @@ func PhatBangDiem(c *gin.Context) {
 			"error": "Create new sinhviendiemrenluyen failed",
 		})
 		return
-	} else {
-		c.JSON(200, gin.H{
-			"message": "Create new sinhviendiemrenluyen succesful",
-		})
 	}
 
 	// Query danhsachtieuchi by mabangdiem
@@ -75,7 +72,7 @@ func PhatBangDiem(c *gin.Context) {
 
 	for _, tieuchixuly := range danhsachtieuchi {
 		for _, masinhvienxuly := range danhsachsinhvien {
-			danhsachmasinhviendiemrenluyenchitiet = append(danhsachmasinhviendiemrenluyenchitiet, masinhvienxuly+"#"+tieuchixuly.MaTieuChi)
+			danhsachmasinhviendiemrenluyenchitiet = append(danhsachmasinhviendiemrenluyenchitiet, masinhvienxuly+"~"+tieuchixuly.MaTieuChi)
 		}
 	}
 
@@ -84,7 +81,7 @@ func PhatBangDiem(c *gin.Context) {
 	for _, tieuchixuly := range danhsachtieuchi {
 		for i := range danhsachsinhviendiemrenluyenchitiet {
 			// Verify matieuchi
-			slices := strings.Split(danhsachmasinhviendiemrenluyenchitiet[i], "#")
+			slices := strings.Split(danhsachmasinhviendiemrenluyenchitiet[i], "~")
 
 			if tieuchixuly.MaTieuChi == slices[1] {
 				danhsachsinhviendiemrenluyenchitiet[i].MaSinhVienDiemRenLuyenChiTiet = danhsachmasinhviendiemrenluyenchitiet[i]
@@ -103,25 +100,13 @@ func PhatBangDiem(c *gin.Context) {
 		}
 	}
 
-	// Create new sinhviendiemrenluyenchitiet in database
-	result = initialize.DB.Create(&danhsachsinhviendiemrenluyenchitiet)
-	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"error": "Create new sinhviendiemrenluyenchitiet failed",
-		})
-		return
-	} else {
-		c.JSON(200, gin.H{
-			"error": "Create new sinhviendiemrenluyenchitiet successful",
-		})
-	}
-
 	// Update ngayphat and thoihannop
 	now := time.Now()
 
 	updateData := model.BangDiem{
 		NgayPhat:   now,
 		ThoiHanNop: now.AddDate(0, 1, 0),
+		TrangThai:  "Đã Phát",
 	}
 
 	result = initialize.DB.Model(&model.BangDiem{}).Where("ma_bang_diem = ?", datainput.Mabangdiem).Updates(updateData)
@@ -130,5 +115,19 @@ func PhatBangDiem(c *gin.Context) {
 			"error": "Update ngayphat and thoihannop failed",
 		})
 		return
+	}
+
+	// Create new sinhviendiemrenluyenchitiet in database
+	result = initialize.DB.Create(&danhsachsinhviendiemrenluyenchitiet)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Create new sinhviendiemrenluyenchitiet failed",
+		})
+		return
+	} else {
+
+		c.JSON(200, gin.H{
+			"message": "Create new sinhviendiemrenluyenchitiet successful",
+		})
 	}
 }
