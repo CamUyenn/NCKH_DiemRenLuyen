@@ -59,8 +59,8 @@ function handleCreate() {
   // lưu bản gửi cuối cùng
   localStorage.setItem("guiBangDiem", JSON.stringify({ selectedValues }));
 
-  alert("Đã gửi bảng điểm!");
-  router.push(`/students/formchamdiem/guibangdiem`);
+  alert("Đã gửi bảng điểm thành công, quay lại trang chủ!");
+  router.push(`/students`);
 }
 
   //Xếp loại
