@@ -20,39 +20,41 @@ func TaoLopSinhHoatHocKy(c *gin.Context) {
 		} `json:"chi_tiet_lop"`
 	}
 
-	var req LopSinhHoatHocKyRequest
+	// Receive a slice instead of a single object
+	var req []LopSinhHoatHocKyRequest
 
-	// Bind JSON input
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{
-			"error":   "Invalid input data",
-			"details": err.Error(),
+			"error": "Invalid input data",
 		})
 		return
 	}
 
-	// Create LopSinhHoatHocKy records
 	var lophkRecords []model.LopSinhHoatHocKy
-	maHocKy := req.MaHocKyThamChieu
 
-	for _, chitiet := range req.ChiTietLop {
-		// Generate MaLopSinhHoatHocKy by combining MaHocKy and MaLopSinhHoatThamChieu
-		maLopHK := maHocKy + "+" + chitiet.MaLopSinhHoatThamChieu
+	// Loop through each semester in the list
+	for _, hocKy := range req {
+		maHocKy := hocKy.MaHocKyThamChieu
 
-		lophk := model.LopSinhHoatHocKy{
-			MaLopSinhHoatHocKy:     maLopHK,
-			MaHocKyThamChieu:       maHocKy,
-			MaLopSinhHoatThamChieu: chitiet.MaLopSinhHoatThamChieu,
-			MaLopTruong:            chitiet.MaLopTruong,
-			MaGiangVienCoVan:       chitiet.MaGiangVienCoVan,
-			MaTruongKhoa:           chitiet.MaTruongKhoa,
-			MaChuyenVienDaoTao:     chitiet.MaChuyenVienDaoTao,
+		for _, chitiet := range hocKy.ChiTietLop {
+			// Generate code for a single semester class
+			maLopHK := maHocKy + "+" + chitiet.MaLopSinhHoatThamChieu
+
+			lophk := model.LopSinhHoatHocKy{
+				MaLopSinhHoatHocKy:     maLopHK,
+				MaHocKyThamChieu:       maHocKy,
+				MaLopSinhHoatThamChieu: chitiet.MaLopSinhHoatThamChieu,
+				MaLopTruong:            chitiet.MaLopTruong,
+				MaGiangVienCoVan:       chitiet.MaGiangVienCoVan,
+				MaTruongKhoa:           chitiet.MaTruongKhoa,
+				MaChuyenVienDaoTao:     chitiet.MaChuyenVienDaoTao,
+			}
+
+			lophkRecords = append(lophkRecords, lophk)
 		}
-		lophkRecords = append(lophkRecords, lophk)
 	}
 
 	result := initialize.DB.Create(&lophkRecords)
-
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Failed to save LopSinhHoatHocKy data",

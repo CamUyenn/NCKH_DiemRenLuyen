@@ -8,14 +8,14 @@ import (
 )
 
 func TaoLopSinhHoatSinhVien(c *gin.Context) {
-	// Bind JSON input
 	type LopSinhHoatSinhVienRequest struct {
-		MaHocKyThamChieu       string   `json:"ma_hoc_ky_tham_chieu" binding:"required"`
-		MaLopSinhHoatThamChieu string   `json:"ma_lop_sinh_hoat_tham_chieu" binding:"required"`
-		DanhSachMaSinhVien     []string `json:"danh_sach_ma_sinh_vien" binding:"required,min=1"`
+		MaHocKyThamChieu       string   `json:"ma_hoc_ky_tham_chieu"`
+		MaLopSinhHoatThamChieu string   `json:"ma_lop_sinh_hoat_tham_chieu"`
+		DanhSachMaSinhVien     []string `json:"danh_sach_ma_sinh_vien"`
 	}
 
-	var req LopSinhHoatSinhVienRequest
+	// Accept a slice instead of an object
+	var req []LopSinhHoatSinhVienRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(400, gin.H{
@@ -25,27 +25,30 @@ func TaoLopSinhHoatSinhVien(c *gin.Context) {
 	}
 
 	var lophkSvRecords []model.LopSinhHoatSinhVien
-	maHocKy := req.MaHocKyThamChieu
-	maLopSH := req.MaLopSinhHoatThamChieu
 
-	// Create LopSinhHoatSinhVien records for each MaSinhVien
-	for _, maSV := range req.DanhSachMaSinhVien {
+	// Iterate through each element in the slice
+	for _, item := range req {
+		maHocKy := item.MaHocKyThamChieu
+		maLopSH := item.MaLopSinhHoatThamChieu
 
-		// Generate MaLopSinhHoatSinhVien
-		maLopSv := maHocKy + "+" + maLopSH + "~" + maSV
+		for _, maSV := range item.DanhSachMaSinhVien {
+			maLopSv := maHocKy + "+" + maLopSH + "~" + maSV
 
-		lophkSv := model.LopSinhHoatSinhVien{
-			MaLopSinhHoatSinhVien:  maLopSv,
-			MaSinhVienThamChieu:    maSV,
-			MaLopSinhHoatThamChieu: maLopSH,
-			MaHocKyThamChieu:       maHocKy,
+			lophkSv := model.LopSinhHoatSinhVien{
+				MaLopSinhHoatSinhVien:  maLopSv,
+				MaSinhVienThamChieu:    maSV,
+				MaLopSinhHoatThamChieu: maLopSH,
+				MaHocKyThamChieu:       maHocKy,
+			}
+
+			lophkSvRecords = append(lophkSvRecords, lophkSv)
 		}
-		lophkSvRecords = append(lophkSvRecords, lophkSv)
 	}
 
+	// Save all records at once
 	result := initialize.DB.Create(&lophkSvRecords)
 	if result.Error != nil {
-		c.JSON(500, gin.H{
+		c.JSON(400, gin.H{
 			"error": "Failed to save LopSinhHoatSinhVien data",
 		})
 		return
