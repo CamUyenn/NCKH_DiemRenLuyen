@@ -13,6 +13,7 @@ func SauLoginGiangVien(c *gin.Context) {
 	// Bind JSON input
 	type datainput struct {
 		MaGiangVien string `json:"ma_giang_vien"`
+		MatKhau     string `json:"mat_khau"`
 		Typeinput   string `json:"type"`
 	}
 	var datainputx datainput
@@ -20,6 +21,40 @@ func SauLoginGiangVien(c *gin.Context) {
 	if err := c.ShouldBindJSON(&datainputx); err != nil {
 		c.JSON(400, gin.H{
 			"error": "Fetch ma_giang_vien and type from json failed",
+		})
+		return
+	}
+	// Verify giang vien credentials
+	var countmodel int64
+
+	result := initialize.DB.Model(&model.GiangVien{}).Where("ma_giang_vien = ? AND mat_khau = ?", datainputx.MaGiangVien, datainputx.MatKhau).Count(&countmodel)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Query giangvien failed",
+		})
+		return
+	}
+
+	if countmodel == 0 {
+		c.JSON(400, gin.H{
+			"error": "Invalid ma_giang_vien or mat_khau",
+		})
+		return
+	}
+
+	// Check admin
+	result = initialize.DB.Model(&model.Admin{}).Where("ma_giang_vien_tham_chieu = ?", datainputx.MaGiangVien).Count(&countmodel)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Query admin failed",
+		})
+		return
+	}
+
+	if countmodel > 0 {
+		c.JSON(200, gin.H{
+			"ma_giang_vien": datainputx.MaGiangVien,
+			"type":          "admin",
 		})
 		return
 	}
@@ -38,7 +73,7 @@ func SauLoginGiangVien(c *gin.Context) {
 
 	// Query LopSinhHoatHocKy for the mahocky
 	var lopsinhhoathockylist []model.LopSinhHoatHocKy
-	result := initialize.DB.Where("ma_hoc_ky_tham_chieu = ?", mahocky).Find(&lopsinhhoathockylist)
+	result = initialize.DB.Where("ma_hoc_ky_tham_chieu = ?", mahocky).Find(&lopsinhhoathockylist)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Query lopsinhhoathocky failed",
