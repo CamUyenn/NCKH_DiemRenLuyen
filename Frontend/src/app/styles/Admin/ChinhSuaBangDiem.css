@@ -69,3 +69,15 @@
   color: #ffffff;
   border-radius: 8px;
 }
+.bangdiem-add-button{
+  padding: 6px 10px;
+  background-color: #3728a7;  
+  color: #ffffff;
+  border-radius: 8px;
+}
+.bangdiem-action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
