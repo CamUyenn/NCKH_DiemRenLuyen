@@ -26,16 +26,7 @@ func TaoHocKyHeThong(mahocky string) string {
 	// Create new hocky in database
 	result := initialize.DB.Create(&hockyxuly)
 	if result.Error != nil {
-<<<<<<< HEAD
-		c.JSON(400, gin.H{
-			"error": "Fail to create new hocky",
-		})
-		return
-	} else {
-		return
-=======
 		return "Fail to create new hocky"
->>>>>>> 54db0cfe91283937b393f372ef7eba95da22e35f
 	}
 	return "Create hocky successful"
 }
