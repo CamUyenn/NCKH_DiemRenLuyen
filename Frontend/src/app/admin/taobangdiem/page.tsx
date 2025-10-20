@@ -54,21 +54,13 @@ const DaTaoBangDiem: React.FC = () => {
 
   const handleChange = (index: number, field: keyof RowData, value: string) => {
     const updatedRows = [...rows];
-    updatedRows[index][field] = value;
+    updatedRows[index] = { ...updatedRows[index], [field]: value };
     setRows(updatedRows);
 
-    // Khi dòng cuối đã nhập đủ thì thêm dòng mới
-    if (
-      index === rows.length - 1 &&
-      updatedRows[index].mucDiem &&
-      (updatedRows[index].mucDiem === "1" || updatedRows[index].maTieuChiCha) &&
-      updatedRows[index].muc &&
-      updatedRows[index].loaiTieuChi &&
-      updatedRows[index].tenTieuChi &&
-      updatedRows[index].diem
-    ) {
-      setRows([
-        ...updatedRows,
+    // Nếu đang nhập ở cột "tenTieuChi" của dòng cuối và người dùng đã nhập nội dung -> thêm dòng mới
+    if (index === updatedRows.length - 1 && field === "tenTieuChi" && value.trim() !== "") {
+      setRows((prev) => [
+        ...prev,
         {
           tenTieuChi: "",
           mucDiem: "",
@@ -86,26 +78,77 @@ const DaTaoBangDiem: React.FC = () => {
   const raw = `${namHoc}__${hocKy}`; // Tạo raw từ năm học và học kỳ
 
   const handleThemBangDiem = async () => {
+    // Lấy tất cả dòng có tên tiêu chí (kể cả mức 1)
     const validRows = rows.filter(
-      (row) =>
-        row.mucDiem &&
-        row.muc &&
-        row.loaiTieuChi &&
-        row.tenTieuChi &&
-        row.diem
+      (row) => row.tenTieuChi && row.tenTieuChi.trim() !== ""
     );
-    const tieuchi = validRows.map((row) => ({
-      TenTieuChi: row.tenTieuChi,
-      MucDiem: parseInt(row.mucDiem, 10),
-      Muc: row.muc,
-      Diem: parseInt(row.diem, 10),
-      MoTaDiem: row.moTaDiem || "",
-      MaTieuChiCha: row.maTieuChiCha || "",
-      LoaiTieuChi: row.loaiTieuChi,
-      SoLan: row.loaiTieuChi === "Textbox" ? parseInt(row.soLan || "0", 10) : 0,
-    }));
+
+    if (validRows.length === 0) {
+      alert("Chưa có dữ liệu để lưu.");
+      return;
+    }
 
     const mabangdiemcheck = `${namHoc}.${hocKy}_BD`;
+
+    // Mảng lưu các mã tiêu chí đã sinh, cùng thứ tự với validRows
+    const maTieuChiArr: string[] = [];
+
+    const tieuchi = validRows.map((row, idx) => {
+      const mucDiemNum = parseInt(row.mucDiem || "0", 10);
+      const muc = row.muc || "";
+
+      let maTieuChi = "";
+      let maTieuChiChaFull = "";
+
+      if (!row.maTieuChiCha || row.maTieuChiCha === "") {
+        // Mức 1
+        maTieuChi = `${mabangdiemcheck}+${mucDiemNum},${muc}()`;
+      } else {
+        // Tìm dòng cha trong validRows
+        let mucDiemCha = mucDiemNum === 2 ? 1 : mucDiemNum === 3 ? 2 : 0;
+        let chaIdx = validRows.findIndex(
+          (r, i) =>
+            i < idx &&
+            parseInt(r.mucDiem || "0", 10) === mucDiemCha &&
+            (mucDiemNum === 2
+              ? r.muc === row.maTieuChiCha // mức 2: mục cha là mục mức 1
+              : `${r.muc}.${r.maTieuChiCha}` === row.maTieuChiCha) // mức 3: mục cha là số.mục mức 1
+        );
+        if (chaIdx !== -1) {
+          const maCha = maTieuChiArr[chaIdx];
+          // Lấy phần sau dấu '+'
+          const plusSplit = maCha.split("+");
+          let parentInner = plusSplit.length > 1 ? plusSplit[1] : maCha;
+          // Loại bỏ dấu () ở cuối nếu có
+          parentInner = parentInner.replace(/\(\)$/, "");
+          maTieuChiChaFull = maCha.replace(/\(\)$/, ""); // Lưu đúng mã tiêu chí cha đã sinh, bỏ ()
+          maTieuChi = `${mabangdiemcheck}+${mucDiemNum},${muc}(${parentInner})`;
+        } else {
+          // fallback nếu không tìm thấy cha
+          maTieuChi = `${mabangdiemcheck}+${mucDiemNum},${muc}(${mucDiemCha},${row.maTieuChiCha})`;
+        }
+      }
+
+      maTieuChiArr.push(maTieuChi);
+
+      return {
+        ma_tieu_chi: maTieuChi,
+        ma_bang_diem_tham_chieu: mabangdiemcheck,
+        ten_tieu_chi: row.tenTieuChi,
+        muc_diem: mucDiemNum,
+        muc: muc,
+        diem: row.diem ? parseInt(row.diem, 10) : 0,
+        mo_ta_diem: row.moTaDiem || "",
+        ma_tieu_chi_cha: maTieuChiChaFull || "", // Lưu đúng mã tiêu chí cha
+        loai_tieu_chi: row.loaiTieuChi || "",
+        so_lan: row.loaiTieuChi === "Textbox" ? (row.soLan ? parseInt(row.soLan, 10) : 0) : 0,
+      };
+    });
+
+    console.log("Payload gửi lên:", {
+      ma_bang_diem: mabangdiemcheck,
+      tieuchi: tieuchi,
+    });
 
     try {
       const res = await fetch("http://localhost:8080/api/taotieuchi", {
@@ -119,7 +162,7 @@ const DaTaoBangDiem: React.FC = () => {
       const data = await res.json();
       if (res.ok && data && data.message === "Create tieuchi successful") {
         alert("Lưu bảng điểm thành công!");
-        router.push(`/admin/dataobangdiem?raw=${mabangdiemcheck}`);
+        router.push(`/admin/xembangdiem?raw=${mabangdiemcheck}`);
       } else {
         alert(data.error || "Lưu bảng điểm thất bại!");
       }
@@ -136,13 +179,71 @@ const DaTaoBangDiem: React.FC = () => {
   };
 
   const getMucChaOptions = (level: string) => {
-    if (level === "2")
-      return rows.filter((r) => r.mucDiem === "1").map((r) => r.muc);
-    if (level === "3")
-      return rows.filter((r) => r.mucDiem === "2").map((r) => r.muc);
+    if (level === "2") {
+      return rows
+        .filter((r) => r.mucDiem === "1")
+        .map((r) => ({ value: r.muc, label: r.muc }));
+    }
+    if (level === "3") {
+      return rows
+        .filter((r) => r.mucDiem === "2")
+        .map((r) => {
+          // Tìm mục mức 1 (ông nội) của dòng mức 2 này
+          const muc1 = rows.find(
+            (r1) => r1.mucDiem === "1" && r.maTieuChiCha === r1.muc
+          );
+          const muc1Label = muc1 ? muc1.muc : "";
+          return {
+            value: `${r.muc}.${muc1Label}`, // giá trị duy nhất cho cha
+            label: `${r.muc}.${muc1Label}`,
+          };
+        });
+    }
     return [];
   };
 
+  const handleDeleteRow = (index: number) => {
+    const row = rows[index];
+    // Nếu là mức 1, xóa cả các con của nó (mức 2, mức 3...)
+    if (row.mucDiem === "1") {
+      const mucCha = row.muc;
+      // Xóa dòng mức 1 và tất cả dòng có maTieuChiCha là mucCha (và các con cấp dưới)
+      const toDelete = [index];
+      rows.forEach((r, i) => {
+        if (r.maTieuChiCha === mucCha) {
+          toDelete.push(i);
+          // Nếu có mức 3 là con của mức 2 này, xóa luôn
+          rows.forEach((r2, i2) => {
+            if (r2.maTieuChiCha === r.muc) {
+              toDelete.push(i2);
+            }
+          });
+        }
+      });
+      // Lọc lại rows, chỉ giữ các dòng không bị xóa
+      setRows(rows.filter((_, i) => !toDelete.includes(i)));
+    } else {
+      // Xóa dòng thường
+      if (rows.length === 1) return;
+      setRows(rows.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleAddRow = (index: number) => {
+    const newRows = [...rows];
+    newRows.splice(index + 1, 0, {
+      tenTieuChi: "",
+      mucDiem: "",
+      muc: "",
+      diem: "",
+      moTaDiem: "",
+      maTieuChiCha: "",
+      loaiTieuChi: "",
+      soLan: "",
+    });
+    setRows(newRows);
+  };
+  
   return (
     <div className="bangdiem-container">
       <h2 className="bangdiem-title">
@@ -165,6 +266,7 @@ const DaTaoBangDiem: React.FC = () => {
             <th className="bangdiem-th">Mô tả điểm</th>
             <th className="bangdiem-th">Điểm</th>
             <th className="bangdiem-th">Số lần tối đa</th>
+            <th className="bangdiem-th">Hành động</th>
           </tr>
         </thead>
         <tbody>
@@ -195,12 +297,12 @@ const DaTaoBangDiem: React.FC = () => {
                     value={item.maTieuChiCha || ""}
                     onChange={(e) => handleChange(index, "maTieuChiCha", e.target.value)}
                     className="bangdiem-select"
-                    disabled={mucLevel === "1"} // ✅ mức 1 thì không chọn cha
+                    disabled={mucLevel === "1"}
                   >
                     <option value="">-- Chọn mức cha --</option>
                     {getMucChaOptions(mucLevel).map((mc, i) => (
-                      <option key={i} value={mc}>
-                        {mc}
+                      <option key={i} value={mc.value}>
+                        {mc.label}
                       </option>
                     ))}
                   </select>
@@ -288,6 +390,23 @@ const DaTaoBangDiem: React.FC = () => {
                     disabled={item.loaiTieuChi !== "Textbox" || mucLevel !== "1" && !item.maTieuChiCha}
                   />
                 </td>
+                {/* Hành động */}
+              <td className="bangdiem-td">
+                <div className="bangdiem-action-buttons">
+                    <button
+                      className="bangdiem-delete-button"
+                      onClick={() => handleDeleteRow(index)}
+                    >
+                      Xóa
+                    </button>
+                    <button
+                      className="bangdiem-add-button"
+                      onClick={() => handleAddRow(index)}
+                    >
+                      Thêm
+                    </button>
+                  </div>
+              </td>
               </tr>
             );
           })}
