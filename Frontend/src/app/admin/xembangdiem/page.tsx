@@ -43,6 +43,17 @@ export default function BangDiem() {
       });
   }, [raw]);
 
+  // Tách năm học và học kỳ từ raw
+  let namHoc = "";
+  let hocKy = "";
+  if (raw) {
+    const match = raw.match(/^([0-9\-]+)\.(\d)_BD/);
+    if (match) {
+      namHoc = match[1];
+      hocKy = match[2];
+    }
+  }
+
   function handleCreate() {
     if (raw) {
       router.push(`/admin/chinhsuabangdiem?raw=${raw}`);
@@ -57,14 +68,55 @@ export default function BangDiem() {
       return;
     }
     // Lưu dữ liệu hiện tại vào localStorage
-    localStorage.setItem(`bangdiem_${raw}`, JSON.stringify(diemData));
-    alert("Đã sao chép thành công!");
-    router.push(`/admin/dataobangdiem?raw=${raw}`);
+    localStorage.setItem("bangdiem_sao_chep", raw);
+    router.push(`/admin/saochephocky`);
+  }
+
+  function sortBangDiem(data: BangDiemChiTiet[]) {
+    // Danh sách số La Mã đúng thứ tự
+    const romanOrder = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+
+    // Nhóm các mục mức 1 (cha) và sắp xếp theo romanOrder
+    const muc1 = data
+      .filter(item => item.muc_diem === 1)
+      .sort((a, b) => romanOrder.indexOf(a.muc) - romanOrder.indexOf(b.muc));
+
+    // Hàm đệ quy lấy các con của một cha
+    function getChildren(parentMa: string): BangDiemChiTiet[] {
+      const children = data.filter(
+        item => String(item.ma_tieu_chi_cha) === String(parentMa) && item.ma_tieu_chi_cha !== ""
+      );
+      let result: BangDiemChiTiet[] = [];
+      for (const child of children) {
+        result.push(child);
+        result = result.concat(getChildren(child.ma_tieu_chi));
+      }
+      return result;
+    }
+
+    // Kết quả cuối cùng
+    let sorted: BangDiemChiTiet[] = [];
+    for (const cha of muc1) {
+      sorted.push(cha);
+      sorted = sorted.concat(getChildren(cha.ma_tieu_chi));
+    }
+    // Nếu thiếu dữ liệu (do lỗi cha-con), trả về toàn bộ data để không mất dòng
+    if (sorted.length < data.length) {
+      const sortedIds = new Set(sorted.map(i => i.ma_tieu_chi));
+      const missing = data.filter(i => !sortedIds.has(i.ma_tieu_chi));
+      return [...sorted, ...missing];
+    }
+    return sorted;
   }
 
   return (
     <div className="bangDiem-container">
       <h2>Bảng điểm rèn luyện</h2>
+      {namHoc && hocKy && (
+        <div style={{ fontWeight: 600, color: "#003366", marginBottom: 8 }}>
+          Năm học: {namHoc} &nbsp;|&nbsp; Học kỳ: {hocKy}
+        </div>
+      )}
       {loading ? (
         <div>Đang tải dữ liệu...</div>
       ) : (
@@ -85,7 +137,7 @@ export default function BangDiem() {
                 </td>
               </tr>
             ) : (
-              diemData.map((item, index) => (
+              sortBangDiem(diemData).map((item, index) => (
                 <tr key={item.ma_tieu_chi}>
                   <td>{item.muc}</td>
                   <td>{item.ten_tieu_chi}</td>
