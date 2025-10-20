@@ -34,12 +34,12 @@ export default function ChamDiem() {
   }, []);
 
   function handleCreate() {
-    alert("Bạn có chắc chắn muốn gửi bảng điểm không?");
      localStorage.setItem(
         "guiBangDiem",
         JSON.stringify({ selectedValues })
       );
-      router.push(`/students/formchamdiem/guibangdiem`);
+       alert("Bạn đã gửi bảng điểm thành công, quay lại trang chủ ?");
+      router.push(`/students`);
   }
 
   // 🔹 Khi bấm Lưu nháp ở ChamDiem → ghi lại state + chuyển sang trang LuuNhap
