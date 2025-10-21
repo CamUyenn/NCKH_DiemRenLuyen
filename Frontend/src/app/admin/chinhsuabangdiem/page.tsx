@@ -111,23 +111,6 @@ const ChinhSuaBangDiem: React.FC = () => {
     const updatedRows = [...rows];
     updatedRows[index] = { ...updatedRows[index], [field]: value };
     setRows(updatedRows);
-
-    // Nếu đang nhập ở cột "tenTieuChi" của dòng cuối và người dùng đã nhập nội dung -> thêm dòng mới
-    if (index === updatedRows.length - 1 && field === "tenTieuChi" && value.trim() !== "") {
-      setRows((prev) => [
-        ...prev,
-        {
-          tenTieuChi: "",
-          mucDiem: "",
-          muc: "",
-          diem: "",
-          moTaDiem: "",
-          maTieuChiCha: "",
-          loaiTieuChi: "",
-          soLan: "",
-        },
-      ]);
-    }
   };
 
   const getMucOptions = (level: string) => {
@@ -138,21 +121,46 @@ const ChinhSuaBangDiem: React.FC = () => {
   };
 
   const getMucChaOptions = (level: string) => {
-    if (level === "2") {
-      return rows
-        .filter((r) => r.mucDiem === "1")
-        .map((r) => ({ value: r.maTieuChi || "", label: r.muc }));
-    }
-    if (level === "3") {
-      return rows
-        .filter((r) => r.mucDiem === "2")
-        .map((r) => ({
+  // Nếu là mức 2
+  if (level === "2") {
+    return rows
+      .filter((r) => r.mucDiem === "1")
+      .map((r) => {
+        // Ví dụ: maTieuChi = "2024-2025.2_BD+1,I()"
+        // → ta chỉ cần lấy "I" sau dấu phẩy và trước dấu ngoặc
+        const match = r.maTieuChi?.match(/\+[^,]+,([^()]+)\(/);
+        const label = match ? match[1] : "";
+        return {
           value: r.maTieuChi || "",
-          label: `${r.muc}.${r.maTieuChiCha}`,
-        }));
-    }
-    return [];
-  };
+          label: label || "",
+        };
+      });
+  }
+
+  // Nếu là mức 3
+  if (level === "3") {
+    return rows
+      .filter((r) => r.mucDiem === "2")
+      .map((r) => {
+        // maTieuChi dạng: "2024-2025.2_BD+2,1(+1,I)"
+        // cần lấy "1" từ phần +2,1 và "I" từ phần (+1,I)
+        const outerMatch = r.maTieuChi?.match(/\+[^,]+,([^()]+)\(/); // lấy 1
+        const innerMatch = r.maTieuChi?.match(/\(\+[^,]+,([^()]+)\)/); // lấy I
+        const outer = outerMatch ? outerMatch[1] : "";
+        const inner = innerMatch ? innerMatch[1] : "";
+        const label = inner ? `${outer}.${inner}` : outer;
+
+        return {
+          value: r.maTieuChi || "",
+          label: label || "",
+        };
+      });
+  }
+
+  // Mức 1 không có cha
+  return [];
+};
+
 
   const handleDeleteRow = (index: number) => {
     if (rows.length === 1) return;
@@ -262,35 +270,6 @@ const ChinhSuaBangDiem: React.FC = () => {
       alert("Có lỗi khi kết nối tới server!");
     }
   };
-
-  function extractMucCha(maTieuChiCha: string) {
-    // Tìm phần trong ngoặc cuối cùng
-    const match = maTieuChiCha.match(/\(([^()]*)\)$/);
-    if (match && match[1]) {
-      // Nếu là dạng "1,III", trả về "1.III"
-      const parts = match[1].split(",");
-      if (parts.length === 2) {
-        return `${parts[0].trim()}.${parts[1].trim()}`;
-      }
-      return match[1].trim();
-    }
-    return "";
-  }
-
-  function extractMucSymbol(maTieuChiCha: string) {
-    // Tìm ký hiệu mục sau dấu ',' và trước dấu '(' hoặc ')'
-    const match = maTieuChiCha.match(/,([IVXLCDM]+)[()\)]?/);
-    return match ? match[1] : maTieuChiCha;
-  }
-
-  function getMucChaLabelForMuc3(maTieuChiCha: string, rows: RowData[]) {
-    // Tìm dòng mức 2 có mã tiêu chí là maTieuChiCha
-    const muc2 = rows.find(r => r.maTieuChi === maTieuChiCha && r.mucDiem === "2");
-    if (muc2) {
-      return `${muc2.muc}.${muc2.maTieuChiCha}`;
-    }
-    return "";
-  }
 
   return (
     <div className="bangdiem-container">

@@ -56,23 +56,6 @@ const DaTaoBangDiem: React.FC = () => {
     const updatedRows = [...rows];
     updatedRows[index] = { ...updatedRows[index], [field]: value };
     setRows(updatedRows);
-
-    // Nếu đang nhập ở cột "tenTieuChi" của dòng cuối và người dùng đã nhập nội dung -> thêm dòng mới
-    if (index === updatedRows.length - 1 && field === "tenTieuChi" && value.trim() !== "") {
-      setRows((prev) => [
-        ...prev,
-        {
-          tenTieuChi: "",
-          mucDiem: "",
-          muc: "",
-          diem: "",
-          moTaDiem: "",
-          maTieuChiCha: "",
-          loaiTieuChi: "",
-          soLan: "",
-        },
-      ]);
-    }
   };
 
   const raw = `${namHoc}__${hocKy}`; // Tạo raw từ năm học và học kỳ
@@ -121,7 +104,7 @@ const DaTaoBangDiem: React.FC = () => {
           let parentInner = plusSplit.length > 1 ? plusSplit[1] : maCha;
           // Loại bỏ dấu () ở cuối nếu có
           parentInner = parentInner.replace(/\(\)$/, "");
-          maTieuChiChaFull = maCha.replace(/\(\)$/, ""); // Lưu đúng mã tiêu chí cha đã sinh, bỏ ()
+          maTieuChiChaFull = maCha.replace(/\(\)$/, "()");
           maTieuChi = `${mabangdiemcheck}+${mucDiemNum},${muc}(${parentInner})`;
         } else {
           // fallback nếu không tìm thấy cha
@@ -203,31 +186,62 @@ const DaTaoBangDiem: React.FC = () => {
   };
 
   const handleDeleteRow = (index: number) => {
-    const row = rows[index];
-    // Nếu là mức 1, xóa cả các con của nó (mức 2, mức 3...)
-    if (row.mucDiem === "1") {
-      const mucCha = row.muc;
-      // Xóa dòng mức 1 và tất cả dòng có maTieuChiCha là mucCha (và các con cấp dưới)
-      const toDelete = [index];
-      rows.forEach((r, i) => {
-        if (r.maTieuChiCha === mucCha) {
-          toDelete.push(i);
-          // Nếu có mức 3 là con của mức 2 này, xóa luôn
-          rows.forEach((r2, i2) => {
-            if (r2.maTieuChiCha === r.muc) {
-              toDelete.push(i2);
-            }
-          });
-        }
-      });
-      // Lọc lại rows, chỉ giữ các dòng không bị xóa
-      setRows(rows.filter((_, i) => !toDelete.includes(i)));
-    } else {
-      // Xóa dòng thường
-      if (rows.length === 1) return;
-      setRows(rows.filter((_, i) => i !== index));
-    }
-  };
+  // Nếu chỉ còn 1 dòng => không cho xóa
+  if (rows.length === 1) {
+    alert("Phải có ít nhất một tiêu chí trong bảng!");
+    return;
+  }
+
+  const row = rows[index];
+
+  if (row.mucDiem === "1") {
+    const mucCha = row.muc;
+    const toDelete = [index];
+
+    rows.forEach((r, i) => {
+      if (r.maTieuChiCha === mucCha) {
+        toDelete.push(i);
+        rows.forEach((r2, i2) => {
+          if (r2.maTieuChiCha === r.muc) {
+            toDelete.push(i2);
+          }
+        });
+      }
+    });
+
+    const filtered = rows.filter((_, i) => !toDelete.includes(i));
+
+    setRows(filtered.length > 0 ? filtered : [
+      {
+        tenTieuChi: "",
+        mucDiem: "",
+        muc: "",
+        diem: "",
+        moTaDiem: "",
+        maTieuChiCha: "",
+        loaiTieuChi: "",
+        soLan: "",
+      },
+    ]);
+  } else {
+    // Xóa dòng thường
+    const filtered = rows.filter((_, i) => i !== index);
+
+    setRows(filtered.length > 0 ? filtered : [
+      {
+        tenTieuChi: "",
+        mucDiem: "",
+        muc: "",
+        diem: "",
+        moTaDiem: "",
+        maTieuChiCha: "",
+        loaiTieuChi: "",
+        soLan: "",
+      },
+    ]);
+  }
+};
+
 
   const handleAddRow = (index: number) => {
     const newRows = [...rows];

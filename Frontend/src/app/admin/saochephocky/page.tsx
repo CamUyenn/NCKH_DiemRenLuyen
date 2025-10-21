@@ -9,14 +9,33 @@ function AdminTaoHocKy() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/xemhocky")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data.hocky)) setHocKyOptions(data.hocky);
-        else setHocKyOptions([]);
-      })
-      .catch(() => setHocKyOptions([]));
-  }, []);
+  fetch("http://localhost:8080/api/xemhocky")
+    .then((res) => res.json())
+    .then((data) => {
+      if (Array.isArray(data.hocky)) {
+        const sorted = [...data.hocky].sort((a, b) => {
+          const parseHocKy = (s: string) => {
+            const [namHoc, ky] = s.split(".");
+            const [namTruoc, namSau] = namHoc.split("-").map(Number);
+            return { namTruoc, namSau, ky: Number(ky) };
+          };
+
+          const A = parseHocKy(a);
+          const B = parseHocKy(b);
+          
+          if (A.namTruoc !== B.namTruoc) return A.namTruoc - B.namTruoc;
+          if (A.namSau !== B.namSau) return A.namSau - B.namSau;
+          return A.ky - B.ky;
+        });
+
+        setHocKyOptions(sorted);
+      } else {
+        setHocKyOptions([]);
+      }
+    })
+    .catch(() => setHocKyOptions([]));
+}, []);
+
 
   const handleSave = async () => {
     if (!selected) {
