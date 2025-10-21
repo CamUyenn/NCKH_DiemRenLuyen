@@ -1,0 +1,163 @@
+.header-all {
+  text-align: center;
+  background-color: #003366;
+  color: white;
+  padding: 10px 0;
+  width: 100%; /* Chiếm toàn bộ chiều ngang */
+  margin: 0; /* Loại bỏ khoảng cách mặc định */
+  background-color: black;
+}
+.header-all h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: snow;
+}
+
+.menu {
+  display: flex;
+  justify-content: flex-start; /* Căn trái các phần tử trong menu */
+  align-items: center;
+  background-color: #003366; /* Màu nền thanh menu */
+  color: white;
+  padding: 10px 20px;
+  width: 100%; /* Full chiều rộng */
+}
+
+.menu-logo-header img {
+  height: 40px;
+  margin-right: 10px; /* Khoảng cách giữa logo và đường sọc */
+  border-right: 2px solid white; /* Đường sọc trắng giữa logo và nút */
+  padding-right: 10px; /* Khoảng cách giữa logo và đường sọc */
+}
+.menu-logo-header {
+  width: 26vh;
+  flex: 0.42;
+}
+
+.menu-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.menu-button {
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.menu-button:hover {
+  background-color: #005bb5;
+}
+
+/* Khi menu đang mở */
+.menu-button.active {
+  background-color: white !important;
+  color: black !important;
+  border: 1px solid #ccc;
+  border-bottom: none; /* liền với dropdown */
+  border-radius: 5px 5px 0 0;
+}
+.main-container {
+  display: flex;
+  flex-direction: column; /* Hiển thị theo dạng cột */
+  justify-content: flex-start; /* Căn bắt đầu từ trên cùng */
+  align-items: center; /* Căn giữa theo chiều ngang */
+  height: 150;
+  background-color: #f4f4f4; /* Màu nền */
+  margin: 0;
+  padding: 0;
+}
+
+.semester-row {
+  flex: 2;
+  display: flex;
+  justify-content: flex-end; /* Căn toàn bộ nội dung sang phải */
+  align-items: center;
+  padding: 5px 10px;
+  font-size: 14px;
+  color: #333;
+  gap: 20px; /* Khoảng cách giữa các ô */
+  width: 100%; /* Đảm bảo thanh chiếm toàn bộ chiều ngang */
+}
+
+.semester-box {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Khoảng cách giữa nhãn và giá trị */
+}
+
+.semester-label {
+  font-weight: bold;
+  color: #ffffff; /* Chữ in đậm màu đỏ */
+  font-size: 14px;
+}
+
+.semester-value {
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.semester-dropdown {
+  padding: 5px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
+  cursor: pointer;
+  appearance: none; /* Loại bỏ kiểu mặc định của dropdown */
+}
+.dropdown {
+  position: relative; /* Thêm dòng này */
+}
+
+.dropdown-content {
+  display: block; /* Đảm bảo hiển thị khi mở */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 999; /* Cho nổi lên trên */
+}
+
+.dropdown-content button {
+  width: 100%;
+  padding: 8px 12px;
+  background: white;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-content button:hover {
+  background: #e6f0ff;
+}
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* logo bên trái, menu bên phải */
+  padding: 0 20px;
+}
+
+.menu-logo-header img {
+  width: 180px;  /* cố định kích thước logo */
+  height: 60px;
+  object-fit: contain;
+}
+
+.menu-logo-header {
+  flex: 0 0 auto; /* không cho flex tự co */
+  display: flex;
+  align-items: center;
+}
+
+.menu-buttons {
+  display: flex;
+  gap: 10px; /* khoảng cách giữa các button */
+}

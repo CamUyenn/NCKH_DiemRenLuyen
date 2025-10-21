@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Backend/controller"
 	"Backend/controller/bangdiem"
 	"Backend/controller/giangvien"
 	"Backend/controller/hocky"
@@ -24,7 +25,6 @@ func main() {
 	migrate.MigrateData()
 
 	router := gin.Default()
-
 	// Config CORS
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"}, // FE dev server
@@ -34,6 +34,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	router.POST("/api/login", controller.Login)
 	router.POST("/api/taotieuchi", tieuchi.TaoTieuChi)
 	router.POST("/api/taobangdiem", bangdiem.TaoBangDiem)
 	router.POST("/api/saochepbangdiem", bangdiem.SaoChepBangDiem)
