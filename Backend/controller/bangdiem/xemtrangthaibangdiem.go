@@ -2,6 +2,7 @@ package bangdiem
 
 import (
 	"Backend/initialize"
+	"Backend/model"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,7 +12,7 @@ func XemTrangThaiBangDiem(c *gin.Context) {
 	var trangthaioutput string
 
 	// Query trangthai by mabangdiem
-	result := initialize.DB.Select("trang_thai").Where("ma_bang_diem = ?", mabangdiemcheck).First(&trangthaioutput)
+	result := initialize.DB.Model(model.BangDiem{}).Select("trang_thai").Where("ma_bang_diem = ?", mabangdiemcheck).First(&trangthaioutput)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Query trangthai failed",
