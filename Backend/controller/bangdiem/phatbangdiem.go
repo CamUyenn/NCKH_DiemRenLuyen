@@ -25,10 +25,27 @@ func PhatBangDiem(c *gin.Context) {
 		return
 	}
 
+	// Check trangthai bangdiem
+	var trangthaicheck string
+	result := initialize.DB.Model(&model.BangDiem{}).Select("trang_thai").Where("ma_bang_diem = ?", datainput.Mabangdiem).First(&trangthaicheck)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Check trangthai bangdiem failed",
+		})
+		return
+	}
+
+	if trangthaicheck == "Đã Phát" {
+		c.JSON(400, gin.H{
+			"error": "BangDiem exists already been issued",
+		})
+		return
+	}
+
 	// Query danhsachsinhvien in database by mahocky
 	var danhsachsinhvien []string
 
-	result := initialize.DB.Model(&model.LopSinhHoatSinhVien{}).Select("ma_sinh_vien_tham_chieu").Where("ma_hoc_ky_tham_chieu = ?", datainput.Mahocky).Find(&danhsachsinhvien)
+	result = initialize.DB.Model(&model.LopSinhHoatSinhVien{}).Select("ma_sinh_vien_tham_chieu").Where("ma_hoc_ky_tham_chieu = ?", datainput.Mahocky).Find(&danhsachsinhvien)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Query danhsachsinhvien in database failed",
@@ -127,7 +144,8 @@ func PhatBangDiem(c *gin.Context) {
 	} else {
 
 		c.JSON(200, gin.H{
-			"message": "Create new sinhviendiemrenluyenchitiet successful",
+			"message":       "Create new sinhviendiemrenluyenchitiet successful",
+			"ngay_het_hang": updateData.ThoiHanNop,
 		})
 	}
 }
