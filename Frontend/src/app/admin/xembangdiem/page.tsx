@@ -245,17 +245,6 @@ export default function BangDiem() {
       }
       console.log("Phát bảng điểm response:", res.status, data);
 
-<<<<<<< HEAD
-    // Trường hợp thành công (200) theo format bạn nêu
-    if (res.ok && data && data.message) {
-      const formatted = formatDateToDDMMYYYY(data.ngay_het_hang);
-      if (formatted) {
-        alert(`Phát bảng điểm thành công.\nThời gian hết hạn: ${formatted}`);
-        router.push(`/admin`);
-      } else {
-        alert("Phát bảng điểm thành công.");
-        router.push(`/admin`);
-=======
       // Trường hợp server trả 400 với error (đã được phát trước đó)
       if (res.status === 400 && data && data.error) {
         // server gửi key "ngay_het_hang"
@@ -266,7 +255,6 @@ export default function BangDiem() {
           alert("Bảng điểm đã được phát.");
         }
         return;
->>>>>>> d4b2f8c9f0664278d90ff1254d02aec0eb9e83e1
       }
 
       // Trường hợp thành công (200) theo format bạn nêu
