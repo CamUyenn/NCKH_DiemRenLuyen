@@ -26,8 +26,8 @@ func PhatBangDiem(c *gin.Context) {
 	}
 
 	// Check trangthai bangdiem
-	var trangthaicheck string
-	result := initialize.DB.Model(&model.BangDiem{}).Select("trang_thai").Where("ma_bang_diem = ?", datainput.Mabangdiem).First(&trangthaicheck)
+	var checkdata model.BangDiem
+	result := initialize.DB.Model(&model.BangDiem{}).Where("ma_bang_diem = ?", datainput.Mabangdiem).First(&checkdata)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Check trangthai bangdiem failed",
@@ -35,9 +35,10 @@ func PhatBangDiem(c *gin.Context) {
 		return
 	}
 
-	if trangthaicheck == "Đã Phát" {
+	if checkdata.TrangThai == "Đã Phát" {
 		c.JSON(400, gin.H{
-			"error": "BangDiem exists already been issued",
+			"error":         "BangDiem exists already been issued",
+			"ngay_het_hang": checkdata.ThoiHanNop,
 		})
 		return
 	}
