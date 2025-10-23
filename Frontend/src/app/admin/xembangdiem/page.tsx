@@ -24,9 +24,11 @@ export default function BangDiem() {
 
   const [diemData, setDiemData] = useState<BangDiemChiTiet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [issending, setIssending] = useState(false); // trạng thái gửi phát bảng điểm
 
   useEffect(() => {
     if (!raw) return;
+    setLoading(true);
     fetch(`http://localhost:8080/api/xemtieuchi/${raw}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -72,20 +74,68 @@ export default function BangDiem() {
     router.push(`/admin/saochephocky`);
   }
 
-  function sortBangDiem(data: BangDiemChiTiet[]) {
-    // Danh sách số La Mã đúng thứ tự
-    const romanOrder = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+  // ✅ Gọi API phát bảng điểm
+  async function handlePhatBangDiem() {
+    if (!raw) {
+      alert("Không tìm thấy thông tin raw trong URL!");
+      return;
+    }
 
-    // Nhóm các mục mức 1 (cha) và sắp xếp theo romanOrder
+    const ma_bang_diem_phat = raw;
+    const ma_hoc_ky_phat = raw.replace(/_BD$/, "");
+
+    const payload = {
+      ma_bang_diem_phat,
+      ma_hoc_ky_phat,
+    };
+
+    try {
+      setIssending(true);
+      const res = await fetch("http://localhost:8080/api/phatbangdiem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        alert("Phát bảng điểm thành công");
+      } else {
+        alert("Phát bảng điểm không thành công");
+      }
+    } catch (error) {
+      console.error("Error phat bang diem:", error);
+      alert("Phát bảng điểm không thành công");
+    } finally {
+      setIssending(false);
+    }
+  }
+
+  // ✅ Hàm sắp xếp bảng điểm
+  function sortBangDiem(data: BangDiemChiTiet[]) {
+    const romanOrder = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+    const numberOrder = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+    const letterOrder = "abcdefghijklmnopqrstuvwxyz".toUpperCase().split("");
+
     const muc1 = data
-      .filter(item => item.muc_diem === 1)
+      .filter((item) => item.ma_tieu_chi_cha === "")
       .sort((a, b) => romanOrder.indexOf(a.muc) - romanOrder.indexOf(b.muc));
 
-    // Hàm đệ quy lấy các con của một cha
     function getChildren(parentMa: string): BangDiemChiTiet[] {
-      const children = data.filter(
-        item => String(item.ma_tieu_chi_cha) === String(parentMa) && item.ma_tieu_chi_cha !== ""
-      );
+      const children = data
+        .filter((item) => item.ma_tieu_chi_cha === parentMa)
+        .sort((a, b) => {
+          const maA = a.muc.toUpperCase();
+          const maB = b.muc.toUpperCase();
+          const isNumber = (val: string) => /^[0-9]+$/.test(val);
+          const isRoman = (val: string) => romanOrder.includes(val);
+          const isLetter = (val: string) => /^[A-Z]$/.test(val);
+
+          if (isRoman(maA) && isRoman(maB)) return romanOrder.indexOf(maA) - romanOrder.indexOf(maB);
+          if (isNumber(maA) && isNumber(maB)) return parseInt(maA) - parseInt(maB);
+          if (isLetter(maA) && isLetter(maB)) return letterOrder.indexOf(maA) - letterOrder.indexOf(maB);
+          return maA.localeCompare(maB);
+        });
+
       let result: BangDiemChiTiet[] = [];
       for (const child of children) {
         result.push(child);
@@ -94,29 +144,31 @@ export default function BangDiem() {
       return result;
     }
 
-    // Kết quả cuối cùng
     let sorted: BangDiemChiTiet[] = [];
     for (const cha of muc1) {
       sorted.push(cha);
       sorted = sorted.concat(getChildren(cha.ma_tieu_chi));
     }
-    // Nếu thiếu dữ liệu (do lỗi cha-con), trả về toàn bộ data để không mất dòng
+
     if (sorted.length < data.length) {
-      const sortedIds = new Set(sorted.map(i => i.ma_tieu_chi));
-      const missing = data.filter(i => !sortedIds.has(i.ma_tieu_chi));
+      const sortedIds = new Set(sorted.map((i) => i.ma_tieu_chi));
+      const missing = data.filter((i) => !sortedIds.has(i.ma_tieu_chi));
       return [...sorted, ...missing];
     }
+
     return sorted;
   }
 
   return (
     <div className="bangDiem-container">
       <h2>Bảng điểm rèn luyện</h2>
+
       {namHoc && hocKy && (
         <div style={{ fontWeight: 600, color: "#003366", marginBottom: 8 }}>
           Năm học: {namHoc} &nbsp;|&nbsp; Học kỳ: {hocKy}
         </div>
       )}
+
       {loading ? (
         <div>Đang tải dữ liệu...</div>
       ) : (
@@ -137,7 +189,7 @@ export default function BangDiem() {
                 </td>
               </tr>
             ) : (
-              sortBangDiem(diemData).map((item, index) => (
+              sortBangDiem(diemData).map((item) => (
                 <tr key={item.ma_tieu_chi}>
                   <td>{item.muc}</td>
                   <td>{item.ten_tieu_chi}</td>
@@ -150,12 +202,30 @@ export default function BangDiem() {
         </table>
       )}
 
-      <div className="bangDiem-buttons">
+      {/* ✅ Các nút thao tác */}
+      <div
+        className="bangDiem-buttons"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "16px", // khoảng cách đều giữa 3 nút
+          marginTop: "20px",
+        }}
+      >
         <button onClick={handleCopy} className="bangDiem-btn">
           Sao chép bảng điểm
         </button>
+
         <button onClick={handleCreate} className="bangDiem-btn">
           Chỉnh sửa bảng điểm
+        </button>
+
+        <button
+          onClick={handlePhatBangDiem}
+          className="bangDiem-btn"
+          disabled={issending}
+        >
+          {issending ? "Đang phát..." : "Phát bảng điểm"}
         </button>
       </div>
     </div>
