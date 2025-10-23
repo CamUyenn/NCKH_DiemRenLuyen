@@ -25,6 +25,7 @@ export default function BangDiem() {
   const [diemData, setDiemData] = useState<BangDiemChiTiet[]>([]);
   const [loading, setLoading] = useState(true);
   const [issending, setIssending] = useState(false); // trạng thái gửi phát bảng điểm
+  const [checkingStatus, setCheckingStatus] = useState(false); // trạng thái kiểm tra trước khi vào chỉnh sửa
 
   useEffect(() => {
     if (!raw) return;
@@ -56,11 +57,148 @@ export default function BangDiem() {
     }
   }
 
-  function handleCreate() {
-    if (raw) {
-      router.push(`/admin/chinhsuabangdiem?raw=${raw}`);
-    } else {
+  /**
+   * Helper: định dạng ngày về dd/MM/yyyy (an toàn với nhiều kiểu đầu vào)
+   */
+  function formatDateToDDMMYYYY(dateInput: string | null | undefined) {
+    if (!dateInput) return null;
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return null;
+    const dd = d.getDate().toString().padStart(2, "0");
+    const mm = (d.getMonth() + 1).toString().padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
+  /**
+   * Helper: chuẩn hoá text để so sánh (lowercase, remove extra spaces)
+   */
+  const normalize = (s: string) => (s || "").toString().toLowerCase().trim();
+
+  /**
+   * Decide whether the API response indicates "Đã Phát" / issued.
+   * Hỗ trợ nhiều trường hợp: chuỗi, object với nhiều tên fields, tiếng Việt / tiếng Anh.
+   * Trả về: "issued" | "not_issued" | "unknown"
+   */
+  const interpretStatus = (data: any): "issued" | "not_issued" | "unknown" => {
+    if (data == null) return "unknown";
+
+    // Nếu API trả về chuỗi trực tiếp
+    if (typeof data === "string") {
+      const text = normalize(data);
+      // check explicit patterns
+      if (text.includes("đã phát") || text.includes("da phat") || text.includes("issued") || text.includes("published") || text.includes("released")) {
+        // ensure not something like "not issued"
+        if (text.includes("chưa") || text.includes("not") || text.includes("not issued") || text.includes("not published")) {
+          return "not_issued";
+        }
+        return "issued";
+      }
+      if (text.includes("chưa phát") || text.includes("chua phat") || text.includes("not issued") || text.includes("not published")) {
+        return "not_issued";
+      }
+      return "unknown";
+    }
+
+    // Nếu API trả về object - tìm các trường thông dụng
+    if (typeof data === "object") {
+      // các keys tiềm năng chứa trạng thái
+      const keysToCheck = ["trang_thai", "trangThai", "status", "state", "message", "result", "trang_thai_text", "text"];
+      for (const key of keysToCheck) {
+        if (key in data && data[key] != null) {
+          const val = normalize(String(data[key]));
+          if (val.includes("đã phát") || val.includes("da phat") || val.includes("issued") || val.includes("published") || val.includes("released")) {
+            if (val.includes("chưa") || val.includes("not")) return "not_issued";
+            return "issued";
+          }
+          if (val.includes("chưa phát") || val.includes("chua phat") || val.includes("not issued") || val.includes("not published")) {
+            return "not_issued";
+          }
+        }
+      }
+
+      // có thể server trả về boolean hoặc cờ khác như is_issued, da_phat...
+      const booleanKeys = ["is_issued", "da_phat", "isPublished", "issued", "published"];
+      for (const key of booleanKeys) {
+        if (key in data) {
+          const v = data[key];
+          if (v === true || v === "true" || v === 1) return "issued";
+          if (v === false || v === "false" || v === 0) return "not_issued";
+        }
+      }
+
+      // server có thể trả {error: "...", ngay_het_hang: "..."} khi đã phát
+      if ("error" in data && data.error) {
+        const err = normalize(String(data.error));
+        if (err.includes("exists already") || err.includes("đã phát") || err.includes("da phat")) return "issued";
+      }
+
+      return "unknown";
+    }
+
+    return "unknown";
+  };
+
+  /**
+   * Mới: khi bấm chỉnh sửa — kiểm tra trạng thái bảng điểm trước.
+   * Nếu "Đã Phát" => show alert và không chuyển.
+   * Nếu "Chưa Phát" => chuyển sang trang chỉnh sửa.
+   * Nếu "unknown" => cảnh báo và không chuyển (an toàn).
+   */
+  async function handleCreate() {
+    if (!raw) {
       alert("Không tìm thấy thông tin raw trong URL!");
+      return;
+    }
+
+    setCheckingStatus(true);
+
+    try {
+      const res = await fetch(`http://localhost:8080/api/xemtrangthaibangdiem/${raw}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch (e) {
+        data = null;
+      }
+
+      console.log("xemtrangthaibangdiem response:", res.status, data);
+
+      // interpret status robustly
+      const interpreted = interpretStatus(data);
+
+      if (interpreted === "issued") {
+        // nếu server trả ngày hết hạn thì hiển thị thêm
+        let ngayHetHang: string | null = null;
+        if (data && (data.ngay_het_hang || data.expire_date || data.expiry_date)) {
+          ngayHetHang = data.ngay_het_hang || data.expire_date || data.expiry_date || null;
+        }
+        const formatted = formatDateToDDMMYYYY(ngayHetHang);
+        if (formatted) {
+          alert(`Bảng điểm đã phát không thể chỉnh sửa.\nThời gian hết hạn: ${formatted}`);
+        } else {
+          alert("Bảng điểm đã phát không thể chỉnh sửa");
+        }
+        return;
+      }
+
+      if (interpreted === "not_issued") {
+        // cho phép chuyển
+        router.push(`/admin/chinhsuabangdiem?raw=${raw}`);
+        return;
+      }
+
+      // nếu không xác định được trạng thái, báo cho user (an toàn: không chuyển)
+      alert("Không thể xác định trạng thái bảng điểm. Vui lòng thử lại hoặc kiểm tra server.");
+    } catch (err) {
+      console.error("Lỗi khi kiểm tra trạng thái bảng điểm:", err);
+      alert("Không thể kiểm tra trạng thái bảng điểm. Vui lòng thử lại.");
+    } finally {
+      setCheckingStatus(false);
     }
   }
 
@@ -74,82 +212,71 @@ export default function BangDiem() {
     router.push(`/admin/saochephocky`);
   }
 
-  // Helper: định dạng ngày về dd/MM/yyyy (an toàn với nhiều kiểu đầu vào)
-function formatDateToDDMMYYYY(dateInput: string | null | undefined) {
-  if (!dateInput) return null;
-  const d = new Date(dateInput);
-  if (isNaN(d.getTime())) return null;
-  const dd = d.getDate().toString().padStart(2, "0");
-  const mm = (d.getMonth() + 1).toString().padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-}
+  // ✅ Gọi API phát bảng điểm (đã sửa để xử lý response bạn cung cấp)
+  async function handlePhatBangDiem() {
+    if (!raw) {
+      alert("Không tìm thấy thông tin raw trong URL!");
+      return;
+    }
 
-// ✅ Gọi API phát bảng điểm (đã sửa để xử lý response bạn cung cấp)
-async function handlePhatBangDiem() {
-  if (!raw) {
-    alert("Không tìm thấy thông tin raw trong URL!");
-    return;
-  }
+    const ma_bang_diem_phat = raw;
+    const ma_hoc_ky_phat = raw.replace(/_BD$/, "");
 
-  const ma_bang_diem_phat = raw;
-  const ma_hoc_ky_phat = raw.replace(/_BD$/, "");
+    const payload = {
+      ma_bang_diem_phat,
+      ma_hoc_ky_phat,
+    };
 
-  const payload = {
-    ma_bang_diem_phat,
-    ma_hoc_ky_phat,
-  };
-
-  try {
-    setIssending(true);
-
-    const res = await fetch("http://localhost:8080/api/phatbangdiem", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    // Luôn parse JSON (server trả cả lỗi kèm JSON)
-    let data: any = null;
     try {
-      data = await res.json();
-    } catch (e) {
-      data = null;
-    }
-    console.log("Phát bảng điểm response:", res.status, data);
+      setIssending(true);
 
-    // Trường hợp server trả 400 với error (đã được phát trước đó)
-    if (res.status === 400 && data && data.error) {
-      // server gửi key "ngay_het_hang"
-      const formatted = formatDateToDDMMYYYY(data.ngay_het_hang);
-      if (formatted) {
-        alert(`Bảng điểm đã được phát.\nThời gian hết hạn: ${formatted}`);
-      } else {
-        alert("Bảng điểm đã được phát.");
+      const res = await fetch("http://localhost:8080/api/phatbangdiem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      // Luôn parse JSON (server trả cả lỗi kèm JSON)
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch (e) {
+        data = null;
       }
-      return;
-    }
+      console.log("Phát bảng điểm response:", res.status, data);
 
-    // Trường hợp thành công (200) theo format bạn nêu
-    if (res.ok && data && data.message) {
-      const formatted = formatDateToDDMMYYYY(data.ngay_het_hang);
-      if (formatted) {
-        alert(`Phát bảng điểm thành công.\nThời gian hết hạn: ${formatted}`);
-      } else {
-        alert("Phát bảng điểm thành công.");
+      // Trường hợp server trả 400 với error (đã được phát trước đó)
+      if (res.status === 400 && data && data.error) {
+        // server gửi key "ngay_het_hang"
+        const formatted = formatDateToDDMMYYYY(data.ngay_het_hang);
+        if (formatted) {
+          alert(`Bảng điểm đã được phát.\nThời gian hết hạn: ${formatted}`);
+        } else {
+          alert("Bảng điểm đã được phát.");
+        }
+        return;
       }
-      return;
-    }
 
-    // Fallback: nếu status không OK nhưng không có error, hoặc response không đúng định dạng
-    alert("Phát bảng điểm không thành công");
-  } catch (error) {
-    console.error("Error phat bang diem:", error);
-    alert("Phát bảng điểm không thành công");
-  } finally {
-    setIssending(false);
+      // Trường hợp thành công (200) theo format bạn nêu
+      if (res.ok && data && data.message) {
+        const formatted = formatDateToDDMMYYYY(data.ngay_het_hang);
+        if (formatted) {
+          alert(`Phát bảng điểm thành công.\nThời gian hết hạn: ${formatted}`);
+        } else {
+          alert("Phát bảng điểm thành công.");
+        }
+        return;
+      }
+
+      // Fallback: nếu status không OK nhưng không có error, hoặc response không đúng định dạng
+      alert("Phát bảng điểm không thành công");
+    } catch (error) {
+      console.error("Error phat bang diem:", error);
+      alert("Phát bảng điểm không thành công");
+    } finally {
+      setIssending(false);
+    }
   }
-}
 
   // ✅ Hàm sắp xếp bảng điểm
   function sortBangDiem(data: BangDiemChiTiet[]) {
@@ -253,12 +380,16 @@ async function handlePhatBangDiem() {
           marginTop: "20px",
         }}
       >
-        <button onClick={handleCopy} className="bangDiem-btn">
+        <button onClick={handleCopy} className="bangDiem-btn" disabled={checkingStatus}>
           Sao chép bảng điểm
         </button>
 
-        <button onClick={handleCreate} className="bangDiem-btn">
-          Chỉnh sửa bảng điểm
+        <button
+          onClick={handleCreate}
+          className="bangDiem-btn"
+          disabled={checkingStatus}
+        >
+          {checkingStatus ? "Đang kiểm tra..." : "Chỉnh sửa bảng điểm"}
         </button>
 
         <button
