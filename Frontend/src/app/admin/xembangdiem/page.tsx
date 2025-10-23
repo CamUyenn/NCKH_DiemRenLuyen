@@ -73,40 +73,35 @@ export default function BangDiem() {
   }
 
   function sortBangDiem(data: BangDiemChiTiet[]) {
-    // Danh sách số La Mã đúng thứ tự
-    const romanOrder = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+    // Duyệt theo đúng thứ tự xuất hiện trong data
+    let result: BangDiemChiTiet[] = [];
 
-    // Nhóm các mục mức 1 (cha) và sắp xếp theo romanOrder
-    const muc1 = data
-      .filter(item => item.muc_diem === 1)
-      .sort((a, b) => romanOrder.indexOf(a.muc) - romanOrder.indexOf(b.muc));
+    // Tạo map mã tiêu chí -> item
+    const maMap = new Map<string, BangDiemChiTiet>();
+    data.forEach(item => maMap.set(item.ma_tieu_chi, item));
 
-    // Hàm đệ quy lấy các con của một cha
-    function getChildren(parentMa: string): BangDiemChiTiet[] {
-      const children = data.filter(
-        item => String(item.ma_tieu_chi_cha) === String(parentMa) && item.ma_tieu_chi_cha !== ""
-      );
-      let result: BangDiemChiTiet[] = [];
+    // Hàm đệ quy để duyệt con theo đúng thứ tự nhập
+    function pushWithChildren(item: BangDiemChiTiet) {
+      if (result.find(i => i.ma_tieu_chi === item.ma_tieu_chi)) return;
+      result.push(item);
+      // Tìm các con theo đúng thứ tự xuất hiện trong data
+      const children = data.filter(i => i.ma_tieu_chi_cha === item.ma_tieu_chi);
       for (const child of children) {
-        result.push(child);
-        result = result.concat(getChildren(child.ma_tieu_chi));
+        pushWithChildren(child);
       }
-      return result;
     }
 
-    // Kết quả cuối cùng
-    let sorted: BangDiemChiTiet[] = [];
-    for (const cha of muc1) {
-      sorted.push(cha);
-      sorted = sorted.concat(getChildren(cha.ma_tieu_chi));
+    // Duyệt từng item theo thứ tự nhập, nếu là gốc (không có cha hoặc cha không tồn tại) thì bắt đầu từ đó
+    for (const item of data) {
+      if (!item.ma_tieu_chi_cha || !maMap.has(item.ma_tieu_chi_cha)) {
+        pushWithChildren(item);
+      }
     }
-    // Nếu thiếu dữ liệu (do lỗi cha-con), trả về toàn bộ data để không mất dòng
-    if (sorted.length < data.length) {
-      const sortedIds = new Set(sorted.map(i => i.ma_tieu_chi));
-      const missing = data.filter(i => !sortedIds.has(i.ma_tieu_chi));
-      return [...sorted, ...missing];
-    }
-    return sorted;
+
+    // Thêm các mục bị lạc (không duyệt tới)
+    const resultIds = new Set(result.map(i => i.ma_tieu_chi));
+    const missing = data.filter(i => !resultIds.has(i.ma_tieu_chi));
+    return [...result, ...missing];
   }
 
   return (

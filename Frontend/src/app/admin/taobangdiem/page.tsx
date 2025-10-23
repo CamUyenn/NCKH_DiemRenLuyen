@@ -121,7 +121,7 @@ const DaTaoBangDiem: React.FC = () => {
           let parentInner = plusSplit.length > 1 ? plusSplit[1] : maCha;
           // Loại bỏ dấu () ở cuối nếu có
           parentInner = parentInner.replace(/\(\)$/, "");
-          maTieuChiChaFull = maCha.replace(/\(\)$/, ""); // Lưu đúng mã tiêu chí cha đã sinh, bỏ ()
+          maTieuChiChaFull = maCha.replace(/\(\)$/, "()"); // Lưu đúng mã tiêu chí cha đã sinh, bỏ ()
           maTieuChi = `${mabangdiemcheck}+${mucDiemNum},${muc}(${parentInner})`;
         } else {
           // fallback nếu không tìm thấy cha
