@@ -27,18 +27,18 @@ func XemDanhSachHocKy(c *gin.Context) {
 			"list_hocky": hockyoutput,
 		})
 		return
-		// case "giangvien", "truongkhoa", "chuyenviendaotao":
-		// 	hockyoutput := []model.HocKy{}
-		// 	result := initialize.DB.Select("ma_hoc_ky").Find(&hockyoutput)
-		// 	if result.Error != nil {
-		// 		c.JSON(400, gin.H{
-		// 			"error": "Query list hocky failed",
-		// 		})
-		// 		return
-		// 	}
-		// 	c.JSON(200, gin.H{
-		// 		"list_hocky": hockyoutput,
-		// 	})
-		// 	return
+	case "giangvien", "truongkhoa", "chuyenviendaotao":
+		hockyoutput := []model.HocKy{}
+		result := initialize.DB.Select("ma_hoc_ky").Find(&hockyoutput)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Query list hocky failed",
+			})
+			return
+		}
+		c.JSON(200, gin.H{
+			"list_hocky": hockyoutput,
+		})
+		return
 	}
 }

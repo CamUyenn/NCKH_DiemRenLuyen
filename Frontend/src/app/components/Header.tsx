@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./../styles/Header.css";
 import defaultLogo from "../../../public/logo_nckh.png";
@@ -42,6 +42,9 @@ function AppHeader({
     "Học kỳ 1, năm học 2023-2024"
   );
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [localDropdowns, setLocalDropdowns] = useState<DropdownMenu[] | null>(null);
+  const [localSimples, setLocalSimples] = useState<SimpleMenu[] | null>(null);
+
   const router = useRouter();
 
   const reloadPage = () => {
@@ -63,6 +66,134 @@ function AppHeader({
     onClick();
   };
 
+  // -------------------------
+  // Phần xử lý: đọc session từ localStorage
+  // và quyết định hiển thị menu dựa trên trường "type"
+  // Không thay đổi giao diện, chỉ thay đổi xử lý menu
+  // -------------------------
+  useEffect(() => {
+    try {
+      // 1. cố gắng lấy object session từ một số key hay dùng
+      const possibleKeys = ["session", "user", "userSession", "authSession"];
+      let raw: string | null = null;
+      for (const k of possibleKeys) {
+        const v = localStorage.getItem(k);
+        if (v) {
+          // heuristics: nếu chuỗi có "ma_sinh_vien" hoặc "ma_giang_vien" hoặc "type" thì dùng
+          if (v.includes("ma_sinh_vien") || v.includes("ma_giang_vien") || v.includes('"type"')) {
+            raw = v;
+            break;
+          }
+          // otherwise keep first found as fallback
+          if (!raw) raw = v;
+        }
+      }
+
+      // 2. nếu không tìm thấy object, thử đọc trực tiếp keys riêng lẻ
+      let sessionObj: any = null;
+      if (raw) {
+        try {
+          sessionObj = JSON.parse(raw);
+        } catch (e) {
+          // not JSON -> ignore
+          sessionObj = null;
+        }
+      }
+
+      if (!sessionObj) {
+        // try direct keys
+        const direct: any = {};
+        if (localStorage.getItem("ma_sinh_vien")) direct.ma_sinh_vien = localStorage.getItem("ma_sinh_vien");
+        if (localStorage.getItem("ma_giang_vien")) direct.ma_giang_vien = localStorage.getItem("ma_giang_vien");
+        if (localStorage.getItem("ma_hoc_ky")) direct.ma_hoc_ky = localStorage.getItem("ma_hoc_ky");
+        if (localStorage.getItem("type")) direct.type = localStorage.getItem("type");
+        if (Object.keys(direct).length > 0) sessionObj = direct;
+      }
+
+      const typeRaw = sessionObj?.type ?? null;
+      const typeStr = typeof typeRaw === 'string' ? typeRaw.toLowerCase() : String(typeRaw).toLowerCase();
+
+      // helper để push router (nếu cần bạn có thể thay đường dẫn)
+      const goto = (path: string) => () => router.push(path);
+
+      // menu mẫu theo yêu cầu (giữ nguyên giao diện)
+      const rènLuyệnDropdownAll: DropdownMenu = {
+        title: "Quản lý điểm rèn luyện",
+        buttons: [
+          { label: "Đánh giá điểm rèn luyện", onClick: goto("#/danh-gia") },
+          { label: "Kết quả rèn luyện", onClick: goto("#/ket-qua") },
+          { label: "Xem danh sách sinh viên trong lớp", onClick: goto("#/danh-sach-lop") },
+        ],
+      };
+
+      // build local menus based on type
+      let dd: DropdownMenu[] = [];
+      let sm: SimpleMenu[] = [];
+
+      // nếu userRole là admin -> giữ nguyên như cũ (không override)
+      if (userRole === "admin") {
+        setLocalDropdowns(null);
+        setLocalSimples(null);
+        return;
+      }
+
+      // map loại chung
+      if (!typeStr) {
+        // không có type -> fallback: dùng props
+        setLocalDropdowns(null);
+        setLocalSimples(null);
+        return;
+      }
+
+      // các điều kiện phân loại: chấp nhận nhiều giá trị đầu vào
+      const isStudent = /sv|sinh|student/.test(typeStr);
+      const isLopTruong = /loptruong|lop-truong|classleader|class_leader/.test(typeStr);
+      const isGiangVien = /gv|giangvien|teacher/.test(typeStr);
+      const isTruongKhoa = /truongkhoa|head|truong-khoa/.test(typeStr);
+      const isChuyenVien = /chuyenvien|chuyenvien|chuyen_viendaotao|daotao/.test(typeStr);
+
+      if (isStudent) {
+        // giống hình nhưng không có mục cuối -> chỉ hai mục đầu
+        dd = [{
+          ...rènLuyệnDropdownAll,
+          buttons: rènLuyệnDropdownAll.buttons.slice(0, 2),
+        }];
+      } else if (isLopTruong) {
+        // giống hình (full)
+        dd = [rènLuyệnDropdownAll];
+      } else if (isGiangVien || isTruongKhoa) {
+        // hiển thị nút bấm là xem danh sách lớp
+        sm = [
+          { label: "Xem danh sách lớp", onClick: goto("#/danh-sach-lop") },
+        ];
+      } else if (isChuyenVien) {
+        // hiển thị xem danh sách khoa
+        sm = [
+          { label: "Xem danh sách khoa", onClick: goto("#/danh-sach-khoa") },
+        ];
+      } else {
+        // fallback: dùng props
+        setLocalDropdowns(null);
+        setLocalSimples(null);
+        return;
+      }
+
+      // set state để render override menus
+      setLocalDropdowns(dd);
+      setLocalSimples(sm);
+    } catch (e) {
+      // nếu lỗi, không override
+      setLocalDropdowns(null);
+      setLocalSimples(null);
+      console.error("AppHeader: error reading session for menu override", e);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // chọn menus để render: ưu tiên local override nếu không null
+  const dropdownsToRender = localDropdowns ?? dropdownMenus;
+  const simplesToRender = localSimples ?? simpleMenus;
+
   return (
     <div className="main-container">
       {/* Header */}
@@ -82,7 +213,7 @@ function AppHeader({
 
         <div className="menu-buttons">
           {/* Render các simple menu (không dropdown) */}
-          {simpleMenus.map((menu, index) => (
+          {simplesToRender.map((menu, index) => (
             <button
               key={`simple-${index}`}
               className="menu-button simple-menu"
@@ -93,7 +224,7 @@ function AppHeader({
           ))}
 
           {/* Render các dropdown menu */}
-          {dropdownMenus.map((menu, index) => (
+          {dropdownsToRender.map((menu, index) => (
             <div key={`dropdown-${index}`} className="dropdown">
               <button
                 className="menu-button"
