@@ -1,208 +1,207 @@
-/* Đảm bảo ảnh nền phủ đầy toàn bộ màn hình */
+/* login.css - thay thế hoàn toàn file cũ */
+
+/* Reset cơ bản */
+* { box-sizing: border-box; }
+html, body, #__next {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Wrapper toàn trang */
+.page-wrapper {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Background hình ảnh full, có overlay tối để form nổi bật */
 .background-image {
-    position: fixed; /* Giữ nền cố định khi cuộn */
-    top: 0;
-    left: 0;
-    width: 100%;  
-    height: 100%;
-    z-index: -1; /* Đặt nền ở dưới cùng */
-  }
-  
-  .background-image::before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(rgba(20, 57, 128, 0.3), rgba(20, 57, 128, 0.3)); /* Giảm opacity xuống 0.3 */
-  }
-  
-  .background-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  /* Logo trường */
-  .logo_Truong {
-    position: fixed;  /* Giữ logo cố định khi cuộn trang */
-    top: 5vh;         /* Khoảng cách từ trên xuống */
-    left: 10vw;       /* Khoảng cách từ bên trái */
-    z-index: 1000;    /* Đảm bảo hiển thị trên cùng */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: absolute;
+  inset: 0;
+  background-image: url("/image_Truong.jpg");
+  background-size: cover;
+  background-position: center;
+  filter: saturate(0.9) brightness(0.75);
+  z-index: 0;
 }
 
-.logo_Truong img {
-    max-width: 150px;   /* Giữ kích thước cố định, thay đổi theo thiết kế */
-    height: auto;       /* Giữ nguyên tỷ lệ khi co giãn */
+/* overlay sáng nhẹ + viền tròn khung ngoài giống ảnh */
+.background-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.15); /* nhẹ để chữ footer trắng hiện rõ */
+  z-index: 1;
 }
-  
-  /* Đảm bảo body và html chiếm toàn bộ chiều cao và căn giữa khung login */
-  html, body {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  /* Khung login */
-  .login-container {
-    background: #f7f7f7; 
-    padding: 20px;
-    border-radius: 8px;
-    width: 100%;
-    height: auto;
-    margin-right: 5px;
-    border: 7px solid #6bb9f0; 
-    margin-top:-300px;
-    padding: 36px;
-    position: relative;
-  }
-  
-  .login-logo {
-    border: 4px solid #fff;
-    border-radius: 50%;
-    position: absolute;
-    top: -35px;
-    right: 10px;
-    width: 70px;         
-    height: 70px;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-  .login-logo img {
-    width: 68px;          
-    height: 68px;
-    object-fit: contain;
-    border-radius: 50%;
-  }
-  .login-container h2{
-    font-size: 24px;
-    color: #143980;
-    margin-top: -10px;
-    margin-left: -15px;
-    width: 280px;
-  }
-  
-  .login-title {
-    font-size: 30px;
-    font-weight: bold;
-    margin-bottom: 15px;
-    text-align: center;
-  }
-  
-  .input-group {
-    margin-bottom: 15px;
-    text-align: left;
-  }
-  
-  .input-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-    font-size: 18px;
-    color: #333;
-    text-align: left; 
-  }
-  
-  /* Tùy chỉnh ô nhập liệu */
-  .input-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: border-color 0.3s ease-in-out;
-    text-align: left; /* Căn trái nội dung nhập */
-  }
-  
-  /* Hiệu ứng khi focus vào ô nhập */
-  .input-group input:focus {
-    border-color: #143980; /* Đổi màu viền khi click vào */
-    outline: none; /* Loại bỏ đường viền mặc định */
-    box-shadow: 0 0 5px rgba(20, 57, 128, 0.5); /* Hiệu ứng đổ bóng */
-  }
-  
-  /* Placeholder màu xám nhạt */
-  .input-group input::placeholder {
-    color: #aaa;
-    font-style: italic;
-  }
-  
-  /* Nút đăng nhập */
-  .btn-login {
-    width: 100%;
-    padding: 12px;
-    background-color: #143980;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .btn-login:hover {
-    background-color: #45a049;
-  }
-  
-  /* Quên mật khẩu */
-  .forgot-password {
-    display: block;
-    margin-top: 10px;
-    text-decoration: none;
-    color: #143980;
-    font-size: 14px;
-  }
-  #student-id,#password{
-    /* border: 2px solid #143980; */
-    width: 100%;
-  
-  }
-  /* Responsive */
-  @media (max-width: 768px) {
-    .login-container {
-      width: 80%;  /* Đặt chiều rộng của form đăng nhập thành 80% chiều rộng màn hình */
-    }
-  
-    .logo_Truong img {
-      width: 100px;  /* Chỉnh sửa kích thước logo trên màn hình nhỏ */
-    }
-  }
-  
-  /*Footer*/
-  .footer-login {
-    color: white;
-    text-align: center;
-    padding: 15px 10px;
-    position: fixed;
-    width: 100%;      
-    bottom: 5vh;     
-    left: 0;          
-    z-index: 1000;    
-  }
 
-.role-checkbox-group {
+/* Logo trường lớn bên trái (hình tấm khiên) */
+.logo-Truong-left {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  z-index: 3;
+  width: 140px;
+  height: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+}
+
+/* Bao form chính (khung trắng có viền xanh và bo góc) */
+.login-container {
+  position: relative;
+  z-index: 5;
+  width: 380px;
+  margin: 36px auto 0; /* sẽ được căn giữa ngang bằng flex ở page */
+  background-color: #f7fbff;
+  border-radius: 8px;
+  padding: 28px 28px 34px;
+  box-shadow: 0 8px 30px rgba(7,22,48,0.35);
+  border: 6px solid rgba(79,161,245,0.12); /* nhẹ viền xanh bên ngoài */
+  text-align: left;
+}
+
+/* Container wrapper để canh giữa như ảnh (giữa ngang, hơi trên so với chính giữa) */
+.center-wrap {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding-top: 28px; /* đẩy xuống 1 chút giống ảnh */
+}
+
+/* Logo tròn phía trên cùng (chồng lên khung) */
+.logo-top {
+  position: absolute;
+  top: -36px;
+  left: 50%;
+  transform: translateX(50%); /* dịch để nằm ở mé phải giống ảnh (thay đổi tuỳ ý) */
+  z-index: 6;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-color: white;
+  padding: 6px;
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
-  margin-top: -8px;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
 }
 
-.role-checkbox-group label {
-  margin-left: 8px;
+/* Tiêu đề ĐĂNG NHẬP */
+.login-title {
+  text-align: center;
+  font-size: 24px;
+  color: #0b3b6b;
+  font-weight: 800;
+  margin: 10px 0 18px;
+}
+
+/* Logo nhỏ bên trên inside form (chiều cao) */
+.login-logo {
+  position: absolute;
+  top: -46px;
+  right: 18px;
+  z-index: 6;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Nhãn và input */
+label {
+  display: block;
+  margin: 12px 0 6px;
+  color: #123c68;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.input-group input[type="text"],
+.input-group input[type="password"] {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 6px;
+  border: 1px solid #d3dbe8;
+  background-color: #eef6ff;
+  font-size: 14px;
+  color: #0f2746;
+  outline: none;
+  transition: box-shadow .15s, border-color .15s;
+}
+
+.input-group input:focus {
+  border-color: #2b6fb1;
+  box-shadow: 0 4px 14px rgba(43,111,177,0.12);
+}
+
+/* Radio nhóm */
+.role-row {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #123c68;
+  font-weight: 600;
+}
+
+.role-row label {
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Nút đăng nhập lớn */
+.btn-login {
+  width: 100%;
+  margin-top: 18px;
+  background-color: #153d70;
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
   font-size: 16px;
-  color: #333;
-  font-weight: normal;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(21,61,112,0.25);
 }
 
-/* Đảm bảo hai dòng checkbox sát nhau */
-.role-checkbox-group + .role-checkbox-group {
-  margin-top: 0;
-  margin-bottom: 15px;
+.btn-login:disabled { opacity: 0.7; cursor: default; }
+.btn-login:hover { transform: translateY(-1px); }
+
+/* Thông báo lỗi */
+.error-msg {
+  color: #bf1e2e;
+  text-align: center;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+/* Footer trắng chữ giữa dưới cùng */
+.footer-login {
+  position: absolute;
+  bottom: 18px;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  text-align: center;
+  color: white;
+  font-size: 13px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  pointer-events: none;
+}
+
+/* Responsive nhỏ */
+@media (max-width: 780px) {
+  .login-container { width: 90%; margin-top: 20px; padding: 20px; }
+  .logo-Truong-left { width: 100px; left: 14px; top: 14px; }
+  .logo-top { left: calc(50% + 120px); } /* tránh tràn trên mobile */
 }
