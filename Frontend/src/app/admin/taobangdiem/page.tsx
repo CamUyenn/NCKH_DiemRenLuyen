@@ -10,7 +10,7 @@ interface RowData {
   muc: string;        // Mục
   diem: string;       // Điểm (int)
   moTaDiem?: string;  // Mô tả điểm
-  maTieuChiCha?: string; // Mã tiêu chí cha
+  maTieuChiCha?: string; // Mã tiêu chí cha (UI: mức2 -> "I", mức3 -> "2.I")
   loaiTieuChi: string;   // Loại tiêu chí
   soLan?: string;        // Số lần tối đa (int)
 }
@@ -56,23 +56,6 @@ const DaTaoBangDiem: React.FC = () => {
     const updatedRows = [...rows];
     updatedRows[index] = { ...updatedRows[index], [field]: value };
     setRows(updatedRows);
-
-    // Nếu đang nhập ở cột "tenTieuChi" của dòng cuối và người dùng đã nhập nội dung -> thêm dòng mới
-    if (index === updatedRows.length - 1 && field === "tenTieuChi" && value.trim() !== "") {
-      setRows((prev) => [
-        ...prev,
-        {
-          tenTieuChi: "",
-          mucDiem: "",
-          muc: "",
-          diem: "",
-          moTaDiem: "",
-          maTieuChiCha: "",
-          loaiTieuChi: "",
-          soLan: "",
-        },
-      ]);
-    }
   };
 
   const raw = `${namHoc}__${hocKy}`; // Tạo raw từ năm học và học kỳ
@@ -103,6 +86,8 @@ const DaTaoBangDiem: React.FC = () => {
       if (!row.maTieuChiCha || row.maTieuChiCha === "") {
         // Mức 1
         maTieuChi = `${mabangdiemcheck}+${mucDiemNum},${muc}()`;
+        // maTieuChiChaFull giữ rỗng cho mức 1
+        maTieuChiChaFull = "";
       } else {
         // Tìm dòng cha trong validRows
         let mucDiemCha = mucDiemNum === 2 ? 1 : mucDiemNum === 3 ? 2 : 0;
@@ -111,9 +96,10 @@ const DaTaoBangDiem: React.FC = () => {
             i < idx &&
             parseInt(r.mucDiem || "0", 10) === mucDiemCha &&
             (mucDiemNum === 2
-              ? r.muc === row.maTieuChiCha // mức 2: mục cha là mục mức 1
-              : `${r.muc}.${r.maTieuChiCha}` === row.maTieuChiCha) // mức 3: mục cha là số.mục mức 1
+              ? r.muc === row.maTieuChiCha // mức 2: row.maTieuChiCha chứa muc của mức 1 (ví dụ "I")
+              : `${r.muc}.${r.maTieuChiCha}` === row.maTieuChiCha) // mức 3: row.maTieuChiCha là "mucLevel2.mucLevel1"
         );
+
         if (chaIdx !== -1) {
           const maCha = maTieuChiArr[chaIdx];
           // Lấy phần sau dấu '+'
@@ -121,11 +107,23 @@ const DaTaoBangDiem: React.FC = () => {
           let parentInner = plusSplit.length > 1 ? plusSplit[1] : maCha;
           // Loại bỏ dấu () ở cuối nếu có
           parentInner = parentInner.replace(/\(\)$/, "");
+<<<<<<< HEAD
           maTieuChiChaFull = maCha.replace(/\(\)$/, "()"); // Lưu đúng mã tiêu chí cha đã sinh, bỏ ()
+=======
+          // --- Thay đổi theo yêu cầu: gán ma_tieu_chi_cha mới với dấu phẩy thay cho dấu chấm ---
+          // row.maTieuChiCha giữ giá trị UI: mức2 -> "I", mức3 -> "2.I"
+          // Chuyển mọi dấu '.' trong row.maTieuChiCha thành ',' khi nối vào sau '+'
+          const formattedCha = row.maTieuChiCha.replace(/\./g, ",");
+          maTieuChiChaFull = `${mabangdiemcheck}+${formattedCha}`;
+          // Giữ cách tạo maTieuChi (mã bản thân) như trước, dùng parentInner để điền vào ngoặc
+>>>>>>> b8acb5e0c6a6c1f48744622d58d7975a85589ce4
           maTieuChi = `${mabangdiemcheck}+${mucDiemNum},${muc}(${parentInner})`;
         } else {
           // fallback nếu không tìm thấy cha
           maTieuChi = `${mabangdiemcheck}+${mucDiemNum},${muc}(${mucDiemCha},${row.maTieuChiCha})`;
+          // Theo yêu cầu, vẫn gán ma_tieu_chi_cha theo format mới dựa trên giá trị UI (thay '.' -> ',')
+          const formattedCha = row.maTieuChiCha.replace(/\./g, ",");
+          maTieuChiChaFull = `${mabangdiemcheck}+${formattedCha}`;
         }
       }
 
@@ -139,7 +137,7 @@ const DaTaoBangDiem: React.FC = () => {
         muc: muc,
         diem: row.diem ? parseInt(row.diem, 10) : 0,
         mo_ta_diem: row.moTaDiem || "",
-        ma_tieu_chi_cha: maTieuChiChaFull || "", // Lưu đúng mã tiêu chí cha
+        ma_tieu_chi_cha: maTieuChiChaFull || "", // Lưu theo định dạng mới (dấu ',' sau '+')
         loai_tieu_chi: row.loaiTieuChi || "",
         so_lan: row.loaiTieuChi === "Textbox" ? (row.soLan ? parseInt(row.soLan, 10) : 0) : 0,
       };
@@ -162,7 +160,7 @@ const DaTaoBangDiem: React.FC = () => {
       const data = await res.json();
       if (res.ok && data && data.message === "Create tieuchi successful") {
         alert("Lưu bảng điểm thành công!");
-        router.push(`/admin/xembangdiem?raw=${mabangdiemcheck}`);
+        router.push(`/admin`);
       } else {
         alert(data.error || "Lưu bảng điểm thất bại!");
       }
@@ -171,11 +169,41 @@ const DaTaoBangDiem: React.FC = () => {
     }
   };
 
-  const getMucOptions = (level: string) => {
-    if (level === "1") return mucLevel1;
-    if (level === "2") return mucLevel2;
-    if (level === "3") return mucLevel3;
-    return [];
+  // === Hàm lấy danh sách mục chưa được chọn nhưng scope theo parent ===
+  const getMucOptions = (level: string, currentIndex?: number) => {
+    let baseOptions: string[] = [];
+    if (level === "1") baseOptions = mucLevel1;
+    else if (level === "2") baseOptions = mucLevel2;
+    else if (level === "3") baseOptions = mucLevel3;
+    else return [];
+
+    // Nếu level 1: đảm bảo duy nhất toàn bảng (không cho hai dòng chọn cùng một muc mức1)
+    if (level === "1") {
+      const selectedMucs = rows
+        .filter((r, i) => r.mucDiem === "1" && i !== currentIndex && r.muc)
+        .map((r) => r.muc);
+      return baseOptions.filter((m) => !selectedMucs.includes(m));
+    }
+
+    // Nếu level 2: scope uniqueness theo parent (maTieuChiCha, chính là muc mức1)
+    if (level === "2") {
+      const parent = currentIndex !== undefined ? rows[currentIndex].maTieuChiCha || "" : "";
+      const selectedMucs = rows
+        .filter((r, i) => r.mucDiem === "2" && i !== currentIndex && (r.maTieuChiCha || "") === parent && r.muc)
+        .map((r) => r.muc);
+      return baseOptions.filter((m) => !selectedMucs.includes(m));
+    }
+
+    // Nếu level 3: scope uniqueness theo parent (maTieuChiCha, dạng "mucLevel2.mucLevel1")
+    if (level === "3") {
+      const parent = currentIndex !== undefined ? rows[currentIndex].maTieuChiCha || "" : "";
+      const selectedMucs = rows
+        .filter((r, i) => r.mucDiem === "3" && i !== currentIndex && (r.maTieuChiCha || "") === parent && r.muc)
+        .map((r) => r.muc);
+      return baseOptions.filter((m) => !selectedMucs.includes(m));
+    }
+
+    return baseOptions;
   };
 
   const getMucChaOptions = (level: string) => {
@@ -194,7 +222,7 @@ const DaTaoBangDiem: React.FC = () => {
           );
           const muc1Label = muc1 ? muc1.muc : "";
           return {
-            value: `${r.muc}.${muc1Label}`, // giá trị duy nhất cho cha
+            value: `${r.muc}.${muc1Label}`, // giá trị duy nhất cho cha (mức2.mức1) -- giữ dấu '.' ở UI
             label: `${r.muc}.${muc1Label}`,
           };
         });
@@ -203,16 +231,21 @@ const DaTaoBangDiem: React.FC = () => {
   };
 
   const handleDeleteRow = (index: number) => {
+    // Nếu chỉ còn 1 dòng => không cho xóa
+    if (rows.length === 1) {
+      alert("Phải có ít nhất một tiêu chí trong bảng!");
+      return;
+    }
+
     const row = rows[index];
-    // Nếu là mức 1, xóa cả các con của nó (mức 2, mức 3...)
+
     if (row.mucDiem === "1") {
       const mucCha = row.muc;
-      // Xóa dòng mức 1 và tất cả dòng có maTieuChiCha là mucCha (và các con cấp dưới)
       const toDelete = [index];
+
       rows.forEach((r, i) => {
         if (r.maTieuChiCha === mucCha) {
           toDelete.push(i);
-          // Nếu có mức 3 là con của mức 2 này, xóa luôn
           rows.forEach((r2, i2) => {
             if (r2.maTieuChiCha === r.muc) {
               toDelete.push(i2);
@@ -220,14 +253,40 @@ const DaTaoBangDiem: React.FC = () => {
           });
         }
       });
-      // Lọc lại rows, chỉ giữ các dòng không bị xóa
-      setRows(rows.filter((_, i) => !toDelete.includes(i)));
+
+      const filtered = rows.filter((_, i) => !toDelete.includes(i));
+
+      setRows(filtered.length > 0 ? filtered : [
+        {
+          tenTieuChi: "",
+          mucDiem: "",
+          muc: "",
+          diem: "",
+          moTaDiem: "",
+          maTieuChiCha: "",
+          loaiTieuChi: "",
+          soLan: "",
+        },
+      ]);
     } else {
       // Xóa dòng thường
-      if (rows.length === 1) return;
-      setRows(rows.filter((_, i) => i !== index));
+      const filtered = rows.filter((_, i) => i !== index);
+
+      setRows(filtered.length > 0 ? filtered : [
+        {
+          tenTieuChi: "",
+          mucDiem: "",
+          muc: "",
+          diem: "",
+          moTaDiem: "",
+          maTieuChiCha: "",
+          loaiTieuChi: "",
+          soLan: "",
+        },
+      ]);
     }
   };
+
 
   const handleAddRow = (index: number) => {
     const newRows = [...rows];
@@ -317,7 +376,7 @@ const DaTaoBangDiem: React.FC = () => {
                     disabled={!item.mucDiem} // chưa chọn mức thì chưa cho chọn mục
                   >
                     <option value="">-- Chọn mục --</option>
-                    {getMucOptions(item.mucDiem).map((s) => (
+                    {getMucOptions(item.mucDiem, index).map((s) => (
                       <option key={s} value={s}>
                         {s}
                       </option>
@@ -387,7 +446,7 @@ const DaTaoBangDiem: React.FC = () => {
                     onChange={(e) => handleChange(index, "soLan", e.target.value)}
                     placeholder="Số lần tối đa"
                     className="bangdiem-input"
-                    disabled={item.loaiTieuChi !== "Textbox" || mucLevel !== "1" && !item.maTieuChiCha}
+                    disabled={item.loaiTieuChi !== "Textbox" || (mucLevel !== "1" && !item.maTieuChiCha)}
                   />
                 </td>
                 {/* Hành động */}

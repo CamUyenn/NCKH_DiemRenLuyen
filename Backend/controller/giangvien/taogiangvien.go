@@ -8,16 +8,16 @@ import (
 )
 
 func TaoGiangVien(c *gin.Context) {
-	var input model.GiangVien
+	var inputs []model.GiangVien
 
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&inputs); err != nil {
 		c.JSON(400, gin.H{
 			"error": "Fetch input from JSON failed",
 		})
 		return
 	}
 
-	result := initialize.DB.Create(&input)
+	result := initialize.DB.Create(&inputs)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Fail to create giangvien",

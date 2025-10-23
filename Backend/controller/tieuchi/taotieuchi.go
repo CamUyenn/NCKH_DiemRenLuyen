@@ -3,7 +3,6 @@ package tieuchi
 import (
 	"Backend/initialize"
 	"Backend/model"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -28,13 +27,12 @@ func TaoTieuChi(c *gin.Context) {
 	// Generate matieuchi
 	for i, inputxuly := range input.Tieuchi {
 		if inputxuly.MaTieuChiCha == "" {
-			input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + strconv.Itoa(inputxuly.MucDiem) + "," + inputxuly.Muc + "()"
+			input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + inputxuly.Muc
 			input.Tieuchi[i].MaBangDiemThamChieu = input.Mabangdiemcheck
 			continue
 		} else {
-			machasplit := strings.Split(inputxuly.MaTieuChiCha, "(")
-			macha := strings.Split(machasplit[0], "D")
-			input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + strconv.Itoa(inputxuly.MucDiem) + "," + inputxuly.Muc + "(" + macha[1] + ")"
+			machasplit := strings.Split(inputxuly.MaTieuChiCha, "+")
+			input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + inputxuly.Muc + "," + machasplit[1]
 			input.Tieuchi[i].MaBangDiemThamChieu = input.Mabangdiemcheck
 		}
 	}

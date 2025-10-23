@@ -25,10 +25,28 @@ func PhatBangDiem(c *gin.Context) {
 		return
 	}
 
+	// Check trangthai bangdiem
+	var checkdata model.BangDiem
+	result := initialize.DB.Model(&model.BangDiem{}).Where("ma_bang_diem = ?", datainput.Mabangdiem).First(&checkdata)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Check trangthai bangdiem failed",
+		})
+		return
+	}
+
+	if checkdata.TrangThai == "Đã Phát" {
+		c.JSON(400, gin.H{
+			"error":         "BangDiem exists already been issued",
+			"ngay_het_hang": checkdata.ThoiHanNop,
+		})
+		return
+	}
+
 	// Query danhsachsinhvien in database by mahocky
 	var danhsachsinhvien []string
 
-	result := initialize.DB.Model(&model.LopSinhHoatSinhVien{}).Select("ma_sinh_vien_tham_chieu").Where("ma_hoc_ky_tham_chieu = ?", datainput.Mahocky).Find(&danhsachsinhvien)
+	result = initialize.DB.Model(&model.LopSinhHoatSinhVien{}).Select("ma_sinh_vien_tham_chieu").Where("ma_hoc_ky_tham_chieu = ?", datainput.Mahocky).Find(&danhsachsinhvien)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Query danhsachsinhvien in database failed",
@@ -48,7 +66,7 @@ func PhatBangDiem(c *gin.Context) {
 	}
 
 	// Create new sinhviendiemrenluyen
-	result = initialize.DB.Create(&danhsachsinhviendiemrenluyen)
+	result = initialize.DB.CreateInBatches(&danhsachsinhviendiemrenluyen, 100)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Create new sinhviendiemrenluyen failed",
@@ -118,7 +136,7 @@ func PhatBangDiem(c *gin.Context) {
 	}
 
 	// Create new sinhviendiemrenluyenchitiet in database
-	result = initialize.DB.Create(&danhsachsinhviendiemrenluyenchitiet)
+	result = initialize.DB.CreateInBatches(&danhsachsinhviendiemrenluyenchitiet, 100)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Create new sinhviendiemrenluyenchitiet failed",
@@ -127,7 +145,8 @@ func PhatBangDiem(c *gin.Context) {
 	} else {
 
 		c.JSON(200, gin.H{
-			"message": "Create new sinhviendiemrenluyenchitiet successful",
+			"message":       "Create new sinhviendiemrenluyenchitiet successful",
+			"ngay_het_hang": updateData.ThoiHanNop,
 		})
 	}
 }

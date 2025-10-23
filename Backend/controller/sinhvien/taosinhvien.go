@@ -8,10 +8,10 @@ import (
 )
 
 func TaoSinhVien(c *gin.Context) {
-	var input model.SinhVien
+	var inputs []model.SinhVien
 
 	// Fetch input data from JSON
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBindJSON(&inputs); err != nil {
 		c.JSON(400, gin.H{
 			"error": "Fetch input from JSON failed",
 		})
@@ -19,7 +19,7 @@ func TaoSinhVien(c *gin.Context) {
 	}
 
 	// Create new sinhvien
-	result := initialize.DB.Create(&input)
+	result := initialize.DB.Create(&inputs)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Fail to create sinhvien",

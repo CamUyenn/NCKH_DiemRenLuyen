@@ -8,10 +8,11 @@ import (
 )
 
 func SauLoginSinhVien(c *gin.Context) {
-	// Bind JSON input to datainputx
+	// Bind JSON input
 	type datainput struct {
-		Masinhvien string `json:"ma_sinh_vien"` // Student code
-		Typeinput  string `json:"type"`         // Input type
+		MaSinhVien string `json:"ma_sinh_vien"`
+		MatKhau    string `json:"mat_khau"`
+		Typeinput  string `json:"type"`
 	}
 	var datainputx datainput
 
@@ -22,10 +23,27 @@ func SauLoginSinhVien(c *gin.Context) {
 		return
 	}
 
+	// Verify sinh vien credentials
+	var countmodel int64
+
+	result := initialize.DB.Model(&model.SinhVien{}).Where("ma_sinh_vien = ? AND mat_khau = ?", datainputx.MaSinhVien, datainputx.MatKhau).Count(&countmodel)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Query sinhvien failed",
+		})
+		return
+	}
+
+	if countmodel == 0 {
+		c.JSON(400, gin.H{
+			"error": "Invalid ma_sinh_vien or mat_khau",
+		})
+		return
+	}
+
 	// Query list lopsinhhoatsinhvien by masinhvien
 	var lopsinhhoatsinhvienlist []model.LopSinhHoatSinhVien
-	result := initialize.DB.
-		Where("ma_sinh_vien_tham_chieu = ?", datainputx.Masinhvien).Find(&lopsinhhoatsinhvienlist)
+	result = initialize.DB.Where("ma_sinh_vien_tham_chieu = ?", datainputx.MaSinhVien).Find(&lopsinhhoatsinhvienlist)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Query lopsinhhoatsinhvien failed",
@@ -76,12 +94,12 @@ func SauLoginSinhVien(c *gin.Context) {
 	// Check loptruong
 	maloptruong := lopsinhhoathocky.MaLopTruong
 	typenew := datainputx.Typeinput
-	if maloptruong == datainputx.Masinhvien {
+	if maloptruong == datainputx.MaSinhVien {
 		typenew = "loptruong"
 	}
 
 	c.JSON(200, gin.H{
-		"ma_sinh_vien":     datainputx.Masinhvien,
+		"ma_sinh_vien":     datainputx.MaSinhVien,
 		"ma_hoc_ky":        mahockylonnhat,
 		"ma_lop_sinh_hoat": lopsinhhoathocky.MaLopSinhHoatThamChieu,
 		"type":             typenew,
