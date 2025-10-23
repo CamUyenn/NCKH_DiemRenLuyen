@@ -74,41 +74,82 @@ export default function BangDiem() {
     router.push(`/admin/saochephocky`);
   }
 
-  // ✅ Gọi API phát bảng điểm
-  async function handlePhatBangDiem() {
-    if (!raw) {
-      alert("Không tìm thấy thông tin raw trong URL!");
+  // Helper: định dạng ngày về dd/MM/yyyy (an toàn với nhiều kiểu đầu vào)
+function formatDateToDDMMYYYY(dateInput: string | null | undefined) {
+  if (!dateInput) return null;
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return null;
+  const dd = d.getDate().toString().padStart(2, "0");
+  const mm = (d.getMonth() + 1).toString().padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+// ✅ Gọi API phát bảng điểm (đã sửa để xử lý response bạn cung cấp)
+async function handlePhatBangDiem() {
+  if (!raw) {
+    alert("Không tìm thấy thông tin raw trong URL!");
+    return;
+  }
+
+  const ma_bang_diem_phat = raw;
+  const ma_hoc_ky_phat = raw.replace(/_BD$/, "");
+
+  const payload = {
+    ma_bang_diem_phat,
+    ma_hoc_ky_phat,
+  };
+
+  try {
+    setIssending(true);
+
+    const res = await fetch("http://localhost:8080/api/phatbangdiem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    // Luôn parse JSON (server trả cả lỗi kèm JSON)
+    let data: any = null;
+    try {
+      data = await res.json();
+    } catch (e) {
+      data = null;
+    }
+    console.log("Phát bảng điểm response:", res.status, data);
+
+    // Trường hợp server trả 400 với error (đã được phát trước đó)
+    if (res.status === 400 && data && data.error) {
+      // server gửi key "ngay_het_hang"
+      const formatted = formatDateToDDMMYYYY(data.ngay_het_hang);
+      if (formatted) {
+        alert(`Bảng điểm đã được phát.\nThời gian hết hạn: ${formatted}`);
+      } else {
+        alert("Bảng điểm đã được phát.");
+      }
       return;
     }
 
-    const ma_bang_diem_phat = raw;
-    const ma_hoc_ky_phat = raw.replace(/_BD$/, "");
-
-    const payload = {
-      ma_bang_diem_phat,
-      ma_hoc_ky_phat,
-    };
-
-    try {
-      setIssending(true);
-      const res = await fetch("http://localhost:8080/api/phatbangdiem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        alert("Phát bảng điểm thành công");
+    // Trường hợp thành công (200) theo format bạn nêu
+    if (res.ok && data && data.message) {
+      const formatted = formatDateToDDMMYYYY(data.ngay_het_hang);
+      if (formatted) {
+        alert(`Phát bảng điểm thành công.\nThời gian hết hạn: ${formatted}`);
       } else {
-        alert("Phát bảng điểm không thành công");
+        alert("Phát bảng điểm thành công.");
       }
-    } catch (error) {
-      console.error("Error phat bang diem:", error);
-      alert("Phát bảng điểm không thành công");
-    } finally {
-      setIssending(false);
+      return;
     }
+
+    // Fallback: nếu status không OK nhưng không có error, hoặc response không đúng định dạng
+    alert("Phát bảng điểm không thành công");
+  } catch (error) {
+    console.error("Error phat bang diem:", error);
+    alert("Phát bảng điểm không thành công");
+  } finally {
+    setIssending(false);
   }
+}
 
   // ✅ Hàm sắp xếp bảng điểm
   function sortBangDiem(data: BangDiemChiTiet[]) {
