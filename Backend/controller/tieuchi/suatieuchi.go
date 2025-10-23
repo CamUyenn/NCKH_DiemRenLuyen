@@ -23,55 +23,39 @@ func SuaTieuChi(c *gin.Context) {
 		})
 		return
 	}
-	// Check trangthai bangdiem
-	var bangdiem model.BangDiem
-	result := initialize.DB.Where("ma_bang_diem = ?", input.Mabangdiemcheck).Find(&bangdiem)
+
+	// Delete danhsachtieuchi in database by mabangdiemthamchieu
+	result := initialize.DB.Delete(&model.BangDiemChiTiet{}, "ma_bang_diem_tham_chieu = ?", input.Mabangdiemcheck)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
-			"error": "Query bangdiem in database failed",
+			"error": "Failed to delete danhsachtieuchi",
 		})
 		return
 	}
 
-	if bangdiem.TrangThai == "Chưa Phát" {
-		// Delete danhsachtieuchi in database by mabangdiemthamchieu
-		result = initialize.DB.Delete(&model.BangDiemChiTiet{}, "ma_bang_diem_tham_chieu = ?", input.Mabangdiemcheck)
-		if result.Error != nil {
-			c.JSON(400, gin.H{
-				"error": "Failed to delete danhsachtieuchi",
-			})
-			return
-		}
-
-		// Generate matieuchi
-		for i, inputxuly := range input.Tieuchi {
-			if inputxuly.MaTieuChiCha == "" {
-				input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + inputxuly.Muc
-				input.Tieuchi[i].MaBangDiemThamChieu = input.Mabangdiemcheck
-				continue
-			} else {
-				machasplit := strings.Split(inputxuly.MaTieuChiCha, "+")
-				input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + inputxuly.Muc + "," + machasplit[1]
-				input.Tieuchi[i].MaBangDiemThamChieu = input.Mabangdiemcheck
-			}
-		}
-
-		//Create new tieuchi
-		result = initialize.DB.Create(input.Tieuchi)
-		if result.Error != nil {
-			c.JSON(400, gin.H{
-				"error": "Update tieuchi failed",
-			})
-			return
+	// Generate matieuchi
+	for i, inputxuly := range input.Tieuchi {
+		if inputxuly.MaTieuChiCha == "" {
+			input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + inputxuly.Muc
+			input.Tieuchi[i].MaBangDiemThamChieu = input.Mabangdiemcheck
+			continue
 		} else {
-			c.JSON(200, gin.H{
-				"message": "Update tieuchi successful",
-			})
+			machasplit := strings.Split(inputxuly.MaTieuChiCha, "+")
+			input.Tieuchi[i].MaTieuChi = input.Mabangdiemcheck + "+" + inputxuly.Muc + "," + machasplit[1]
+			input.Tieuchi[i].MaBangDiemThamChieu = input.Mabangdiemcheck
 		}
-	} else {
+	}
+
+	//Create new tieuchi
+	result = initialize.DB.Create(input.Tieuchi)
+	if result.Error != nil {
 		c.JSON(400, gin.H{
-			"error": "Cannot modify tieuchi when bangdiem is Đã Phát",
+			"error": "Update tieuchi failed",
 		})
 		return
+	} else {
+		c.JSON(200, gin.H{
+			"message": "Update tieuchi successful",
+		})
 	}
 }
