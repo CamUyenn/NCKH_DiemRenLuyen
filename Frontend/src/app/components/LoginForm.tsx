@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import './../login/login.css';
 
-const LoginForm = () => {
+const LoginForm: React.FC = () => {
   const router = useRouter();
   const [role, setRole] = useState<'sv' | 'gv'>('sv');
   const [userId, setUserId] = useState('');
@@ -23,50 +26,71 @@ const LoginForm = () => {
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
     try {
-      const response = await fetch('http://localhost:8080/api/login', {
+      const endpoint = role === 'sv' ? '/api/sauloginsinhvien' : '/api/saulogingiangvien';
+      const baseUrl = 'http://localhost:8080';
+
+      const payload =
+        role === 'sv'
+          ? { ma_sinh_vien: userId, mat_khau: password, type: 'sinhvien' }
+          : { ma_giang_vien: userId, mat_khau: password, type: 'giangvien' };
+
+      const response = await fetch(baseUrl + endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: userId,
-          password: password,
-          type: role, // 'sv' cho sinh viên, 'gv' cho giảng viên
-        }),
+        body: JSON.stringify(payload),
         signal: controller.signal,
       });
+
       clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('Sai mã người dùng hoặc mật khẩu!');
+      if (response.status === 400) {
+        if (role === 'sv') {
+          setError('Sai mật khẩu hoặc mã sinh viên');
         } else {
-          setError('Lỗi máy chủ. Vui lòng thử lại sau.');
+          setError('Sai mật khẩu hoặc mã giảng viên');
         }
+        setLoading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        setError('Lỗi máy chủ. Vui lòng thử lại sau.');
         setLoading(false);
         return;
       }
 
       const data = await response.json();
 
-      if (data.success) {
-        // Điều hướng dựa vào type trả về từ backend
-        if (data.type === 'sinhvien') {
-          window.location.href = '/students';
-        } else if (data.type === 'giangvien') {
-          window.location.href = '/teacher';
-        } else {
-          window.location.href = '/'; // fallback nếu type không hợp lệ
-        }
+      try {
+        localStorage.setItem('session', JSON.stringify(data));
+        if (data.type) localStorage.setItem('session_type', data.type);
+      } catch (err) {
+        console.warn('Could not write to localStorage', err);
+      }
+
+      const t: string = (data.type || '').toLowerCase();
+      if (t === 'loptruong' || t === 'sinhvien') {
+        router.push('/students');
+      } else if (t === 'giangvien' || t === 'truongkhoa' || t === 'chuyenviendaotao') {
+        router.push('/teacher');
+      } else if (t === 'admin') {
+        router.push('/admin');
       } else {
-        setError(data.message || 'Sai mã người dùng hoặc mật khẩu!');
+        router.push('/');
       }
     } catch (err) {
-      setError('Không thể kết nối tới máy chủ. Vui lòng thử lại sau.');
+      if ((err as any)?.name === 'AbortError') {
+        setError('Yêu cầu đăng nhập quá thời gian. Vui lòng thử lại.');
+      } else {
+        setError('Không thể kết nối tới máy chủ. Vui lòng thử lại sau.');
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleLogin}>
+    <form onSubmit={handleLogin} aria-label="login-form">
       <div className="input-group">
         <label htmlFor="user-id">Mã người dùng</label>
         <input
@@ -78,6 +102,7 @@ const LoginForm = () => {
           required
         />
       </div>
+
       <div className="input-group">
         <label htmlFor="password">Mật khẩu</label>
         <input
@@ -89,33 +114,35 @@ const LoginForm = () => {
           required
         />
       </div>
-      <div className="role-checkbox-group">
-        <input
-          type="radio"
-          id="student"
-          name="role"
-          value="sv"
-          checked={role === 'sv'}
-          onChange={() => setRole('sv')}
-        />
-        <label htmlFor="student">Sinh viên</label>
+
+      <div className="role-row" role="radiogroup" aria-label="chọn vai trò">
+        <label>
+          <input
+            type="radio"
+            id="student"
+            name="role"
+            value="sv"
+            checked={role === 'sv'}
+            onChange={() => setRole('sv')}
+          />
+          Sinh viên
+        </label>
+
+        <label>
+          <input
+            type="radio"
+            id="teacher"
+            name="role"
+            value="gv"
+            checked={role === 'gv'}
+            onChange={() => setRole('gv')}
+          />
+          Giảng viên
+        </label>
       </div>
-      <div className="role-checkbox-group">
-        <input
-          type="radio"
-          id="teacher"
-          name="role"
-          value="gv"
-          checked={role === 'gv'}
-          onChange={() => setRole('gv')}
-        />
-        <label htmlFor="teacher">Giảng viên</label>
-      </div>
-      {error && (
-        <div style={{ color: 'red', margin: '8px 0', textAlign: 'center' }}>
-          {error}
-        </div>
-      )}
+
+      {error && <div className="error-msg">{error}</div>}
+
       <button type="submit" className="btn-login" disabled={loading}>
         {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
       </button>
