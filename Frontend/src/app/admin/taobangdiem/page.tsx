@@ -107,16 +107,12 @@ const DaTaoBangDiem: React.FC = () => {
           let parentInner = plusSplit.length > 1 ? plusSplit[1] : maCha;
           // Loại bỏ dấu () ở cuối nếu có
           parentInner = parentInner.replace(/\(\)$/, "");
-<<<<<<< HEAD
-          maTieuChiChaFull = maCha.replace(/\(\)$/, "()"); // Lưu đúng mã tiêu chí cha đã sinh, bỏ ()
-=======
           // --- Thay đổi theo yêu cầu: gán ma_tieu_chi_cha mới với dấu phẩy thay cho dấu chấm ---
           // row.maTieuChiCha giữ giá trị UI: mức2 -> "I", mức3 -> "2.I"
           // Chuyển mọi dấu '.' trong row.maTieuChiCha thành ',' khi nối vào sau '+'
           const formattedCha = row.maTieuChiCha.replace(/\./g, ",");
           maTieuChiChaFull = `${mabangdiemcheck}+${formattedCha}`;
           // Giữ cách tạo maTieuChi (mã bản thân) như trước, dùng parentInner để điền vào ngoặc
->>>>>>> b8acb5e0c6a6c1f48744622d58d7975a85589ce4
           maTieuChi = `${mabangdiemcheck}+${mucDiemNum},${muc}(${parentInner})`;
         } else {
           // fallback nếu không tìm thấy cha

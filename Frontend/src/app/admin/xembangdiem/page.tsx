@@ -74,22 +74,6 @@ export default function BangDiem() {
     router.push(`/admin/saochephocky`);
   }
 
-<<<<<<< HEAD
-  function sortBangDiem(data: BangDiemChiTiet[]) {
-    // Duyệt theo đúng thứ tự xuất hiện trong data
-    let result: BangDiemChiTiet[] = [];
-
-    // Tạo map mã tiêu chí -> item
-    const maMap = new Map<string, BangDiemChiTiet>();
-    data.forEach(item => maMap.set(item.ma_tieu_chi, item));
-
-    // Hàm đệ quy để duyệt con theo đúng thứ tự nhập
-    function pushWithChildren(item: BangDiemChiTiet) {
-      if (result.find(i => i.ma_tieu_chi === item.ma_tieu_chi)) return;
-      result.push(item);
-      // Tìm các con theo đúng thứ tự xuất hiện trong data
-      const children = data.filter(i => i.ma_tieu_chi_cha === item.ma_tieu_chi);
-=======
   // Helper: định dạng ngày về dd/MM/yyyy (an toàn với nhiều kiểu đầu vào)
 function formatDateToDDMMYYYY(dateInput: string | null | undefined) {
   if (!dateInput) return null;
@@ -151,8 +135,10 @@ async function handlePhatBangDiem() {
       const formatted = formatDateToDDMMYYYY(data.ngay_het_hang);
       if (formatted) {
         alert(`Phát bảng điểm thành công.\nThời gian hết hạn: ${formatted}`);
+        router.push(`/admin`);
       } else {
         alert("Phát bảng điểm thành công.");
+        router.push(`/admin`);
       }
       return;
     }
@@ -194,25 +180,13 @@ async function handlePhatBangDiem() {
         });
 
       let result: BangDiemChiTiet[] = [];
->>>>>>> b8acb5e0c6a6c1f48744622d58d7975a85589ce4
       for (const child of children) {
-        pushWithChildren(child);
+        result.push(child);
+        result = result.concat(getChildren(child.ma_tieu_chi));
       }
+      return result;
     }
 
-<<<<<<< HEAD
-    // Duyệt từng item theo thứ tự nhập, nếu là gốc (không có cha hoặc cha không tồn tại) thì bắt đầu từ đó
-    for (const item of data) {
-      if (!item.ma_tieu_chi_cha || !maMap.has(item.ma_tieu_chi_cha)) {
-        pushWithChildren(item);
-      }
-    }
-
-    // Thêm các mục bị lạc (không duyệt tới)
-    const resultIds = new Set(result.map(i => i.ma_tieu_chi));
-    const missing = data.filter(i => !resultIds.has(i.ma_tieu_chi));
-    return [...result, ...missing];
-=======
     let sorted: BangDiemChiTiet[] = [];
     for (const cha of muc1) {
       sorted.push(cha);
@@ -226,7 +200,6 @@ async function handlePhatBangDiem() {
     }
 
     return sorted;
->>>>>>> b8acb5e0c6a6c1f48744622d58d7975a85589ce4
   }
 
   return (

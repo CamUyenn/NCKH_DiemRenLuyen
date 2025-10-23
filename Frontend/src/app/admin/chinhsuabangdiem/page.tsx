@@ -304,48 +304,6 @@ const getMucOptions = (level: string, currentIndex: number) => {
 
 
   const getMucChaOptions = (level: string) => {
-<<<<<<< HEAD
-  // Nếu là mức 2
-  if (level === "2") {
-    return rows
-      .filter((r) => r.mucDiem === "1")
-      .map((r) => {
-        // Ví dụ: maTieuChi = "2024-2025.2_BD+1,I()"
-        // → ta chỉ cần lấy "I" sau dấu phẩy và trước dấu ngoặc
-        const match = r.maTieuChi?.match(/\+[^,]+,([^()]+)\(/);
-        const label = match ? match[1] : "";
-        return {
-          value: r.maTieuChi || "",
-          label: label || "",
-        };
-      });
-  }
-
-  // Nếu là mức 3
-  if (level === "3") {
-    return rows
-      .filter((r) => r.mucDiem === "2")
-      .map((r) => {
-        // maTieuChi dạng: "2024-2025.2_BD+2,1(+1,I)"
-        // cần lấy "1" từ phần +2,1 và "I" từ phần (+1,I)
-        const outerMatch = r.maTieuChi?.match(/\+[^,]+,([^()]+)\(/); // lấy 1
-        const innerMatch = r.maTieuChi?.match(/\(\+[^,]+,([^()]+)\)/); // lấy I
-        const outer = outerMatch ? outerMatch[1] : "";
-        const inner = innerMatch ? innerMatch[1] : "";
-        const label = inner ? `${outer}.${inner}` : outer;
-
-        return {
-          value: r.maTieuChi || "",
-          label: label || "",
-        };
-      });
-  }
-
-  // Mức 1 không có cha
-  return [];
-};
-
-=======
     if (level === "2") {
       return rows
         .filter((r) => r.mucDiem === "1")
@@ -371,7 +329,6 @@ const getMucOptions = (level: string, currentIndex: number) => {
     }
     return [];
   };
->>>>>>> b8acb5e0c6a6c1f48744622d58d7975a85589ce4
 
   const handleDeleteRow = (index: number) => {
     if (rows.length === 1) return;
