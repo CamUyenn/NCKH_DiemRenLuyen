@@ -1,15 +1,14 @@
 "use client";
 import React from "react";
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import "./../../styles/students/xemdssinhvien.css";
-import { data} from "./data";
+import { data } from "./data";
 
 function ClassListPage() {
   const router = useRouter();
   const [bcsScores, setBcsScores] = useState<Record<string, number>>({});
 
- 
   const handleclick = () => {
     router.push("/students/xemdssinhvien/xemchitiet");
   };
@@ -26,18 +25,18 @@ function ClassListPage() {
   const handlesubmit = () => {
     alert("Bạn đã gửi bảng điểm thành công!");
     router.push("/students");
-  }
+  };
   useEffect(() => {
-  const saved = localStorage.getItem("bangDiemBCS");
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    const scores: Record<string, number> = {};
-    Object.keys(parsed).forEach((studentId) => {
-      scores[studentId] = parsed[studentId].diemBCS;
-    });
-    setBcsScores(scores);
-  }
-}, []);
+    const saved = localStorage.getItem("bangDiemBCS");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const scores: Record<string, number> = {};
+      Object.keys(parsed).forEach((studentId) => {
+        scores[studentId] = parsed[studentId].diemBCS;
+      });
+      setBcsScores(scores);
+    }
+  }, []);
   return (
     <div>
       <div className="xemds_students-container">
@@ -50,6 +49,7 @@ function ClassListPage() {
               <th>Mã sinh viên</th>
               <th>Lớp</th>
               <th>Sinh viên tự đánh giá</th>
+              <th>Sao chép</th>
               <th>BCS đánh giá</th>
               <th>Chi tiết</th>
               <th>Trạng thái</th>
@@ -67,6 +67,22 @@ function ClassListPage() {
                     <span>{student.diem}</span>
                   ) : null}
                 </td>
+                
+                <td>
+                  {student.trangthai === "Đã nộp" ? (
+                    <button className="button_copydiem_students"
+                      onClick={() =>
+                        setBcsScores((prev) => ({
+                          ...prev,
+                          [student.studentId]: student.diem, 
+                        }))
+                      }
+                    >
+                      Sao chép
+                    </button>
+                  ) : null}
+                </td>
+
                 {/* Điểm BCS */}
                 <td>
                   {student.trangthai === "Đã nộp" ? (
@@ -75,17 +91,12 @@ function ClassListPage() {
                 </td>
                 <td>
                   {student.trangthai === "Đã nộp" ? (
-                    <span
-                      className="classlist-link"
-                      style={{
-                        cursor: "pointer",
-                        color: "#007bff",
-                        textDecoration: "underline",
-                      }}
+                    <button
+                     className="button_copydiem_students"
                       onClick={handleclick}
                     >
                       {student.chitiet}
-                    </span>
+                    </button>
                   ) : null}
                 </td>
 
@@ -95,16 +106,10 @@ function ClassListPage() {
           </tbody>
         </table>
         <div className="xemds_students-buttons">
-          <button
-            onClick={handleCopyAll}
-            className="xemds_students-btn"
-          >
+          <button onClick={handleCopyAll} className="xemds_students-btn">
             Sao chép toàn bộ
           </button>
-           <button
-            onClick ={handlesubmit}
-            className="xemds_students-btn"
-          >
+          <button onClick={handlesubmit} className="xemds_students-btn">
             Gửi bảng điểm
           </button>
         </div>

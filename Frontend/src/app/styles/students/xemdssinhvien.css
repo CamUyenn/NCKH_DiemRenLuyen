@@ -34,7 +34,7 @@
 
 .xemds_students-table th:nth-child(3),
 .xemds_students-table td:nth-child(3) {
-  width: 15%;
+  width: 10%;
   text-align: center;
 }
 
@@ -51,11 +51,16 @@
 }
 .xemds_students-table th:nth-child(6),
 .xemds_students-table td:nth-child(6) {
-  width: 15%;
+  width: 10%;
   text-align: center;
 }
 .xemds_students-table th:nth-child(7),
 .xemds_students-table td:nth-child(7) {
+  width: 10%;
+  text-align: center;
+}
+.xemds_students-table th:nth-child(8),
+.xemds_students-table td:nth-child(8) {
   width: 10%;
   text-align: center;
 }
@@ -106,4 +111,12 @@
   font-size: 15px;
   color: #333;
   margin-bottom: 10px;
+}
+.button_copydiem_students{
+  background-color:#0055a5;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor:pointer;
 }
