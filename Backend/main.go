@@ -71,6 +71,7 @@ func main() {
 	router.GET("/api/xemlopsinhhoat/:malopsinhhoat", lopsinhhoat.XemLopSinhHoat)
 	router.GET("/api/xemtatcalopsinhhoat", lopsinhhoat.XemTatCaLopSinhHoat)
 	router.GET("/api/xemtrangthaibangdiem/:mabangdiem", bangdiem.XemTrangThaiBangDiem)
+	router.GET("/api/xemtieuchicham/:masinhvien/:mahocky", tieuchi.XemTieuChiCham)
 
 	router.DELETE("/api/xoahocky/:mahocky", hocky.XoaHocKy)
 	router.DELETE("/api/xoabangdiem/:mabangdiem", bangdiem.XoaBangDiem)
