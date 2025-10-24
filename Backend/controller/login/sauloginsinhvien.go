@@ -98,21 +98,10 @@ func SauLoginSinhVien(c *gin.Context) {
 		typenew = "loptruong"
 	}
 
-	// Query mabangdiem
-	var mabangdiemoutput string
-	result = initialize.DB.Model(model.SinhVienDiemRenLuyenChiTiet{}).Select("ma_sinh_vien_diem_ren_luyen").Where("ma_hoc_ky_tham_chieu = ? AND ma_sinh_vien_tham_chieu = ?", mahockylonnhat, datainputx.MaSinhVien).Find(&mabangdiemoutput)
-	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"error": "Query mabangdiem failed",
-		})
-		return
-	}
-
 	c.JSON(200, gin.H{
 		"ma_sinh_vien":     datainputx.MaSinhVien,
 		"ma_hoc_ky":        mahockylonnhat,
 		"ma_lop_sinh_hoat": lopsinhhoathocky.MaLopSinhHoatThamChieu,
-		"ma_bang_diem":     mabangdiemoutput,
 		"type":             typenew,
 	})
 }
