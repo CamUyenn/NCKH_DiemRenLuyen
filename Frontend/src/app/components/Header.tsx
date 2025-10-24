@@ -251,10 +251,7 @@ function AppHeader({
         {/* Học kỳ: chỉ hiển thị nếu không phải admin */}
         {userRole !== "admin" && (
           <div className="semester-row">
-            <div className="semester-box">
-              <span className="semester-label">Khóa học:</span>
-              <span className="semester-value">46 (2022-2026)</span>
-            </div>
+            {/* Đã xóa <div className="semester-box"> hiển thị Khóa học 46 (2022-2026) */}
             <div className="semester-box">
               <span className="semester-label">Học kỳ:</span>
               <select
