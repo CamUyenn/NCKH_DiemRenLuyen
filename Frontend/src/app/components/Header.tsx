@@ -30,6 +30,15 @@ interface AppHeaderProps {
   userRole?: string; // vai trò: "student", "teacher", "admin"
 }
 
+function convertMaHocKyToLabel(maHocKy: string): string {
+  // Ví dụ: 2019-2020.2 => Học kỳ 2, năm học 2019-2020
+  const match = maHocKy.match(/^(\d{4}-\d{4})\.(\d)$/);
+  if (match) {
+    return `Học kỳ ${match[2]}, Năm học ${match[1]}`;
+  }
+  return maHocKy;
+}
+
 function AppHeader({
   children,
   logo,
@@ -38,9 +47,8 @@ function AppHeader({
   simpleMenus = [],
   userRole = "student",
 }: AppHeaderProps) {
-  const [selectedSemester, setSelectedSemester] = useState(
-    "Học kỳ 1, năm học 2023-2024"
-  );
+  const [selectedSemester, setSelectedSemester] = useState<string>(""); // <-- sửa lại mặc định
+  const [semesterOptions, setSemesterOptions] = useState<{ value: string; label: string }[]>([]);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [localDropdowns, setLocalDropdowns] = useState<DropdownMenu[] | null>(null);
   const [localSimples, setLocalSimples] = useState<SimpleMenu[] | null>(null);
@@ -51,10 +59,53 @@ function AppHeader({
     router.push(homeRoute);
   };
 
-  const handleSemesterChange = (
+  const handleSemesterChange = async (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setSelectedSemester(event.target.value);
+    const newHocKy = event.target.value;
+    setSelectedSemester(newHocKy);
+
+    // Lấy session hiện tại
+    let session = null;
+    try {
+      session = JSON.parse(localStorage.getItem("session") || "{}");
+    } catch {}
+    const maNguoiDung = session?.ma_sinh_vien || session?.ma_giang_vien || "";
+    const type = (session?.type || "").toLowerCase();
+
+    // Gọi API đổi học kỳ
+    try {
+      console.log("Gửi yêu cầu đổi học kỳ:", {
+        ma_hoc_ky: newHocKy,
+        ma_nguoi_dung: maNguoiDung,
+        type: type,
+      });
+      const res = await fetch("http://localhost:8080/api/doihocky", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ma_hoc_ky: newHocKy,
+          ma_nguoi_dung: maNguoiDung,
+          type: type,
+        }),
+      });
+      if (!res.ok) {
+        console.error("Đổi học kỳ thất bại! Status:", res.status, res.statusText);
+        alert("Đổi học kỳ thất bại!");
+        return;
+      }
+      const data = await res.json();
+      console.log("Kết quả trả về từ API đổi học kỳ:", data);
+      // Cập nhật lại session trong localStorage
+      const newSession = { ...session, ...data, ma_hoc_ky: newHocKy, type: data.type };
+      localStorage.setItem("session", JSON.stringify(newSession));
+      console.log("Session sau khi đổi học kỳ:", newSession);
+      // Nếu muốn reload lại trang để các component khác cập nhật, bỏ comment dòng dưới:
+      // window.location.reload();
+    } catch (err) {
+      console.error("Lỗi khi đổi học kỳ:", err);
+      alert("Lỗi khi đổi học kỳ!");
+    }
   };
 
   const toggleMenu = (menuName: string) => {
@@ -65,6 +116,74 @@ function AppHeader({
     setOpenMenu(null); // đóng dropdown khi click
     onClick();
   };
+
+  // ------------------------- FETCH DANH SÁCH HỌC KỲ -------------------------
+  useEffect(() => {
+    // Lấy session từ localStorage
+    let session = null;
+    try {
+      session = JSON.parse(localStorage.getItem("session") || "{}");
+    } catch {}
+    const maNguoiDung = session?.ma_sinh_vien || session?.ma_giang_vien || "";
+    const type = (session?.type || "").toLowerCase();
+    const maHocKyHienTai = session?.ma_hoc_ky || "";
+
+    // Thêm log kiểm tra
+    console.log("Session:", session);
+    console.log("Mã học kỳ hiện tại trong session:", maHocKyHienTai);
+
+    if (!maNguoiDung || !type) {
+      setSemesterOptions([]);
+      setSelectedSemester("");
+      return;
+    }
+
+    fetch(`http://localhost:8080/api/xemdanhsachhocky/${maNguoiDung}/${type}`)
+      .then((res) => {
+        if (!res.ok) {
+          console.error("API trả về lỗi:", res.status, res.statusText);
+          return null;
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (!data) {
+          console.warn("Không lấy được dữ liệu học kỳ từ API.");
+          setSemesterOptions([]);
+          setSelectedSemester("");
+          return;
+        }
+        // data.list_hocky có thể là mảng string hoặc mảng object
+        let arr: string[] = [];
+        if (Array.isArray(data.list_hocky)) {
+          if (typeof data.list_hocky[0] === "string") {
+            arr = data.list_hocky;
+          } else if (typeof data.list_hocky[0] === "object" && data.list_hocky[0].ma_hoc_ky) {
+            arr = data.list_hocky.map((hk: any) => hk.ma_hoc_ky);
+          }
+        }
+        // Log danh sách học kỳ lấy được từ API
+        console.log("Danh sách học kỳ từ API:", arr);
+
+        // Đảm bảo mã học kỳ hiện tại luôn có trong options
+        const allArr = arr.includes(maHocKyHienTai) ? arr : [maHocKyHienTai, ...arr];
+        const uniqueArr = Array.from(new Set(allArr.filter(Boolean)));
+
+        setSemesterOptions(
+          uniqueArr.map((ma) => ({
+            value: ma,
+            label: convertMaHocKyToLabel(ma),
+          }))
+        );
+        setSelectedSemester(maHocKyHienTai || (uniqueArr.length ? uniqueArr[0] : ""));
+      })
+      .catch((err) => {
+        console.error("Lỗi fetch API học kỳ:", err);
+        setSemesterOptions([]);
+        setSelectedSemester("");
+      });
+  }, []);
+  // -------------------------------------------------------------------------
 
   // -------------------------
   // Phần xử lý: đọc session từ localStorage
@@ -120,9 +239,9 @@ function AppHeader({
       const rènLuyệnDropdownAll: DropdownMenu = {
         title: "Quản lý điểm rèn luyện",
         buttons: [
-          { label: "Đánh giá điểm rèn luyện", onClick: goto("#/danh-gia") },
-          { label: "Kết quả rèn luyện", onClick: goto("#/ket-qua") },
-          { label: "Xem danh sách sinh viên trong lớp", onClick: goto("#/danh-sach-lop") },
+          { label: "Đánh giá điểm rèn luyện", onClick: goto("/students/formchamdiem") },
+          { label: "Kết quả rèn luyện", onClick: goto("/students/ketquarenluyen") },
+          { label: "Xem danh sách sinh viên trong lớp", onClick: goto("/students/xemdssinhvien") },
         ],
       };
 
@@ -252,28 +371,21 @@ function AppHeader({
         {userRole !== "admin" && (
           <div className="semester-row">
             <div className="semester-box">
-              <span className="semester-label">Khóa học:</span>
-              <span className="semester-value">46 (2022-2026)</span>
-            </div>
-            <div className="semester-box">
               <span className="semester-label">Học kỳ:</span>
               <select
                 className="semester-dropdown"
                 value={selectedSemester}
                 onChange={handleSemesterChange}
               >
-                <option value="Học kỳ 1, năm học 2023-2024">
-                  Học kỳ 1, năm học 2023-2024
-                </option>
-                <option value="Học kỳ 2, năm học 2023-2024">
-                  Học kỳ 2, năm học 2023-2024
-                </option>
-                <option value="Học kỳ 1, năm học 2024-2025">
-                  Học kỳ 1, năm học 2024-2025
-                </option>
-                <option value="Học kỳ 2, năm học 2024-2025">
-                  Học kỳ 2, năm học 2024-2025
-                </option>
+                {semesterOptions.length === 0 ? (
+                  <option value="">Không có học kỳ</option>
+                ) : (
+                  semesterOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
           </div>
