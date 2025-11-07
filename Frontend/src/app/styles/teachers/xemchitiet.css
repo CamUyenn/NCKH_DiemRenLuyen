@@ -1,0 +1,107 @@
+.xemchitiet_students-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.xemchitiet_students-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  table-layout: fixed;
+  margin-top: 20px;
+}
+
+.xemchitiet_students-table th,
+.xemchitiet_students-table td {
+  border: 1px solid #999;
+  padding: 8px 12px;
+  vertical-align: middle;
+}
+
+.xemchitiet_students-table th:nth-child(1),
+.xemchitiet_students-table td:nth-child(1) {
+  width: 8%;
+  text-align: center;
+}
+
+.xemchitiet_students-table th:nth-child(2),
+.xemchitiet_students-table td:nth-child(2) {
+  width: 35%;
+}
+
+.xemchitiet_students-table th:nth-child(3),
+.xemchitiet_students-table td:nth-child(3) {
+  width: 7%; 
+  text-align: center;
+}
+
+.xemchitiet_students-table th:nth-child(4),
+.xemchitiet_students-table td:nth-child(4) {
+  width: 10%;
+  text-align: center;
+}
+
+.xemchitiet_students-table th:nth-child(5),
+.xemchitiet_students-table td:nth-child(5) {
+  width: 10%;
+  text-align: center;
+}
+.xemchitiet_students-table th:nth-child(6),
+.xemchitiet_students-table td:nth-child(6) {
+  width: 10%;
+  text-align: center;
+}
+.xemchitiet_students-table th:nth-child(7),
+.xemchitiet_students-table td:nth-child(7) {
+  width: 10%;
+  text-align: center;
+}
+.xemchitiet_students-table th:nth-child(8),
+.xemchitiet_students-table td:nth-child(8) {
+  width: 10%;
+  text-align: center;
+}
+
+.section-total, 
+.rank-row, 
+.all-total {
+  text-align: center;
+}
+
+.xemchitiet_students-table thead {
+  background-color: #ccc;
+}
+
+.xemchitiet_students-buttons {
+  display: flex;
+  justify-content: flex-end; /* đẩy về bên phải */
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.xemchitiet_students-btn {
+  padding: 10px 20px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.xemchitiet_students-btn:hover {
+  background-color: #0055a5;
+}
+
+.xemchitiet_students-select {
+  padding: 5px;
+  font-size: 14px;
+}
+.xemchitiet_students-input {
+  padding: 5px;
+  font-size: 14px;
+  width: 100px;
+  text-align: center;
+}
