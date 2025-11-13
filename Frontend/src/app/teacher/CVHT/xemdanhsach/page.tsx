@@ -2,15 +2,15 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import "./../../styles/teachers/xemdssinhvien.css";
-import { data } from "../../teacher/xemdanhsach/data";
+import "./../../../styles/teachers/xemdssinhvien.css";
+import { data } from "./data";
 
 function TeacherXemDanhSach() {
   const router = useRouter();
   const [bcsScores, setBcsScores] = useState<Record<string, number>>({});
 
   const handleclick = () => {
-    router.push("/teacher/xemdanhsach/xemchitiet");
+    router.push("/teacher/CVHT/xemdanhsach/xemchitiet");
   };
   // 🔹 Sao chép toàn bộ điểm SV sang BCS
   const handleCopyAll = () => {

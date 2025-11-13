@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { diemData } from "../../../admin/data";
-import "../../../styles/teachers/xemchitiet.css";
+import { diemData } from "../../../../admin/data";
+import "../../../../styles/teachers/xemchitiet.css";
 import { useSearchParams } from "next/navigation";
 
 export default function XemChiTiet() {
@@ -207,7 +207,7 @@ export default function XemChiTiet() {
   };
   const handleback = () => {
     alert("Bạn có chắc chắn muốn trả lại bảng điểm?");
-    router.push("/teacher/xemdanhsach");
+    router.push("/teacher/CVHT/xemdanhsach");
   };
 
   return (
@@ -464,7 +464,7 @@ export default function XemChiTiet() {
             localStorage.setItem("bangDiemBCS", JSON.stringify(data));
 
             alert("Bạn đã lưu bảng điểm thành công!");
-            router.push("/teacher/xemdssinhvien");
+            router.push("/teacher/CVHT/xemdanhsach");
             
           }}
           className="xemchitiet_students-btn"
