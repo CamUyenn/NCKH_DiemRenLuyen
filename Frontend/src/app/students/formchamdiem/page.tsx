@@ -2,106 +2,47 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { diemData, Diem } from "../../admin/data";
 import "./../../styles/students/bangchamdiem.css";
-
-type BackendDiem = {
-  ma_sinh_vien_diem_ren_luyen_chi_tiet: string;
-  ten_tieu_chi: string;
-  muc_diem: number;
-  muc: string;
-  diem: number;
-  mo_ta_diem: string;
-  ma_tieu_chi_cha: string;
-  loai_tieu_chi: string;
-  so_lan: number;
-  diem_sinh_vien_danh_gia: number;
-  xep_loai: string;
-};
-
-const bigSections = ["I", "II", "III", "IV", "V"];
-const maxPoints: Record<string, number> = {
-  I: 20,
-  II: 25,
-  III: 20,
-  IV: 25,
-  V: 10,
-};
 
 export default function ChamDiem() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const raw = searchParams.get("raw");
 
-  const [criteria, setCriteria] = useState<BackendDiem[]>([]);
-  const [selectedValues, setSelectedValues] = useState<Record<string, string[]>>({});
-  const [loading, setLoading] = useState(true);
+  const bigSections = ["I", "II", "III", "IV", "V"];
 
-  // Fetch tiêu chí và điểm đã chấm từ backend
+  const maxPoints: Record<string, number> = {
+    I: 20,
+    II: 25,
+    III: 20,
+    IV: 25,
+    V: 10,
+  };
+
+  const [selectedValues, setSelectedValues] = useState<
+    Record<string, string[]>
+  >({});
+
+  // 🔹 Khi vào ChamDiem, load dữ liệu đã lưu nháp (nếu có)
   useEffect(() => {
-  // Lấy học kỳ từ session
-  const sessionStr = localStorage.getItem("session");
-  let maHocKy = "";
-  if (sessionStr) {
-    const session = JSON.parse(sessionStr);
-    maHocKy = session.ma_hoc_ky || "";
-  }
-
-  // Tạo key theo mẫu: bangdiem_<ma_hoc_ky>_BD
-  const key = `bangdiem_${maHocKy}_BD`;
-  const bangDiemStr = localStorage.getItem(key);
-
-  if (bangDiemStr) {
-    try {
-      const bangDiemData = JSON.parse(bangDiemStr);
-
-      // Gán dữ liệu hiển thị ra form
-      setCriteria(bangDiemData);
-    } catch (error) {
-      console.error("Không thể parse dữ liệu bảng điểm:", error);
+    const saved = localStorage.getItem("luuNhapBangDiem");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setSelectedValues(parsed.selectedValues || {});
     }
-  } else {
-    console.warn("Không tìm thấy dữ liệu bảng điểm trong localStorage");
+  }, []);
+
+  function handleCreate() {
+     localStorage.setItem(
+        "guiBangDiem",
+        JSON.stringify({ selectedValues })
+      );
+       alert("Bạn đã gửi bảng điểm thành công, quay lại trang chủ ?");
+      router.push(`/students`);
   }
 
-  setLoading(false);
-
-  // Lấy mã bảng điểm chấm từ query params (hoặc thay bằng nguồn phù hợp)
-  const mabangdiemcham = searchParams.get("mabangdiemcham") || "";
-
-  if (mabangdiemcham) {
-    fetch(`http://localhost:8080/tieuchi/xemtieuchivadiemdacham/${mabangdiemcham}`)
-      .then((res) => res.json())
-      .then((data) => {
-        const arr: BackendDiem[] = Array.isArray(data) ? data : data.danh_sach_tieu_chi || [];
-        setCriteria(arr);
-
-        // Map dữ liệu đã chấm thành selectedValues
-        const selected: Record<string, string[]> = {};
-        arr.forEach((item) => {
-          if (item.loai_tieu_chi === "Checkbox" && item.diem_sinh_vien_danh_gia) {
-            selected[item.muc] = [item.muc];
-          }
-          if (item.loai_tieu_chi === "Radio" && item.diem_sinh_vien_danh_gia) {
-            selected[item.ma_tieu_chi_cha] = [item.muc];
-          }
-          if (
-            (item.loai_tieu_chi === "Textbox" || item.loai_tieu_chi === "Counter") &&
-            item.diem_sinh_vien_danh_gia
-          ) {
-            selected[item.muc] = [String(item.diem_sinh_vien_danh_gia)];
-          }
-        });
-        setSelectedValues(selected);
-      })
-      .catch((err) => {
-        console.error("Lỗi khi fetch dữ liệu đã chấm:", err);
-      })
-      .finally(() => setLoading(false));
-  } else {
-    console.warn("Không tìm thấy tham số mabangdiemcham, bỏ qua fetch dữ liệu đã chấm");
-  }
-  }, [searchParams]);
-
-  // Lưu nháp
+  // 🔹 Khi bấm Lưu nháp ở ChamDiem → ghi lại state + chuyển sang trang LuuNhap
   function handleCopy() {
     const saveData = { selectedValues };
     localStorage.setItem("luuNhapBangDiem", JSON.stringify(saveData));
@@ -109,14 +50,7 @@ export default function ChamDiem() {
     router.push(`/students/formchamdiem/luunhap`);
   }
 
-  // Gửi bảng điểm
-  function handleCreate() {
-    localStorage.setItem("guiBangDiem", JSON.stringify({ selectedValues }));
-    alert("Bạn đã gửi bảng điểm thành công, quay lại trang chủ ?");
-    router.push(`/students`);
-  }
-
-  // Xếp loại
+  //Xep loai
   const getRank = () => {
     const total = calcAllTotal();
     if (total >= 90) return "Xuất sắc";
@@ -126,10 +60,10 @@ export default function ChamDiem() {
     return "Yếu";
   };
 
-  // Xử lý tick checkbox
-  const handleCheckbox = (item: BackendDiem) => {
+  // checkbox
+  const handleCheckbox = (item: Diem) => {
     setSelectedValues((prev) => {
-      const group = item.muc;
+      const group = item.mucCha || item.muc;
       const current = prev[group] || [];
       if (current.includes(item.muc)) {
         return { ...prev, [group]: current.filter((v) => v !== item.muc) };
@@ -139,50 +73,36 @@ export default function ChamDiem() {
     });
   };
 
-  // Xử lý radio
-  const handleRadio = (item: BackendDiem) => {
-    const group = item.ma_tieu_chi_cha;
+  // radio
+  const handleRadio = (item: Diem) => {
+    const group = item.mucCha!;
     setSelectedValues((prev) => ({
       ...prev,
       [group]: [item.muc],
     }));
   };
 
-  // Xử lý textbox/counter
-  const handleCounter = (item: BackendDiem, value: string) => {
-    setSelectedValues((prev) => ({
-      ...prev,
-      [item.muc]: [value],
-    }));
-  };
-
-  // Tính tổng điểm của section với giới hạn
+  // tính tổng điểm của section với giới hạn
   const calcSectionTotal = (section: string) => {
-    const sectionItems = criteria.filter(
+    const sectionItems = diemData.filter(
       (item) =>
         item.muc === section ||
-        item.ma_tieu_chi_cha === section ||
-        criteria.find((d) => d.muc === item.ma_tieu_chi_cha)?.ma_tieu_chi_cha === section
+        item.mucCha === section ||
+        diemData.find((d) => d.muc === item.mucCha)?.mucCha === section
     );
 
     const total = sectionItems.reduce((sum, item) => {
-      if (item.loai_tieu_chi === "Textbox" || item.loai_tieu_chi === "Counter") {
+      if (item.loai === "counter") {
         const rawVal = selectedValues[item.muc]?.[0];
         const count = rawVal ? parseInt(rawVal) : 0;
         if (!count || isNaN(count)) return sum;
-        return sum + count * (item.diem || 0);
+        return sum + count * (parseInt(item.diem ?? "0") || 0);
       }
-      if (item.loai_tieu_chi === "Checkbox") {
-        const selected = selectedValues[item.muc] || [];
-        if (selected.includes(item.muc)) {
-          return sum + (item.diem || 0);
-        }
-      }
-      if (item.loai_tieu_chi === "Radio") {
-        const selected = selectedValues[item.ma_tieu_chi_cha] || [];
-        if (selected.includes(item.muc)) {
-          return sum + (item.diem || 0);
-        }
+
+      const group = item.mucCha || item.muc;
+      const selected = selectedValues[group] || [];
+      if (selected.includes(item.muc)) {
+        return sum + (parseInt(item.diem ?? "0") || 0);
       }
       return sum;
     }, 0);
@@ -191,56 +111,13 @@ export default function ChamDiem() {
     return Math.min(total, maxPoints[section] || total);
   };
 
-  // Tổng toàn bảng = tổng đã giới hạn
+  // tổng toàn bảng = tổng đã giới hạn
   const calcAllTotal = () => {
-    return bigSections.reduce((sum, section) => sum + calcSectionTotal(section), 0);
+    return bigSections.reduce(
+      (sum, section) => sum + calcSectionTotal(section),
+      0
+    );
   };
-
-  // Chuyển loại tiêu chí thành ký hiệu và input tương ứng
-  function renderActionInput(item: BackendDiem) {
-    switch (item.loai_tieu_chi) {
-      case "None":
-        return <span>-</span>;
-      case "Checkbox":
-        return (
-          <input
-            type="checkbox"
-            checked={!!selectedValues[item.muc]}
-            onChange={() => handleCheckbox(item)}
-          />
-        );
-      case "Radio":
-        return (
-          <input
-            type="radio"
-            name={item.ma_tieu_chi_cha}
-            checked={!!selectedValues[item.ma_tieu_chi_cha]?.includes(item.muc)}
-            onChange={() => handleRadio(item)}
-          />
-        );
-      case "Textbox":
-      case "Counter":
-        return (
-          <input
-            type="number"
-            min={0}
-            max={10}
-            step={1}
-            value={selectedValues[item.muc]?.[0] || ""}
-            onChange={(e) => handleCounter(item, e.target.value)}
-            style={{ width: 60 }}
-          />
-        );
-      default:
-        return <span>-</span>;
-    }
-  }
-
-  console.log("criteria:", criteria);
-
-  if (loading) {
-    return <div>Đang tải dữ liệu...</div>;
-  }
 
   return (
     <div className="bangdiem_students-container">
@@ -251,33 +128,27 @@ export default function ChamDiem() {
             <th>Mục</th>
             <th>Nội dung đánh giá</th>
             <th>Mô tả</th>
+            <th>Điểm</th>
             <th>Hành động</th>
             <th>Sinh viên tự đánh giá</th>
           </tr>
         </thead>
         <tbody>
           {bigSections.map((section) => {
-            const sectionItems = criteria.filter(
+            const sectionItems = diemData.filter(
               (item) =>
                 item.muc === section ||
-                item.ma_tieu_chi_cha === section ||
-                criteria.find((d) => d.muc === item.ma_tieu_chi_cha)?.ma_tieu_chi_cha === section
+                item.mucCha === section ||
+                diemData.find((d) => d.muc === item.mucCha)?.mucCha === section
             );
 
             return (
               <React.Fragment key={section}>
                 {sectionItems.map((item, index) => {
                   const isBig = bigSections.includes(item.muc);
-                  let isSelected = false;
-                  if (item.loai_tieu_chi === "Checkbox") {
-                    isSelected = !!selectedValues[item.muc];
-                  }
-                  if (item.loai_tieu_chi === "Radio") {
-                    isSelected = !!selectedValues[item.ma_tieu_chi_cha]?.includes(item.muc);
-                  }
-                  if (item.loai_tieu_chi === "Textbox" || item.loai_tieu_chi === "Counter") {
-                    isSelected = !!selectedValues[item.muc]?.[0];
-                  }
+                  const group = item.mucCha || item.muc;
+                  const selected = selectedValues[group] || [];
+                  const isSelected = selected.includes(item.muc);
 
                   return (
                     <tr
@@ -288,21 +159,65 @@ export default function ChamDiem() {
                         {item.muc}
                       </td>
                       <td style={{ fontWeight: isBig ? "bold" : "normal" }}>
-                        {item.ten_tieu_chi}
+                        {item.noiDung}
                       </td>
-                      <td>{item.mo_ta_diem || ""}</td>
-                      <td>{renderActionInput(item)}</td>
+                      <td>{item.diem || ""}</td>
+                      <td>
+                        {item.loai === "checkbox" && (
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleCheckbox(item)}
+                          />
+                        )}
+                        {item.loai === "radio" && (
+                          <input
+                            type="radio"
+                            name={item.mucCha}
+                            checked={isSelected}
+                            onChange={() => handleRadio(item)}
+                          />
+                        )}
+                        {item.loai === "none" && <span>-</span>}
+                        {item.loai === "counter" && (
+                          <input
+                            type="number"
+                            min={0}
+                            max={3}
+                            step={1}
+                            value={selectedValues[item.muc]?.[0] || "-"}
+                            onChange={(e) => {
+                              const rawVal = e.target.value;
+                              if (rawVal === "-" || rawVal === "") {
+                                setSelectedValues((prev) => ({
+                                  ...prev,
+                                  [item.muc]: ["-"],
+                                }));
+                                return;
+                              }
+                              const val = Math.max(
+                                1,
+                                Math.min(5, parseInt(rawVal) || 1)
+                              );
+                              setSelectedValues((prev) => ({
+                                ...prev,
+                                [item.muc]: [String(val)],
+                              }));
+                            }}
+                          />
+                        )}
+                      </td>
                       <td style={{ fontWeight: "bold" }}>
-                        {(item.loai_tieu_chi === "Textbox" || item.loai_tieu_chi === "Counter")
+                        {item.loai === "counter"
                           ? (() => {
                               const rawVal = selectedValues[item.muc]?.[0];
                               const count = rawVal ? parseInt(rawVal) : 0;
                               if (!count || isNaN(count)) return "";
-                              const diemMoiLan = item.diem || 0;
+                              const diemMoiLan = parseInt(item.diem ?? "0");
                               return count * diemMoiLan + "đ";
                             })()
                           : isSelected
-                          ? item.diem + "đ"
+                          ? item.diem
                           : ""}
                       </td>
                     </tr>
