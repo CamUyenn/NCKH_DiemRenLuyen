@@ -22,7 +22,7 @@ export default function StudentsLayout({
   const sidebarItems = [
     {icon: <Image src={tintuc} alt="Tin tức" width={24} height={24} />, label: 'Tin tức - Thông báo', path: '/students' },
     {icon: <Image src={userprofile} alt="Tài khoản" width={24} height={24} />, label: 'Thông tin tài khoản', path: '/students/userprofile' },
-    {icon: <Image src={logout} alt="Đăng xuất" width={24} height={24} />, label: 'Đăng xuất', path: '/students/logout' },
+    {icon: <Image src={logout} alt="Đăng xuất" width={24} height={24} />, label: 'Đăng xuất', path: '/login' },
   ];
 
   // Định nghĩa menu dựa trên pathname
