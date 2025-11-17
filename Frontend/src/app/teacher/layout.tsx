@@ -29,12 +29,13 @@ export default function StudentsLayout({
 
   // Hàm lấy props cho header dựa vào pathname
   const getHeaderProps = () => {
-    if (pathname === '/teacher' || pathname.includes('/userprofile') || pathname.includes('/logout')) {
+    // Hiển thị menu "Xem danh sách sinh viên" trên tất cả các trang teacher
+    if (pathname.startsWith('/teacher')) {
       return {
         simpleMenus: [
           {
             label: "Xem danh sách sinh viên",
-            onClick: () => router.push("/teacher/xemdanhsach"),
+            onClick: () => router.push("/teacher/CVHT/xemdanhsach"),
           },
         ],
         dropdownMenus: [],
