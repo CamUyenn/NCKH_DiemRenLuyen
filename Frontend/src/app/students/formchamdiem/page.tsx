@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { diemData, Diem } from "../../admin/data";
 import "./../../styles/students/bangchamdiem.css";
 
 type TieuChi = {
