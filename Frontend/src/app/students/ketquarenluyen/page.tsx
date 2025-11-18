@@ -1,107 +1,86 @@
 "use client";
-import React from "react";
-import "./../../styles/students/ketquarenluyen.css";
-import { useRouter } from "next/navigation";
-const Data = [
-  {
-    id: 1,
-    hocky: "2025-2026.1",
-    lopsinhhoat: "CNTTK46_B",
-    CVHT: "Đoàn Thị Hồng Phước",
-    diem: 85,
-    xeploai: "tốt",
-  },
-  {
-    id: 2,
-    hocky: "2024-2025.2",
-    lopsinhhoat: "CNTTK46_B",
-    CVHT: "Đoàn Thị Hồng Phước",
-    diem: 78,
-    xeploai: "khá",
-  },
-  {
-    id: 3,
-    hocky: "2024-2025.1",
-    lopsinhhoat: "CNTTK46_B",
-    CVHT: "Đoàn Thị Hồng Phước",
-    diem: 90,
-    xeploai: "xuất sắc",
-  },
-  {
-    id: 4,
-    hocky: "2023-2024.2",
-    lopsinhhoat: "CNTTK46_B",
-    CVHT: "Đoàn Thị Hồng Phước",
-    diem: 65,
-    xeploai: "trung binh",
-  },
-  {
-    id: 5,
-    hocky: "2023-2024.1",
-    lopsinhhoat: "CNTTK46_B",
-    CVHT: "Đoàn Thị Hồng Phước",
-    diem: 88,
-    xeploai: "tốt",
-  },
-  {
-    id: 6,
-    hocky: "2022-2023.2",
-    lopsinhhoat: "CNTTK46_B",
-    CVHT: "Đoàn Thị Hồng Phước",
-    diem: 72,
-    xeploai: "khá",
-  },
-  {
-    id: 7,
-    hocky: "2022-2023.1",
-    lopsinhhoat: "CNTTK46_B",
-    CVHT: "Đoàn Thị Hồng Phước",
-    diem: 95,
-    xeploai: "xuất sắc",
-  },
-];
+import React, { useEffect, useState } from "react";
+import "./../../styles/students/xemdssinhvien.css";
 
-function ResultPage() {
-  const router = useRouter();
-  const handleclick = () => {
-    router.push("/students");
-  };
+type KetQuaRenLuyen = {
+  hocky: string;
+  lopsinhhoat: string;
+  giangvien: string;
+  mabangdiem: string;
+  diemsinhvien: number;
+  xeploai: string;
+};
+
+function KetQuaRenLuyenPage() {
+  const [data, setData] = useState<KetQuaRenLuyen[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Lấy mã sinh viên từ session hoặc localStorage
+    const sessionRaw =
+      localStorage.getItem("session") ||
+      localStorage.getItem("user") ||
+      localStorage.getItem("sessionData") ||
+      "{}";
+    let session = {};
+    try {
+      session = JSON.parse(sessionRaw);
+    } catch {
+      session = {};
+    }
+    const masinhvien =
+      (session as any)?.ma_sinh_vien ||
+      (session as any)?.masv ||
+      (session as any)?.id ||
+      "";
+
+    if (!masinhvien) {
+      setLoading(false);
+      return;
+    }
+
+    fetch(`http://localhost:8080/api/xemdiemdachamquacacnam/${masinhvien}`)
+      .then((res) => res.json())
+      .then((json) => {
+        setData(json.data || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
   return (
-    <div className="ketqua_students-container">
-      <h2>Kết quả rèn luyện</h2>
-      <table className="ketqua_students-table">
-        <thead>
-          <tr>
-            <th>Học kỳ</th>
-            <th>Lớp sinh hoạt</th>
-            <th>Cố vấn học tập</th>
-            <th>Điểm rèn luyện</th>
-            <th>Xếp loại</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Data.map((item) => (
-            <tr key={item.id}>
-              <td>{item.hocky}</td>
-              <td>{item.lopsinhhoat}</td>
-              <td>{item.CVHT}</td>
-              <td>{item.diem}</td>
-              <td>{item.xeploai}</td>
+    <div className="xemds_students-container">
+      <h2>Kết quả rèn luyện qua các năm</h2>
+      {loading ? (
+        <p>Đang tải dữ liệu...</p>
+      ) : (
+        <table className="xemds_students-table">
+          <thead>
+            <tr>
+              <th>Học kỳ</th>
+              <th>Lớp sinh hoạt</th>
+              <th>Giảng viên cố vấn</th>
+              <th>Mã bảng điểm</th>
+              <th>Điểm sinh viên</th>
+              <th>Xếp loại</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="ketqua_students-buttons">
-         <p className="note_ketqua_students">
-            <b>Ghi chú:</b> <br/> <i>Điểm rèn luyện được tính theo thang điểm 100, xếp loại theo    
-            các mức: Xuất sắc (90-100), Tốt (80-89), Khá (65-79), Trung bình (50-64), Yếu (dưới 50).</i>
-        </p>
-        <div onClick={handleclick} className="ketqua_students-btn">
-          Quay lại
-        </div>
-       
-      </div>
+          </thead>
+          <tbody>
+            {data.map((item, idx) => (
+              <tr key={item.mabangdiem + idx}>
+                <td>{item.hocky}</td>
+                <td>{item.lopsinhhoat}</td>
+                <td>{item.giangvien}</td>
+                <td>{item.mabangdiem}</td>
+                <td>{item.diemsinhvien}</td>
+                <td>{item.xeploai}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
-export default ResultPage;
+
+export default KetQuaRenLuyenPage;

@@ -1,0 +1,109 @@
+.xemds_students-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.xemds_students-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  table-layout: fixed;
+  margin-top: 20px;
+}
+
+.xemds_students-table th,
+.xemds_students-table td {
+  border: 1px solid #999;
+  padding: 8px 12px;
+  vertical-align: middle;
+}
+
+.xemds_students-table th:nth-child(1),
+.xemds_students-table td:nth-child(1) {
+  width: 7%;
+  text-align: center;
+}
+
+.xemds_students-table th:nth-child(2),
+.xemds_students-table td:nth-child(2) {
+  width: 23%;
+  text-align: center;
+}
+
+.xemds_students-table th:nth-child(3),
+.xemds_students-table td:nth-child(3) {
+  width: 15%;
+  text-align: center;
+}
+
+.xemds_students-table th:nth-child(4),
+.xemds_students-table td:nth-child(4) {
+  width: 10%;
+  text-align: center;
+}
+
+.xemds_students-table th:nth-child(5),
+.xemds_students-table td:nth-child(5) {
+  width: 10%;
+  text-align: center;
+}
+.xemds_students-table th:nth-child(6),
+.xemds_students-table td:nth-child(6) {
+  width: 15%;
+  text-align: center;
+}
+.xemds_students-table th:nth-child(7),
+.xemds_students-table td:nth-child(7) {
+  width: 10%;
+  text-align: center;
+}
+.xemds_students-table th:nth-child(7),
+.xemds_students-table td:nth-child(7) {
+  width: 10%;
+  text-align: center;
+}
+
+.section-total,
+.rank-row,
+.all-total {
+  text-align: center;
+}
+
+.xemds_students-table thead {
+  background-color: #ccc;
+}
+
+.xemds_students-buttons {
+  display: flex;
+  justify-content: flex-end; /* đẩy về bên phải */
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.xemds_students-btn {
+  width: 100px;
+  padding: 10px 20px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.xemds_students-btn:hover {
+  background-color: #0055a5;
+}
+
+.xemds_students-select {
+  padding: 5px;
+  font-size: 14px;
+}
+
+.note_xemds_students {
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 10px;
+}

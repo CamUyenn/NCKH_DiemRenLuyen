@@ -5,52 +5,166 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { diemData, Diem } from "../../admin/data";
 import "./../../styles/students/bangchamdiem.css";
 
+type TieuChi = {
+  ma_sinh_vien_diem_ren_luyen_chi_tiet: string;
+  ten_tieu_chi: string;
+  muc_diem: number;
+  muc: string;
+  diem: number;
+  mo_ta_diem: string;
+  ma_tieu_chi_cha: string;
+  loai_tieu_chi: string;
+  so_lan: number;
+};
+
 export default function ChamDiem() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const raw = searchParams.get("raw");
 
-  const bigSections = ["I", "II", "III", "IV", "V"];
+  const [masinhvien, setMasinhvien] = useState("");
+  const [mahocky, setMahocky] = useState("");
+  const [tieuChiList, setTieuChiList] = useState<TieuChi[]>([]);
+  const [selectedValues, setSelectedValues] = useState<Record<string, any>>({});
 
-  const maxPoints: Record<string, number> = {
-    I: 20,
-    II: 25,
-    III: 20,
-    IV: 25,
-    V: 10,
-  };
-
-  const [selectedValues, setSelectedValues] = useState<
-    Record<string, string[]>
-  >({});
-
-  // 🔹 Khi vào ChamDiem, load dữ liệu đã lưu nháp (nếu có)
+  // Lấy mã sinh viên và học kỳ từ localStorage hoặc query (chỉ khi window tồn tại)
   useEffect(() => {
-    const saved = localStorage.getItem("luuNhapBangDiem");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      setSelectedValues(parsed.selectedValues || {});
+    if (typeof window !== "undefined") {
+      const sessionRaw =
+        localStorage.getItem("session") ||
+        localStorage.getItem("user") ||
+        localStorage.getItem("sessionData") ||
+        "{}";
+      let session = {};
+      try {
+        session = JSON.parse(sessionRaw);
+      } catch {
+        session = {};
+      }
+      setMasinhvien(
+        (session as any)?.ma_sinh_vien ||
+        (session as any)?.masv ||
+        (session as any)?.id ||
+        searchParams.get("masinhvien") ||
+        ""
+      );
+      setMahocky(
+        (session as any)?.ma_hoc_ky ||
+        (session as any)?.ma_hocky ||
+        searchParams.get("mahocky") ||
+        ""
+      );
+    }
+  }, [searchParams]);
+
+  // Fetch tiêu chí từ API khi đã có mã sinh viên và học kỳ
+  useEffect(() => {
+    if (!masinhvien || !mahocky) return;
+    fetch(
+      `http://localhost:8080/api/xemtieuchicham/${masinhvien}/${mahocky}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setTieuChiList(data.danh_sach_tieu_chi || []);
+      });
+  }, [masinhvien, mahocky]);
+
+  // Load dữ liệu đã lưu nháp (nếu có)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("luuNhapBangDiem");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setSelectedValues(parsed.selectedValues || {});
+      }
     }
   }, []);
 
+  // Lưu nháp
+  function handleCopy() {
+    if (typeof window !== "undefined") {
+      const saveData = { selectedValues };
+      localStorage.setItem("luuNhapBangDiem", JSON.stringify(saveData));
+      alert("Đã lưu nháp thành công!");
+      router.push(`/students/formchamdiem/luunhap`);
+    }
+  }
+
+  // Gửi bảng điểm
   function handleCreate() {
-     localStorage.setItem(
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
         "guiBangDiem",
         JSON.stringify({ selectedValues })
       );
-       alert("Bạn đã gửi bảng điểm thành công, quay lại trang chủ ?");
+      alert("Bạn đã gửi bảng điểm thành công, quay lại trang chủ ?");
       router.push(`/students`);
+    }
   }
 
-  // 🔹 Khi bấm Lưu nháp ở ChamDiem → ghi lại state + chuyển sang trang LuuNhap
-  function handleCopy() {
-    const saveData = { selectedValues };
-    localStorage.setItem("luuNhapBangDiem", JSON.stringify(saveData));
-    alert("Đã lưu nháp thành công!");
-    router.push(`/students/formchamdiem/luunhap`);
-  }
+  // Xử lý checkbox
+  const handleCheckbox = (tc: TieuChi) => {
+    setSelectedValues((prev) => {
+      const current = prev[tc.ma_tieu_chi_cha || tc.muc] || [];
+      if (current.includes(tc.muc)) {
+        return { ...prev, [tc.ma_tieu_chi_cha || tc.muc]: current.filter((v: string) => v !== tc.muc) };
+      } else {
+        return { ...prev, [tc.ma_tieu_chi_cha || tc.muc]: [...current, tc.muc] };
+      }
+    });
+  };
 
-  //Xep loai
+  // Xử lý radio
+  const handleRadio = (tc: TieuChi) => {
+    setSelectedValues((prev) => ({
+      ...prev,
+      [tc.ma_tieu_chi_cha]: [tc.muc],
+    }));
+  };
+
+  // Xử lý textbox nhập số lần
+  const handleTextbox = (tc: TieuChi, value: string) => {
+    setSelectedValues((prev) => ({
+      ...prev,
+      [tc.muc]: [value],
+    }));
+  };
+
+  // Tính điểm từng tiêu chí
+  const getDiemTieuChi = (tc: TieuChi) => {
+    if (tc.loai_tieu_chi === "textbox") {
+      const rawVal = selectedValues[tc.muc]?.[0];
+      const count = rawVal ? parseInt(rawVal) : 0;
+      if (!count || isNaN(count)) return "";
+      return count * tc.diem + "đ";
+    }
+    const group = tc.ma_tieu_chi_cha || tc.muc;
+    const selected = selectedValues[group] || [];
+    if (selected.includes(tc.muc)) {
+      return tc.diem + "đ";
+    }
+    return "";
+  };
+
+  // Tính tổng điểm
+  const calcAllTotal = () => {
+    return tieuChiList.reduce((sum, tc) => {
+      if (tc.loai_tieu_chi === "textbox") {
+        const rawVal = selectedValues[tc.muc]?.[0];
+        const count = rawVal ? parseInt(rawVal) : 0;
+        if (!count || isNaN(count)) return sum;
+        return sum + count * tc.diem;
+      }
+      const group = tc.ma_tieu_chi_cha || tc.muc;
+      const selected = selectedValues[group] || [];
+      if (selected.includes(tc.muc)) {
+        return sum + tc.diem;
+      }
+      return sum;
+    }, 0);
+  };
+
+  // Xếp loại
   const getRank = () => {
     const total = calcAllTotal();
     if (total >= 90) return "Xuất sắc";
@@ -60,64 +174,51 @@ export default function ChamDiem() {
     return "Yếu";
   };
 
-  // checkbox
-  const handleCheckbox = (item: Diem) => {
-    setSelectedValues((prev) => {
-      const group = item.mucCha || item.muc;
-      const current = prev[group] || [];
-      if (current.includes(item.muc)) {
-        return { ...prev, [group]: current.filter((v) => v !== item.muc) };
-      } else {
-        return { ...prev, [group]: [...current, item.muc] };
+  // Hàm sắp xếp tiêu chí giống admin
+  function sortBangDiem(data: TieuChi[]) {
+    const romanOrder = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+    const numberOrder = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
+    const letterOrder = "abcdefghijklmnopqrstuvwxyz".toUpperCase().split("");
+
+    // Cha lớn: muc là I, II, III, ...
+    const chaLon = data
+      .filter((item) => item.ma_tieu_chi_cha === "")
+      .sort((a, b) => romanOrder.indexOf(a.muc) - romanOrder.indexOf(b.muc));
+
+    // Cha nhỏ: muc là 1, 2, 3,... và ma_tieu_chi_cha là mã của cha lớn
+    function getChaNho(maChaLon: string) {
+      return data
+        .filter((item) => item.ma_tieu_chi_cha === maChaLon && numberOrder.includes(item.muc))
+        .sort((a, b) => numberOrder.indexOf(a.muc) - numberOrder.indexOf(b.muc));
+    }
+
+    // Con: muc là a, b,... và ma_tieu_chi_cha là mã của cha nhỏ
+    function getCon(maChaNho: string) {
+      return data
+        .filter((item) => item.ma_tieu_chi_cha === maChaNho && letterOrder.includes(item.muc.toUpperCase()))
+        .sort((a, b) => letterOrder.indexOf(a.muc.toUpperCase()) - letterOrder.indexOf(b.muc.toUpperCase()));
+    }
+
+    let sorted: TieuChi[] = [];
+    for (const cha of chaLon) {
+      sorted.push(cha);
+      const chaNhoList = getChaNho(cha.ma_sinh_vien_diem_ren_luyen_chi_tiet);
+      for (const chaNho of chaNhoList) {
+        sorted.push(chaNho);
+        const conList = getCon(chaNho.ma_sinh_vien_diem_ren_luyen_chi_tiet);
+        sorted.push(...conList);
       }
-    });
-  };
+    }
 
-  // radio
-  const handleRadio = (item: Diem) => {
-    const group = item.mucCha!;
-    setSelectedValues((prev) => ({
-      ...prev,
-      [group]: [item.muc],
-    }));
-  };
+    // Nếu còn mục nào chưa được sắp thì thêm vào cuối
+    if (sorted.length < data.length) {
+      const sortedIds = new Set(sorted.map((i) => i.ma_sinh_vien_diem_ren_luyen_chi_tiet));
+      const missing = data.filter((i) => !sortedIds.has(i.ma_sinh_vien_diem_ren_luyen_chi_tiet));
+      return [...sorted, ...missing];
+    }
 
-  // tính tổng điểm của section với giới hạn
-  const calcSectionTotal = (section: string) => {
-    const sectionItems = diemData.filter(
-      (item) =>
-        item.muc === section ||
-        item.mucCha === section ||
-        diemData.find((d) => d.muc === item.mucCha)?.mucCha === section
-    );
-
-    const total = sectionItems.reduce((sum, item) => {
-      if (item.loai === "counter") {
-        const rawVal = selectedValues[item.muc]?.[0];
-        const count = rawVal ? parseInt(rawVal) : 0;
-        if (!count || isNaN(count)) return sum;
-        return sum + count * (parseInt(item.diem ?? "0") || 0);
-      }
-
-      const group = item.mucCha || item.muc;
-      const selected = selectedValues[group] || [];
-      if (selected.includes(item.muc)) {
-        return sum + (parseInt(item.diem ?? "0") || 0);
-      }
-      return sum;
-    }, 0);
-
-    // giới hạn điểm tối đa
-    return Math.min(total, maxPoints[section] || total);
-  };
-
-  // tổng toàn bảng = tổng đã giới hạn
-  const calcAllTotal = () => {
-    return bigSections.reduce(
-      (sum, section) => sum + calcSectionTotal(section),
-      0
-    );
-  };
+    return sorted;
+  }
 
   return (
     <div className="bangdiem_students-container">
@@ -130,108 +231,51 @@ export default function ChamDiem() {
             <th>Mô tả</th>
             <th>Điểm</th>
             <th>Hành động</th>
-            <th>Sinh viên tự đánh giá</th>
+            <th>Điểm</th>
           </tr>
         </thead>
         <tbody>
-          {bigSections.map((section) => {
-            const sectionItems = diemData.filter(
-              (item) =>
-                item.muc === section ||
-                item.mucCha === section ||
-                diemData.find((d) => d.muc === item.mucCha)?.mucCha === section
-            );
+          {sortBangDiem(tieuChiList).map((tc, idx) => {
+            const isBig = tc.ma_tieu_chi_cha === "" || tc.ma_tieu_chi_cha === null;
+            const group = tc.ma_tieu_chi_cha || tc.muc;
+            const selected = selectedValues[group] || [];
+            const isSelected = selected.includes(tc.muc);
 
             return (
-              <React.Fragment key={section}>
-                {sectionItems.map((item, index) => {
-                  const isBig = bigSections.includes(item.muc);
-                  const group = item.mucCha || item.muc;
-                  const selected = selectedValues[group] || [];
-                  const isSelected = selected.includes(item.muc);
-
-                  return (
-                    <tr
-                      key={`${section}-${index}`}
-                      className={isBig ? "big-section" : ""}
-                    >
-                      <td style={{ fontWeight: isBig ? "bold" : "normal" }}>
-                        {item.muc}
-                      </td>
-                      <td style={{ fontWeight: isBig ? "bold" : "normal" }}>
-                        {item.noiDung}
-                      </td>
-                      <td>{item.diem || ""}</td>
-                      <td>
-                        {item.loai === "checkbox" && (
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => handleCheckbox(item)}
-                          />
-                        )}
-                        {item.loai === "radio" && (
-                          <input
-                            type="radio"
-                            name={item.mucCha}
-                            checked={isSelected}
-                            onChange={() => handleRadio(item)}
-                          />
-                        )}
-                        {item.loai === "none" && <span>-</span>}
-                        {item.loai === "counter" && (
-                          <input
-                            type="number"
-                            min={0}
-                            max={3}
-                            step={1}
-                            value={selectedValues[item.muc]?.[0] || "-"}
-                            onChange={(e) => {
-                              const rawVal = e.target.value;
-                              if (rawVal === "-" || rawVal === "") {
-                                setSelectedValues((prev) => ({
-                                  ...prev,
-                                  [item.muc]: ["-"],
-                                }));
-                                return;
-                              }
-                              const val = Math.max(
-                                1,
-                                Math.min(5, parseInt(rawVal) || 1)
-                              );
-                              setSelectedValues((prev) => ({
-                                ...prev,
-                                [item.muc]: [String(val)],
-                              }));
-                            }}
-                          />
-                        )}
-                      </td>
-                      <td style={{ fontWeight: "bold" }}>
-                        {item.loai === "counter"
-                          ? (() => {
-                              const rawVal = selectedValues[item.muc]?.[0];
-                              const count = rawVal ? parseInt(rawVal) : 0;
-                              if (!count || isNaN(count)) return "";
-                              const diemMoiLan = parseInt(item.diem ?? "0");
-                              return count * diemMoiLan + "đ";
-                            })()
-                          : isSelected
-                          ? item.diem
-                          : ""}
-                      </td>
-                    </tr>
-                  );
-                })}
-                <tr className="section-total">
-                  <td colSpan={4} style={{ fontWeight: "bold" }}>
-                    Tổng điểm {section}
-                  </td>
-                  <td style={{ fontWeight: "bold" }}>
-                    {calcSectionTotal(section)}
-                  </td>
-                </tr>
-              </React.Fragment>
+              <tr key={tc.ma_sinh_vien_diem_ren_luyen_chi_tiet}>
+                <td style={{ fontWeight: isBig ? "bold" : "normal" }}>{tc.muc}</td>
+                <td style={{ fontWeight: isBig ? "bold" : "normal" }}>{tc.ten_tieu_chi}</td>
+                <td>{tc.mo_ta_diem || ""}</td>
+                <td>
+                  {tc.loai_tieu_chi === "none" && <span>_</span>}
+                  {tc.loai_tieu_chi === "checkbox" && (
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleCheckbox(tc)}
+                    />
+                  )}
+                  {tc.loai_tieu_chi === "radio" && (
+                    <input
+                      type="radio"
+                      name={tc.ma_tieu_chi_cha}
+                      checked={isSelected}
+                      onChange={() => handleRadio(tc)}
+                    />
+                  )}
+                  {tc.loai_tieu_chi === "textbox" && (
+                    <input
+                      type="number"
+                      min={0}
+                      max={10}
+                      step={1}
+                      value={selectedValues[tc.muc]?.[0] || ""}
+                      onChange={(e) => handleTextbox(tc, e.target.value)}
+                    />
+                  )}
+                </td>
+                <td style={{ fontWeight: "bold" }}>{getDiemTieuChi(tc)}</td>
+              </tr>
             );
           })}
           <tr className="all-total">
