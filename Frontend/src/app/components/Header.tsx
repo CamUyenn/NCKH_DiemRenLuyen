@@ -269,7 +269,7 @@ function AppHeader({
       const isLopTruong = /loptruong|lop-truong|classleader|class_leader/.test(typeStr);
       const isGiangVien = /gv|giangvien|teacher/.test(typeStr);
       const isTruongKhoa = /truongkhoa|head|truong-khoa/.test(typeStr);
-      const isChuyenVien = /chuyenvien|chuyenvien|chuyen_viendaotao|daotao/.test(typeStr);
+      const isChuyenVien = /chuyenvien|chuyenvien|chuyenviendaotao|daotao/.test(typeStr);
 
       if (isStudent) {
         // giống hình nhưng không có mục cuối -> chỉ hai mục đầu
