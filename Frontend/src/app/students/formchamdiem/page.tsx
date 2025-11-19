@@ -25,7 +25,8 @@ export default function ChamDiem() {
   const [tieuChiList, setTieuChiList] = useState<TieuChi[]>([]);
   const [selectedValues, setSelectedValues] = useState<Record<string, any>>({});
 
-  // Lấy mã sinh viên và học kỳ từ localStorage hoặc query (chỉ khi window tồn tại)
+  // ... (Giữ nguyên các phần useEffect lấy session và fetch API cũ của bạn) ...
+  // Lấy mã sinh viên và học kỳ từ localStorage hoặc query
   useEffect(() => {
     if (typeof window !== "undefined") {
       const sessionRaw =
@@ -55,7 +56,6 @@ export default function ChamDiem() {
     }
   }, [searchParams]);
 
-  // Fetch tiêu chí từ API khi đã có mã sinh viên và học kỳ
   useEffect(() => {
     if (!masinhvien || !mahocky) return;
     fetch(
@@ -67,7 +67,6 @@ export default function ChamDiem() {
       });
   }, [masinhvien, mahocky]);
 
-  // Load dữ liệu đã lưu nháp (nếu có)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("luuNhapBangDiem");
@@ -78,17 +77,17 @@ export default function ChamDiem() {
     }
   }, []);
 
-  // Lưu nháp
+  // ... (Giữ nguyên các hàm handleCopy, handleCreate, handleCheckbox, handleRadio, handleTextbox, getDiemTieuChi, calcAllTotal, getRank) ...
+
   function handleCopy() {
     if (typeof window !== "undefined") {
       const saveData = { selectedValues };
       localStorage.setItem("luuNhapBangDiem", JSON.stringify(saveData));
       alert("Đã lưu nháp thành công!");
-      router.push(`/students/formchamdiem/luunhap`);
+      router.push(`/students/formchamdiem`);
     }
   }
 
-  // Gửi bảng điểm
   function handleCreate() {
     if (typeof window !== "undefined") {
       localStorage.setItem(
@@ -100,7 +99,6 @@ export default function ChamDiem() {
     }
   }
 
-  // Xử lý checkbox
   const handleCheckbox = (tc: TieuChi) => {
     setSelectedValues((prev) => {
       const current = prev[tc.ma_tieu_chi_cha || tc.muc] || [];
@@ -112,7 +110,6 @@ export default function ChamDiem() {
     });
   };
 
-  // Xử lý radio
   const handleRadio = (tc: TieuChi) => {
     setSelectedValues((prev) => ({
       ...prev,
@@ -120,7 +117,6 @@ export default function ChamDiem() {
     }));
   };
 
-  // Xử lý textbox nhập số lần
   const handleTextbox = (tc: TieuChi, value: string) => {
     setSelectedValues((prev) => ({
       ...prev,
@@ -128,7 +124,6 @@ export default function ChamDiem() {
     }));
   };
 
-  // Tính điểm từng tiêu chí
   const getDiemTieuChi = (tc: TieuChi) => {
     if (tc.loai_tieu_chi === "textbox") {
       const rawVal = selectedValues[tc.muc]?.[0];
@@ -144,7 +139,6 @@ export default function ChamDiem() {
     return "";
   };
 
-  // Tính tổng điểm
   const calcAllTotal = () => {
     return tieuChiList.reduce((sum, tc) => {
       if (tc.loai_tieu_chi === "textbox") {
@@ -162,7 +156,6 @@ export default function ChamDiem() {
     }, 0);
   };
 
-  // Xếp loại
   const getRank = () => {
     const total = calcAllTotal();
     if (total >= 90) return "Xuất sắc";
@@ -172,43 +165,53 @@ export default function ChamDiem() {
     return "Yếu";
   };
 
-  // Hàm sắp xếp tiêu chí giống admin
+  // ==========================================================
+  // 🔥 PHẦN ĐƯỢC SỬA ĐỔI: LOGIC SẮP XẾP ĐỆ QUY GIỐNG ADMIN 🔥
+  // ==========================================================
   function sortBangDiem(data: TieuChi[]) {
     const romanOrder = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
-    const numberOrder = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
     const letterOrder = "abcdefghijklmnopqrstuvwxyz".toUpperCase().split("");
 
-    // Cha lớn: muc là I, II, III, ...
-    const chaLon = data
-      .filter((item) => item.ma_tieu_chi_cha === "")
+    // 1. Lấy danh sách Cha Lớn (cấp 1) - là những item không có mã cha
+    const muc1 = data
+      .filter((item) => !item.ma_tieu_chi_cha) // Check null hoặc rỗng
       .sort((a, b) => romanOrder.indexOf(a.muc) - romanOrder.indexOf(b.muc));
 
-    // Cha nhỏ: muc là 1, 2, 3,... và ma_tieu_chi_cha là mã của cha lớn
-    function getChaNho(maChaLon: string) {
-      return data
-        .filter((item) => item.ma_tieu_chi_cha === maChaLon && numberOrder.includes(item.muc))
-        .sort((a, b) => numberOrder.indexOf(a.muc) - numberOrder.indexOf(b.muc));
-    }
+    // 2. Hàm đệ quy tìm con
+    function getChildren(parentMa: string): TieuChi[] {
+      const children = data
+        .filter((item) => item.ma_tieu_chi_cha === parentMa)
+        .sort((a, b) => {
+          const maA = a.muc.toUpperCase();
+          const maB = b.muc.toUpperCase();
+          const isNumber = (val: string) => /^[0-9]+$/.test(val);
+          const isRoman = (val: string) => romanOrder.includes(val);
+          const isLetter = (val: string) => /^[A-Z]$/.test(val);
 
-    // Con: muc là a, b,... và ma_tieu_chi_cha là mã của cha nhỏ
-    function getCon(maChaNho: string) {
-      return data
-        .filter((item) => item.ma_tieu_chi_cha === maChaNho && letterOrder.includes(item.muc.toUpperCase()))
-        .sort((a, b) => letterOrder.indexOf(a.muc.toUpperCase()) - letterOrder.indexOf(b.muc.toUpperCase()));
-    }
+          if (isRoman(maA) && isRoman(maB)) return romanOrder.indexOf(maA) - romanOrder.indexOf(maB);
+          if (isNumber(maA) && isNumber(maB)) return parseInt(maA) - parseInt(maB);
+          if (isLetter(maA) && isLetter(maB)) return letterOrder.indexOf(maA) - letterOrder.indexOf(maB);
+          return maA.localeCompare(maB);
+        });
 
-    let sorted: TieuChi[] = [];
-    for (const cha of chaLon) {
-      sorted.push(cha);
-      const chaNhoList = getChaNho(cha.ma_sinh_vien_diem_ren_luyen_chi_tiet);
-      for (const chaNho of chaNhoList) {
-        sorted.push(chaNho);
-        const conList = getCon(chaNho.ma_sinh_vien_diem_ren_luyen_chi_tiet);
-        sorted.push(...conList);
+      let result: TieuChi[] = [];
+      for (const child of children) {
+        result.push(child);
+        // Đệ quy tiếp tục tìm con của child này
+        // LƯU Ý: Ở đây dùng 'ma_sinh_vien_diem_ren_luyen_chi_tiet' làm ID tham chiếu
+        result = result.concat(getChildren(child.ma_sinh_vien_diem_ren_luyen_chi_tiet));
       }
+      return result;
     }
 
-    // Nếu còn mục nào chưa được sắp thì thêm vào cuối
+    // 3. Xây dựng danh sách đã sắp xếp
+    let sorted: TieuChi[] = [];
+    for (const cha of muc1) {
+      sorted.push(cha);
+      sorted = sorted.concat(getChildren(cha.ma_sinh_vien_diem_ren_luyen_chi_tiet));
+    }
+
+    // 4. Kiểm tra nếu còn sót item nào chưa được thêm vào (orphans)
     if (sorted.length < data.length) {
       const sortedIds = new Set(sorted.map((i) => i.ma_sinh_vien_diem_ren_luyen_chi_tiet));
       const missing = data.filter((i) => !sortedIds.has(i.ma_sinh_vien_diem_ren_luyen_chi_tiet));
@@ -217,6 +220,7 @@ export default function ChamDiem() {
 
     return sorted;
   }
+  // ==========================================================
 
   return (
     <div className="bangdiem_students-container">
@@ -233,7 +237,9 @@ export default function ChamDiem() {
         </thead>
         <tbody>
           {sortBangDiem(tieuChiList).map((tc, idx) => {
-            const isBig = tc.ma_tieu_chi_cha === "" || tc.ma_tieu_chi_cha === null;
+            // Logic xác định in đậm: Nếu item này không có mã cha -> in đậm
+            const isBig = !tc.ma_tieu_chi_cha;
+            
             const group = tc.ma_tieu_chi_cha || tc.muc;
             const selected = selectedValues[group] || [];
             const isSelected = selected.includes(tc.muc);
