@@ -100,8 +100,7 @@ function AppHeader({
       const newSession = { ...session, ...data, ma_hoc_ky: newHocKy, type: data.type };
       localStorage.setItem("session", JSON.stringify(newSession));
       console.log("Session sau khi đổi học kỳ:", newSession);
-      // Nếu muốn reload lại trang để các component khác cập nhật, bỏ comment dòng dưới:
-      // window.location.reload();
+      window.location.reload();
     } catch (err) {
       console.error("Lỗi khi đổi học kỳ:", err);
       alert("Lỗi khi đổi học kỳ!");
