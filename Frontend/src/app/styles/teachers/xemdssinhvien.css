@@ -1,109 +1,102 @@
-.xemds_students-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: Arial, sans-serif;
+.xds-container {
+  background-color: #fff;
+  margin: 0;
+  padding: 20px; 
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 100vh;
+  width: 100%;
+  font-family: Arial, sans-serif; 
 }
 
-.xemds_students-table {
+.xds-container h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #000;
+  margin-bottom: 20px;
+  border: none; 
+  padding-bottom: 0;
+}
+
+.xds-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
-  table-layout: fixed;
-  margin-top: 20px;
+  font-size: 0.95em;
+  color: #333;
 }
 
-.xemds_students-table th,
-.xemds_students-table td {
-  border: 1px solid #999;
-  padding: 8px 12px;
+
+.xds-table th {
+  background-color: #d9d9d9; 
+  font-weight: bold;
+  color: #000;
+  border: 1px solid #999; 
+  padding: 10px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap; 
+}
+
+.xds-table td {
+  border: 1px solid #ccc; 
+  padding: 10px;
+  text-align: center;
   vertical-align: middle;
 }
 
-.xemds_students-table th:nth-child(1),
-.xemds_students-table td:nth-child(1) {
-  width: 7%;
-  text-align: center;
+/* Căn trái cho cột Họ tên */
+.xds-table td.align-left {
+  text-align: left;
 }
 
-.xemds_students-table th:nth-child(2),
-.xemds_students-table td:nth-child(2) {
-  width: 23%;
-  text-align: center;
+.xds-table tbody tr:nth-child(even) {
+  background-color: #fff;
 }
 
-.xemds_students-table th:nth-child(3),
-.xemds_students-table td:nth-child(3) {
-  width: 15%;
-  text-align: center;
+.xds-table tbody tr:hover {
+  background-color: #f5f5f5;
 }
 
-.xemds_students-table th:nth-child(4),
-.xemds_students-table td:nth-child(4) {
-  width: 10%;
-  text-align: center;
+/* Các nút nhỏ trong bảng */
+.xds-btn-icon {
+  background: none;
+  border: none;
+  color: #003366;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9em;
 }
 
-.xemds_students-table th:nth-child(5),
-.xemds_students-table td:nth-child(5) {
-  width: 10%;
-  text-align: center;
-}
-.xemds_students-table th:nth-child(6),
-.xemds_students-table td:nth-child(6) {
-  width: 15%;
-  text-align: center;
-}
-.xemds_students-table th:nth-child(7),
-.xemds_students-table td:nth-child(7) {
-  width: 10%;
-  text-align: center;
-}
-.xemds_students-table th:nth-child(7),
-.xemds_students-table td:nth-child(7) {
-  width: 10%;
-  text-align: center;
-}
-
-.section-total,
-.rank-row,
-.all-total {
-  text-align: center;
-}
-
-.xemds_students-table thead {
-  background-color: #ccc;
-}
-
-.xemds_students-buttons {
-  display: flex;
-  justify-content: flex-end; /* đẩy về bên phải */
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.xemds_students-btn {
-  width: 100px;
-  padding: 10px 20px;
-  background-color: #003366;
+.xds-btn-xem, .xds-btn-copy {
+  background-color:#0055a5;
   color: white;
   border: none;
-  border-radius: 5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor:pointer;
+}
+
+/* Khu vực nút bấm phía dưới */
+.xds-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end; 
+  gap: 20px; 
+}
+
+.xds-btn-main {
+  background-color: #003366; 
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.95em;
+  font-weight: normal;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
 }
 
-.xemds_students-btn:hover {
-  background-color: #0055a5;
-}
-
-.xemds_students-select {
-  padding: 5px;
-  font-size: 14px;
-}
-
-.note_xemds_students {
-  font-size: 15px;
-  color: #333;
-  margin-bottom: 10px;
+.xds-btn-main:hover {
+  opacity: 0.9;
 }
