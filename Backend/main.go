@@ -62,7 +62,6 @@ func main() {
 	router.GET("/api/xemhocky", hocky.XemHocKy)
 	router.GET("/api/xemdanhsachhocky/:manguoidung/:type", hocky.XemDanhSachHocKy)
 	router.GET("/api/xemdanhsachbangdiemsinhvien/:malopsinhhoat/:mahocky", bangdiem.XemDanhSachBangDiemSinhVien)
-	router.GET("/api/xemtieuchivadiemdacham/:mabangdiemcham", tieuchi.XemTieuChiVaDiemDaCham)
 	router.GET("/api/xemdiemdachamquacacnam/:masinhvien", bangdiem.XemDiemDaChamQuaCacNam)
 	router.GET("/api/xemandanhsachbangdiemsinhvientheolop/:makhoa/:mahocky", bangdiem.XemDanhSachBangDiemSinhVienTheoLop)
 	router.GET("/api/xemsinhvien/:masinhvien", sinhvien.XemSinhVien)
