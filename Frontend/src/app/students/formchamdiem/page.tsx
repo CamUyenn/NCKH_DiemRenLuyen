@@ -84,8 +84,6 @@ export default function ChamDiem() {
       });
   }, [masinhvien, mahocky]);
 
-  // Xóa useEffect load dữ liệu nháp để tránh hiển thị số cũ nếu bạn muốn reset về 0
-  // Nếu muốn giữ tính năng lưu nháp, hãy uncomment đoạn dưới nhưng cần xóa LocalStorage thủ công 1 lần để hết số cũ.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const saved = localStorage.getItem("luuNhapBangDiem");
@@ -105,10 +103,81 @@ export default function ChamDiem() {
   }
 
   function handleCreate() {
-    if (typeof window === "undefined") return;
-    localStorage.setItem("guiBangDiem", JSON.stringify({ selectedValues }));
-    alert("Bạn đã gửi bảng điểm thành công, quay lại trang chủ ?");
-    router.push(`/students`);
+    if (typeof window === "undefined" || !masinhvien || !mahocky) return;
+
+    const tongDiem = Math.min(calcAllTotal(), 100);
+    const xepLoai = getRank();
+
+    // Chuẩn bị mảng điểm chi tiết để gửi lên server
+    const diemChiTiet = tieuChiList
+      .map(tc => {
+        let diemSo = 0;
+        let soLan = null;
+        let daTuongTac = false;
+
+        if (tc.loai_tieu_chi === "Textbox") {
+          const rawVal = selectedValues[tc.muc]?.[0];
+          const count = rawVal ? parseInt(rawVal) : 0;
+          if (count > 0 && !isNaN(count)) {
+            diemSo = count * (tc.diem || 0);
+            soLan = count;
+            daTuongTac = true;
+          }
+        } else if (tc.loai_tieu_chi === "Checkbox" || tc.loai_tieu_chi === "Radio") {
+          const group = tc._maCha || tc.muc;
+          const selected = selectedValues[group] || [];
+          if (selected.includes(tc.muc)) {
+            diemSo = tc.diem || 0;
+            daTuongTac = true;
+          }
+        }
+
+        // Chỉ gửi những tiêu chí mà sinh viên đã tương tác
+        if (daTuongTac) {
+          return {
+            ma_sinh_vien_diem_ren_luyen_chi_tiet: tc.ma_sinh_vien_diem_ren_luyen_chi_tiet,
+            diem_sinh_vien_danh_gia: diemSo,
+            so_lan: soLan,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean); // Lọc bỏ các giá trị null
+
+    const payload = {
+      ma_sinh_vien: masinhvien,
+      ma_hoc_ky: mahocky,
+      tong_diem: tongDiem,
+      xep_loai: xepLoai,
+      diem_chi_tiet: diemChiTiet,
+    };
+
+    // Gọi API để nộp bảng điểm và thay đổi trạng thái
+    fetch("http://localhost:8080/api/thaydoitrangthai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    })
+      .then(res => {
+        if (!res.ok) {
+          // Nếu có lỗi, thử đọc thông báo lỗi từ server
+          return res.json().then(err => { throw new Error(err.message || "Nộp bảng điểm thất bại") });
+        }
+        return res.json();
+      })
+      .then(data => {
+        alert("Nộp bảng điểm thành công!");
+        // Xóa bản nháp đã lưu ở local sau khi nộp thành công
+        localStorage.removeItem("luuNhapBangDiem");
+        // Chuyển về trang dashboard của sinh viên
+        router.push("/students");
+      })
+      .catch(error => {
+        console.error("Lỗi khi nộp bảng điểm:", error);
+        alert(error.message || "Đã có lỗi xảy ra. Vui lòng thử lại.");
+      });
   }
 
   // Xử lý input
@@ -181,16 +250,13 @@ export default function ChamDiem() {
     const missing = data.filter((i) => !used.has(i.ma_sinh_vien_diem_ren_luyen_chi_tiet));
     return [...sorted, ...missing];
   }
-
-  // ==========================================================
-  // LOGIC MỚI: Tính tổng điểm cho 1 mục lớn và ÁP DỤNG GIỚI HẠN (MAX)
-  // ==========================================================
+  // Tính tổng điểm cho từng mục lớn với giới hạn điểm
   function calcTotalForSection(maChaLon: string) {
     // Tìm mục lớn (I, II...) để lấy điểm tối đa (maxTotal)
     const section = tieuChiList.find((tc) => tc._ma === maChaLon);
     const maxTotal = section?.diem || 0;
 
-    // Hàm đệ quy tính tổng điểm thực tế (chưa giới hạn)
+    // Hàm đệ quy tính tổng điểm thực tế 
     const calculateRecursive = (parentId: string): number => {
       let sum = 0;
       const children = tieuChiList.filter((tc) => (tc._maCha ?? "") === parentId);
@@ -219,16 +285,14 @@ export default function ChamDiem() {
 
     const rawTotal = calculateRecursive(maChaLon);
 
-    // LOGIC QUAN TRỌNG: Nếu tổng thực tế > điểm tối đa thì lấy điểm tối đa
+    // Nếu tổng thực tế > điểm tối đa thì lấy điểm tối đa
     // Ví dụ: rawTotal = 25, maxTotal = 20 => finalTotal = 20
     const finalTotal = Math.min(rawTotal, maxTotal);
 
     return { rawTotal, finalTotal, maxTotal };
   }
 
-  // ==========================================================
   // LOGIC MỚI: Tính tổng toàn bài dựa trên các mục lớn ĐÃ BỊ GIỚI HẠN
-  // ==========================================================
   const calcAllTotal = () => {
     // 1. Lấy tất cả các mục lớn (I, II, III...) (có _maCha rỗng)
     const rootSections = tieuChiList.filter((tc) => (tc._maCha ?? "") === "");
@@ -254,7 +318,6 @@ export default function ChamDiem() {
     return "Yếu";
   };
 
-  // Render
   return (
     <div className="bangdiem_students-container">
       <h2>Bảng điểm rèn luyện</h2>
@@ -293,7 +356,6 @@ export default function ChamDiem() {
               const diemBackend =
                 tc.diem > 0 ? `+${tc.diem}` : tc.diem < 0 ? `${tc.diem}` : "0";
 
-              // Render dòng
               rows.push(
                 <tr key={tc.ma_sinh_vien_diem_ren_luyen_chi_tiet}>
                   <td style={{ fontWeight: isBig ? "bold" : "normal" }}>{tc.muc}</td>
@@ -317,12 +379,20 @@ export default function ChamDiem() {
                       <input
                         type="number"
                         min={0}
-                        max={10}
+                        max={tc.so_lan > 0 ? tc.so_lan : undefined}
                         step={1}
                         className="textbox-input"
-                        // Ưu tiên hiển thị giá trị 0 nếu chưa nhập gì để tránh ô trống
                         value={selectedValues[tc.muc]?.[0] ?? 0}
-                        onChange={(e) => handleTextbox(tc, e.target.value)}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          // Nếu có giới hạn số lần và nhập quá thì cảnh báo
+                          if (tc.so_lan > 0 && val > tc.so_lan) {
+                            alert(`Số lần tối đa cho tiêu chí này là ${tc.so_lan}`);
+                            setSelectedValues((prev) => ({ ...prev, [tc.muc]: [tc.so_lan] }));
+                          } else {
+                            handleTextbox(tc, e.target.value);
+                          }
+                        }}
                       />
                     )}
                   </td>
@@ -351,10 +421,10 @@ export default function ChamDiem() {
                       fontWeight: "bold",
                       background: "#f0f0f0",
                       textAlign: "center",
-                      color: "#d32f2f"
+                      color: "black"
                     }}>
                       {/* Đây là nơi hiển thị điểm đã bị giới hạn (ví dụ: 20 / 20 dù chọn 25) */}
-                      {finalTotal} / {maxTotal}
+                      {finalTotal} 
                     </td>
                   </tr>
                 );
@@ -368,18 +438,18 @@ export default function ChamDiem() {
             rows.push(
               <tr className="all-total" key="all-total">
                 <td colSpan={5} style={{
-                  fontWeight: "normal",
+                  fontWeight: "bold",
                   textAlign: "center",
                   background: "#f9f9f9"
                 }}>
-                  TỔNG CỘNG
+                  Tổng cộng
                 </td>
                 <td style={{
                   fontWeight: "bold",
                   fontSize: '1.2em',
                   background: "#f9f9f9",
                   textAlign: "center",
-                  color: "#d32f2f"
+                  color: "black"
                 }}>
                   {cappedGrandTotal}
                 </td>
@@ -399,7 +469,7 @@ export default function ChamDiem() {
                   fontWeight: "bold",
                   textAlign: "center",
                   background: "#f9f9f9",
-                  color: "blue"
+                  color: "black"
                 }}>
                   {getRank()}
                 </td>

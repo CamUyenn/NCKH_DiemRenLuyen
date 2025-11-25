@@ -1,0 +1,78 @@
+.dslop-container {
+  padding: 20px;
+  background-color: #fff;
+  margin: 0; 
+  border-radius: 0; 
+  box-shadow: none; 
+  min-height: 100vh; 
+  width: 100%;
+}
+
+.dslop-container h2 {
+  font-size: 1.8em;
+  color: #333;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+}
+
+.dslop-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1em;
+}
+
+.dslop-table th,
+.dslop-table td {
+  border: 1px solid #ddd;
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.dslop-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  color: #333;
+}
+
+.dslop-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.dslop-table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+.dslop-btn-xem {
+  background-color:#0055a5;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor:pointer;
+}
+
+.dslop-btn-xem:hover {
+  background-color: #0056b3;
+}
+
+.dslop-buttons {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.dslop-btn-gui {
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.dslop-btn-gui:hover {
+  background-color: #218838;
+}
