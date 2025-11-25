@@ -100,9 +100,9 @@ function ClassListPage() {
   }, []);
 
   const handleViewDetail = (student: StudentScore) => {
-    localStorage.setItem("selectedStudent", JSON.stringify(student));
-    router.push("/students/xemdssinhvien/xemchitiet");
-  };
+    const maBangDiem = student.ma_sinh_vien_diem_ren_luyen;
+    router.push(`/students/xemdssinhvien/xemchitiet?mabd=${maBangDiem}`);
+};
 
   const handleCopyAll = () => {
     const copiedScores: Record<string, number> = {};

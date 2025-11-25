@@ -1,102 +1,152 @@
-.xemchitiet_students-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: Arial, sans-serif;
+.bangdiem_students-container {
+ padding: 20px;
+ max-width: 1400px; /* TĂNG MAX WIDTH ĐỂ CHỨA ĐỦ 11 CỘT */
+ margin: 0 auto;
+ font-family: Arial, sans-serif;
 }
 
-.xemchitiet_students-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
-  table-layout: fixed;
-  margin-top: 20px;
+.bangdiem_students-table {
+ width: 100%;
+ border-collapse: collapse;
+ margin-bottom: 20px;
+ table-layout: fixed; /* Giữ nguyên table-layout: fixed */
+ margin-top: 20px;
 }
 
-.xemchitiet_students-table th,
-.xemchitiet_students-table td {
-  border: 1px solid #999;
-  padding: 8px 12px;
-  vertical-align: middle;
+.bangdiem_students-table th,
+.bangdiem_students-table td {
+ border: 1px solid #999;
+ padding: 6px 8px; /* GIẢM PADDING để tiết kiệm không gian */
+ vertical-align: middle;
+ font-size: 13px; /* GIẢM FONT SIZE để phù hợp hơn với nhiều cột */
 }
 
-.xemchitiet_students-table th:nth-child(1),
-.xemchitiet_students-table td:nth-child(1) {
-  width: 10%;
-  text-align: center;
+/* --- CẤU HÌNH CHIỀU RỘNG CHO 11 CỘT --- */
+/* Tổng chiều rộng: 100% */
+
+/* 1. Mục (I, 1, a) */
+.bangdiem_students-table th:nth-child(1),
+.bangdiem_students-table td:nth-child(1) {
+ width: 3%; /* Giảm từ 5% xuống 3% */
+ text-align: center;
 }
 
-.xemchitiet_students-table th:nth-child(2),
-.xemchitiet_students-table td:nth-child(2) {
-  width: 50%;
+/* 2. Nội dung (Ten tieu chi) */
+.bangdiem_students-table th:nth-child(2),
+.bangdiem_students-table td:nth-child(2) {
+ width: 35%; /* Giảm từ 55% xuống 35% */
 }
 
-.xemchitiet_students-table th:nth-child(3),
-.xemchitiet_students-table td:nth-child(3) {
-  width: 10%; 
-  text-align: center;
+/* 3. Mô tả (Mo ta diem) */
+.bangdiem_students-table th:nth-child(3),
+.bangdiem_students-table td:nth-child(3) {
+ width: 15%; /* Giảm từ 21% xuống 15% */
+ text-align: center;
 }
 
-.xemchitiet_students-table th:nth-child(4),
-.xemchitiet_students-table td:nth-child(4) {
-  width: 10%;
-  text-align: center;
+/* 4. Điểm Tối Đa (Max Diem) */
+.bangdiem_students-table th:nth-child(4),
+.bangdiem_students-table td:nth-child(4) {
+ width: 5%; /* Giảm từ 6% xuống 5% */
+ text-align: center;
+ font-weight: bold;
 }
 
-.xemchitiet_students-table th:nth-child(5),
-.xemchitiet_students-table td:nth-child(5) {
-  width: 10%;
-  text-align: center;
-}
-.xemchitiet_students-table th:nth-child(6),
-.xemchitiet_students-table td:nth-child(6) {
-  width: 10%;
-  text-align: center;
-}
-.xemchitiet_students-table th:nth-child(7),
-.xemchitiet_students-table td:nth-child(7) {
-  width: 10%;
-  text-align: center;
+/* --- 5 CỘT ĐIỂM ĐÁNH GIÁ TỪ BE (SV, LT, CV, TK, CVĐT) --- */
+
+/* 5. SV Chấm */
+.bangdiem_students-table th:nth-child(5),
+.bangdiem_students-table td:nth-child(5) {
+ width: 5%; 
+ text-align: center;
 }
 
-.section-total, 
-.rank-row, 
-.all-total {
-  text-align: center;
+/* 6. LT Chấm (BE) */
+.bangdiem_students-table th:nth-child(6),
+.bangdiem_students-table td:nth-child(6) {
+ width: 5%; 
+ text-align: center;
 }
 
-.xemchitiet_students-table thead {
-  background-color: #ccc;
+/* 7. Cố Vấn Chấm */
+.bangdiem_students-table th:nth-child(7),
+.bangdiem_students-table td:nth-child(7) {
+ width: 6%; 
+ text-align: center;
 }
 
-.xemchitiet_students-buttons {
-  display: flex;
-  justify-content: flex-end; /* đẩy về bên phải */
-  gap: 10px;
-  margin-top: 20px;
+/* 8. Trưởng Khoa Chấm */
+.bangdiem_students-table th:nth-child(8),
+.bangdiem_students-table td:nth-child(8) {
+ width: 6%; 
+ text-align: center;
 }
 
-.xemchitiet_students-btn {
-  padding: 10px 20px;
-  background-color: #003366;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
+/* 9. CV Đào Tạo Chấm */
+.bangdiem_students-table th:nth-child(9),
+.bangdiem_students-table td:nth-child(9) {
+ width: 6%; 
+ text-align: center;
 }
 
-.xemchitiet_students-btn:hover {
-  background-color: #0055a5;
+/* --- 2 CỘT CUỐI (LT Đang Chấm) --- */
+
+/* 10. Hành động (Checkbox/Input) */
+.bangdiem_students-table th:nth-child(10),
+.bangdiem_students-table td:nth-child(10) {
+ width: 8%; /* Giữ khoảng trống cho hành động */
+ text-align: center;
 }
 
-.xemchitiet_students-select {
-  padding: 5px;
-  font-size: 14px;
+/* 11. Điểm LT (Hiện tại) */
+.bangdiem_students-table th:nth-child(11),
+.bangdiem_students-table td:nth-child(11) {
+ width: 6%; 
+ text-align: center;
+ font-weight: bold;
+ color: #d32f2f;
 }
-.xemchitiet_students-input {
-  padding: 5px;
-  font-size: 14px;
-  width: 100px;
-  text-align: center;
+
+/* --- CÁC STYLE KHÁC (Giữ nguyên hoặc chỉnh sửa nhỏ) --- */
+
+.section-total td, .rank-row td, .all-total td{
+    /* Đảm bảo text-align: center cho nội dung gộp */
+ text-align: center !important; 
+}
+.bangdiem_students-table thead {
+ background-color: #ccc;
+ font-weight: bold;
+}
+
+.bangdiem_students-buttons {
+ display: flex;
+ justify-content: flex-end; 
+ gap: 10px;
+ margin-top: 20px;
+}
+
+.bangdiem_students-btn {
+ padding: 10px 20px;
+ background-color: #003366;
+ color: white;
+ border: none;
+ border-radius: 5px;
+ cursor: pointer;
+ font-size: 14px;
+}
+
+.bangdiem_students-btn:hover {
+ background-color: #0055a5;
+}
+.bangdiem_students-select {
+ padding: 5px;
+ font-size: 14px;
+}
+.textbox-input {
+ width: 45px;
+ padding: 3px 5px; 
+ font-size: 13px;
+ text-align: center;
+ border-radius: 3px;
+ border: 1px solid #999;
 }
