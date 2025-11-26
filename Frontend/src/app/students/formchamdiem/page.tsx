@@ -14,6 +14,7 @@ type TieuChi = {
   ma_tieu_chi_cha: string;
   loai_tieu_chi: string;
   so_lan: number;
+  diem_sinh_vien_danh_gia: number; // Thêm trường này
   _ma?: string;
   _maCha?: string;
 };
@@ -77,6 +78,26 @@ export default function ChamDiem() {
           _maCha: getParentCode(item?.ma_tieu_chi_cha),
         }));
         setTieuChiList(danhSach);
+        // Khởi tạo selectedValues từ dữ liệu đã có
+        const initialSelectedValues: Record<string, any> = {};
+        danhSach.forEach((tc) => {
+          if (tc.loai_tieu_chi === "Textbox") {
+            if (tc.diem_sinh_vien_danh_gia > 0 && tc.diem > 0) {
+              const soLanDaNhap = tc.diem_sinh_vien_danh_gia / tc.diem;
+              // Làm tròn để xử lý các trường hợp số lẻ nếu có
+              const soLanLamTron = Math.round(soLanDaNhap);
+              initialSelectedValues[tc.muc] = [soLanLamTron.toString()];
+            }
+          } else if (tc.loai_tieu_chi === "Checkbox" || tc.loai_tieu_chi === "Radio") {
+            // Nếu là checkbox/radio và có điểm > 0
+            if (tc.diem_sinh_vien_danh_gia > 0) {
+              const group = tc._maCha || tc.muc;
+              const current = initialSelectedValues[group] || [];
+              initialSelectedValues[group] = [...current, tc.muc];
+            }
+          }
+        });
+        setSelectedValues(initialSelectedValues);
       })
       .catch((err) => {
         console.error("Lỗi khi fetch tiêu chí:", err);
@@ -84,22 +105,65 @@ export default function ChamDiem() {
       });
   }, [masinhvien, mahocky]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("luuNhapBangDiem");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setSelectedValues(parsed.selectedValues || {});
-      } catch { }
-    }
-  }, []);
-
   function handleCopy() {
     if (typeof window === "undefined") return;
-    localStorage.setItem("luuNhapBangDiem", JSON.stringify({ selectedValues }));
-    alert("Đã lưu nháp thành công!");
-    router.push(`/students/formchamdiem/luunhap`);
+
+    // Chuẩn bị dữ liệu theo định dạng mà API chamdiem.go yêu cầu
+    const danhsachdieminput = tieuChiList.map(tc => {
+      let diemSo = 0;
+      
+      if (tc.loai_tieu_chi === "Textbox") {
+        const rawVal = selectedValues[tc.muc]?.[0];
+        const count = rawVal ? parseInt(rawVal) : 0;
+        if (count && !isNaN(count)) {
+          diemSo = count * (tc.diem || 0);
+        }
+      } else {
+        const group = tc._maCha || tc.muc;
+        const selected = selectedValues[group] || [];
+        if (selected.includes(tc.muc)) {
+          diemSo = tc.diem || 0;
+        }
+      }
+
+      return {
+        ma_sinh_vien_diem_ren_luyen_chi_tiet: tc.ma_sinh_vien_diem_ren_luyen_chi_tiet,
+        diem_sinh_vien_danh_gia: diemSo,
+        // Các trường điểm khác không cần thiết cho vai trò sinh viên
+        diem_lop_truong_danh_gia: 0,
+        diem_giang_vien_danh_gia: 0,
+        diem_truong_khoa_danh_gia: 0,
+        diem_chuyen_vien_dao_tao: 0,
+      };
+    });
+
+    const payload = {
+      type: "sinhvien",
+      danhsachdieminput: danhsachdieminput,
+    };
+
+    // Gọi API chấm điểm để lưu nháp
+    fetch("http://localhost:8080/api/chamdiem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    })
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(err => { throw new Error(err.message || "Lưu nháp thất bại") });
+        }
+        return res.json();
+      })
+      .then(data => {
+        alert("Lưu nháp thành công!");
+         window.location.reload();
+      })
+      .catch(error => {
+        console.error("Lỗi khi lưu nháp:", error);
+        alert(error.message || "Đã có lỗi xảy ra khi lưu nháp.");
+      });
   }
 
   function handleCreate() {
