@@ -3,6 +3,7 @@ package tieuchi
 import (
 	"Backend/initialize"
 	"Backend/model"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +21,7 @@ func ChamDiem(c *gin.Context) {
 
 	type DataInput struct {
 		Type            string      `json:"type"`
+		TongDiem        int         `json:"tong_diem"`
 		Danhsachtieuchi []DiemInput `json:"danhsachdieminput"`
 	}
 
@@ -46,6 +48,35 @@ func ChamDiem(c *gin.Context) {
 				return
 			}
 		}
+
+		// Update tongdiem in SinhVienDiemRenLuyen
+		var sinhviendiemrenluyenxuly []string
+		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
+
+		var xeploai string
+		if datainput.TongDiem > 90 {
+			xeploai = "Xuất sắc"
+		} else if datainput.TongDiem > 80 {
+			xeploai = "Giỏi"
+		} else if datainput.TongDiem > 65 {
+			xeploai = "Khá"
+		} else if datainput.TongDiem > 50 {
+			xeploai = "Trung bình"
+		} else {
+			xeploai = "Yếu"
+		}
+
+		result := initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", sinhviendiemrenluyenxuly[0]).Updates(model.SinhVienDiemRenLuyen{
+			TongDiemSinhVien: datainput.TongDiem,
+			XepLoaiSinhVien:  xeploai,
+		})
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Update tongdiem sinhviendiemrenluyen failed",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Update diemsinhviendanhgia successful",
 		})
