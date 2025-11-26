@@ -55,15 +55,15 @@ func ChamDiem(c *gin.Context) {
 
 		var xeploai string
 		if datainput.TongDiem > 90 {
-			xeploai = "Xuat sac"
+			xeploai = "Xuất sắc"
 		} else if datainput.TongDiem > 80 {
-			xeploai = "Gioi"
+			xeploai = "Giỏi"
 		} else if datainput.TongDiem > 65 {
-			xeploai = "Kha"
+			xeploai = "Khá"
 		} else if datainput.TongDiem > 50 {
-			xeploai = "Trung binh"
+			xeploai = "Trung bình"
 		} else {
-			xeploai = "Yeu"
+			xeploai = "Yếu"
 		}
 
 		result := initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", sinhviendiemrenluyenxuly[0]).Updates(model.SinhVienDiemRenLuyen{
