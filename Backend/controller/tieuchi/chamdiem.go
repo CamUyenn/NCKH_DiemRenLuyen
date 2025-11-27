@@ -100,13 +100,13 @@ func ChamDiem(c *gin.Context) {
 		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
 
 		var xeploai string
-		if datainput.TongDiem > 90 {
+		if datainput.TongDiem >= 90 {
 			xeploai = "Xuất sắc"
-		} else if datainput.TongDiem > 80 {
+		} else if datainput.TongDiem >= 80 {
 			xeploai = "Giỏi"
-		} else if datainput.TongDiem > 65 {
+		} else if datainput.TongDiem >= 65 {
 			xeploai = "Khá"
-		} else if datainput.TongDiem > 50 {
+		} else if datainput.TongDiem >= 50 {
 			xeploai = "Trung bình"
 		} else {
 			xeploai = "Yếu"
@@ -145,13 +145,13 @@ func ChamDiem(c *gin.Context) {
 		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
 
 		var xeploai string
-		if datainput.TongDiem > 90 {
+		if datainput.TongDiem >= 90 {
 			xeploai = "Xuất sắc"
-		} else if datainput.TongDiem > 80 {
+		} else if datainput.TongDiem >= 80 {
 			xeploai = "Giỏi"
-		} else if datainput.TongDiem > 65 {
+		} else if datainput.TongDiem >= 65 {
 			xeploai = "Khá"
-		} else if datainput.TongDiem > 50 {
+		} else if datainput.TongDiem >= 50 {
 			xeploai = "Trung bình"
 		} else {
 			xeploai = "Yếu"
@@ -189,13 +189,13 @@ func ChamDiem(c *gin.Context) {
 		var sinhviendiemrenluyenxuly []string
 		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
 		var xeploai string
-		if datainput.TongDiem > 90 {
+		if datainput.TongDiem >= 90 {
 			xeploai = "Xuất sắc"
-		} else if datainput.TongDiem > 80 {
+		} else if datainput.TongDiem >= 80 {
 			xeploai = "Giỏi"
-		} else if datainput.TongDiem > 65 {
+		} else if datainput.TongDiem >= 65 {
 			xeploai = "Khá"
-		} else if datainput.TongDiem > 50 {
+		} else if datainput.TongDiem >= 50 {
 			xeploai = "Trung bình"
 		} else {
 			xeploai = "Yếu"
@@ -233,13 +233,13 @@ func ChamDiem(c *gin.Context) {
 		var sinhviendiemrenluyenxuly []string
 		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
 		var xeploai string
-		if datainput.TongDiem > 90 {
+		if datainput.TongDiem >= 90 {
 			xeploai = "Xuất sắc"
-		} else if datainput.TongDiem > 80 {
+		} else if datainput.TongDiem >= 80 {
 			xeploai = "Giỏi"
-		} else if datainput.TongDiem > 65 {
+		} else if datainput.TongDiem >= 65 {
 			xeploai = "Khá"
-		} else if datainput.TongDiem > 50 {
+		} else if datainput.TongDiem >= 50 {
 			xeploai = "Trung bình"
 		} else {
 			xeploai = "Yếu"
