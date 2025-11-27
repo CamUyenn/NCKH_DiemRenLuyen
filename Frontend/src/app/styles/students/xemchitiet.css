@@ -1,6 +1,6 @@
 .bangdiem_students-container {
  padding: 20px;
- max-width: 1400px; /* TĂNG MAX WIDTH ĐỂ CHỨA ĐỦ 11 CỘT */
+ max-width: 1400px; /* Tăng max-width để chứa đủ các cột */
  margin: 0 auto;
  font-family: Arial, sans-serif;
 }
@@ -9,118 +9,101 @@
  width: 100%;
  border-collapse: collapse;
  margin-bottom: 20px;
- table-layout: fixed; /* Giữ nguyên table-layout: fixed */
+ table-layout: fixed;
  margin-top: 20px;
 }
 
 .bangdiem_students-table th,
 .bangdiem_students-table td {
- border: 1px solid #999;
- padding: 6px 8px; /* GIẢM PADDING để tiết kiệm không gian */
+ border: 1px solid #ccc; /* Làm cho border nhạt hơn một chút */
+ padding: 6px 8px; 
  vertical-align: middle;
- font-size: 13px; /* GIẢM FONT SIZE để phù hợp hơn với nhiều cột */
+ font-size: 13px; 
 }
 
-/* --- CẤU HÌNH CHIỀU RỘNG CHO 11 CỘT --- */
-/* Tổng chiều rộng: 100% */
+/* --- Cấu hình chiều rộng cho các cột --- */
 
-/* 1. Mục (I, 1, a) */
+/* 1. Mục */
 .bangdiem_students-table th:nth-child(1),
 .bangdiem_students-table td:nth-child(1) {
- width: 3%; /* Giảm từ 5% xuống 3% */
+ width: 5%;
  text-align: center;
 }
 
-/* 2. Nội dung (Ten tieu chi) */
+/* 2. Nội dung */
 .bangdiem_students-table th:nth-child(2),
 .bangdiem_students-table td:nth-child(2) {
- width: 35%; /* Giảm từ 55% xuống 35% */
+ width: 38%; /* Thu nhỏ cột nội dung */
 }
 
-/* 3. Mô tả (Mo ta diem) */
+/* 3. Mô tả */
 .bangdiem_students-table th:nth-child(3),
 .bangdiem_students-table td:nth-child(3) {
- width: 15%; /* Giảm từ 21% xuống 15% */
- text-align: center;
+ width: 20%;
+ text-align: left; /* Căn lề trái cho dễ đọc */
+ padding-left: 10px;
 }
 
-/* 4. Điểm Tối Đa (Max Diem) */
+/* 4. Số Điểm */
 .bangdiem_students-table th:nth-child(4),
 .bangdiem_students-table td:nth-child(4) {
- width: 5%; /* Giảm từ 6% xuống 5% */
+ width: 6%;
  text-align: center;
  font-weight: bold;
 }
 
-/* --- 5 CỘT ĐIỂM ĐÁNH GIÁ TỪ BE (SV, LT, CV, TK, CVĐT) --- */
-
-/* 5. SV Chấm */
+/* 5. Hành động */
 .bangdiem_students-table th:nth-child(5),
 .bangdiem_students-table td:nth-child(5) {
- width: 5%; 
+ width: 6%;
  text-align: center;
 }
 
-/* 6. LT Chấm (BE) */
+/* 6. Điểm Sinh Viên */
 .bangdiem_students-table th:nth-child(6),
 .bangdiem_students-table td:nth-child(6) {
- width: 5%; 
+ width: 6%;
  text-align: center;
+ font-weight: bold;
 }
 
-/* 7. Cố Vấn Chấm */
+/* 7. Điểm Lớp trưởng */
 .bangdiem_students-table th:nth-child(7),
 .bangdiem_students-table td:nth-child(7) {
- width: 6%; 
+ width: 6%;
  text-align: center;
 }
 
-/* 8. Trưởng Khoa Chấm */
-.bangdiem_students-table th:nth-child(8),
-.bangdiem_students-table td:nth-child(8) {
- width: 6%; 
- text-align: center;
-}
 
-/* 9. CV Đào Tạo Chấm */
-.bangdiem_students-table th:nth-child(9),
-.bangdiem_students-table td:nth-child(9) {
- width: 6%; 
- text-align: center;
-}
-
-/* --- 2 CỘT CUỐI (LT Đang Chấm) --- */
-
-/* 10. Hành động (Checkbox/Input) */
-.bangdiem_students-table th:nth-child(10),
-.bangdiem_students-table td:nth-child(10) {
- width: 8%; /* Giữ khoảng trống cho hành động */
- text-align: center;
-}
-
-/* 11. Điểm LT (Hiện tại) */
-.bangdiem_students-table th:nth-child(11),
-.bangdiem_students-table td:nth-child(11) {
- width: 6%; 
- text-align: center;
- font-weight: bold;
- color: #d32f2f;
-}
-
-/* --- CÁC STYLE KHÁC (Giữ nguyên hoặc chỉnh sửa nhỏ) --- */
+/* --- Các style khác --- */
 
 .section-total td, .rank-row td, .all-total td{
-    /* Đảm bảo text-align: center cho nội dung gộp */
- text-align: center !important; 
+ text-align: center !important;
 }
+
+.section-total .total-label, .rank-row .total-label, .all-total .total-label {
+  text-align: right !important;
+  font-weight: bold;
+  padding-right: 20px;
+}
+
+.section-total .total-value, .rank-row .total-value, .all-total .total-value {
+  font-weight: bold;
+}
+
+.all-total .grand-total {
+  font-size: 15px;
+}
+
 .bangdiem_students-table thead {
- background-color: #ccc;
+ background-color: #e9ecef; /* Màu xám nhạt hơn cho header */
  font-weight: bold;
+ color: #050505;
 }
 
 .bangdiem_students-buttons {
  display: flex;
- justify-content: flex-end; 
+ justify-content: flex-end;
  gap: 10px;
  margin-top: 20px;
 }
@@ -138,15 +121,12 @@
 .bangdiem_students-btn:hover {
  background-color: #0055a5;
 }
-.bangdiem_students-select {
- padding: 5px;
- font-size: 14px;
-}
+
 .textbox-input {
  width: 45px;
- padding: 3px 5px; 
+ padding: 3px 5px;
  font-size: 13px;
  text-align: center;
  border-radius: 3px;
- border: 1px solid #999;
+ border: 1px solid #121111;
 }
