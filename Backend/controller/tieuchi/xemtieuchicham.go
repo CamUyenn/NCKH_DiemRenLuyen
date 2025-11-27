@@ -31,8 +31,12 @@ func XemTieuChiCham(c *gin.Context) {
 	mahocky := c.Param("mahocky")
 
 	// Query masinhviendiemrenluyen
-	var masinhviendiemrenluyen string
-	result := initialize.DB.Model(model.SinhVienDiemRenLuyen{}).Select("ma_sinh_vien_diem_ren_luyen").Where("ma_sinh_vien_tham_chieu = ? AND ma_hoc_ky_tham_chieu = ?", masinhvien, mahocky).Find(&masinhviendiemrenluyen)
+	type Masinhviendiemrenluyen struct {
+		MaSinhVienDiemRenLuyen string `json:"ma_sinh_vien_diem_ren_luyen"`
+		TrangThai              string `json:"trang_thai"`
+	}
+	var masinhviendiemrenluyen Masinhviendiemrenluyen
+	result := initialize.DB.Model(model.SinhVienDiemRenLuyen{}).Select("ma_sinh_vien_diem_ren_luyen", "trang_thai").Where("ma_sinh_vien_tham_chieu = ? AND ma_hoc_ky_tham_chieu = ?", masinhvien, mahocky).Find(&masinhviendiemrenluyen)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Query listthongtintrave failed",
@@ -42,7 +46,7 @@ func XemTieuChiCham(c *gin.Context) {
 
 	// Query listthongtintrave by masinhviendiemrenluyen
 	var listthongtintrave []Sinhviendiemrenluyenchitietoutput
-	result = initialize.DB.Model(model.SinhVienDiemRenLuyenChiTiet{}).Where("ma_sinh_vien_diem_ren_luyen_tham_chieu = ?", masinhviendiemrenluyen).Find(&listthongtintrave)
+	result = initialize.DB.Model(model.SinhVienDiemRenLuyenChiTiet{}).Where("ma_sinh_vien_diem_ren_luyen_tham_chieu = ?", masinhviendiemrenluyen.MaSinhVienDiemRenLuyen).Find(&listthongtintrave)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Query listthongtintrave failed",
@@ -51,6 +55,7 @@ func XemTieuChiCham(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{
+		"trang_thai":         masinhviendiemrenluyen.TrangThai,
 		"danh_sach_tieu_chi": listthongtintrave,
 	})
 }
