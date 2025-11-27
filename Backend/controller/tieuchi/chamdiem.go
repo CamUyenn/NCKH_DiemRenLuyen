@@ -37,6 +37,7 @@ func ChamDiem(c *gin.Context) {
 	//Check type and update corresponding fields
 	switch datainput.Type {
 	case "sinhvien":
+		// Update diemsinhviendanhgia for each tieuchi
 		for _, tieuchi := range datainput.Danhsachtieuchi {
 			result := initialize.DB.Model(&model.SinhVienDiemRenLuyenChiTiet{}).Where("ma_sinh_vien_diem_ren_luyen_chi_tiet = ?", tieuchi.MaSinhVienDiemRenLuyenChiTiet).Updates(model.SinhVienDiemRenLuyenChiTiet{
 				DiemSinhVienDanhGia: tieuchi.DiemSinhVienDanhGia,
@@ -49,7 +50,7 @@ func ChamDiem(c *gin.Context) {
 			}
 		}
 
-		// Update tongdiem in SinhVienDiemRenLuyen
+		// Update tongdiemsinhvien in SinhVienDiemRenLuyen
 		var sinhviendiemrenluyenxuly []string
 		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
 
@@ -81,6 +82,7 @@ func ChamDiem(c *gin.Context) {
 			"message": "Update diemsinhviendanhgia successful",
 		})
 	case "loptruong":
+		// Update diemloptruongdanhgia for each tieuchi
 		for _, tieuchi := range datainput.Danhsachtieuchi {
 			result := initialize.DB.Model(&model.SinhVienDiemRenLuyenChiTiet{}).Where("ma_sinh_vien_diem_ren_luyen_chi_tiet = ?", tieuchi.MaSinhVienDiemRenLuyenChiTiet).Updates(model.SinhVienDiemRenLuyenChiTiet{
 				DiemLopTruongDanhGia: tieuchi.DiemLopTruongDanhGia,
@@ -92,10 +94,40 @@ func ChamDiem(c *gin.Context) {
 				return
 			}
 		}
+
+		// Update tongdiemloptruong in SinhVienDiemRenLuyen
+		var sinhviendiemrenluyenxuly []string
+		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
+
+		var xeploai string
+		if datainput.TongDiem > 90 {
+			xeploai = "Xuất sắc"
+		} else if datainput.TongDiem > 80 {
+			xeploai = "Giỏi"
+		} else if datainput.TongDiem > 65 {
+			xeploai = "Khá"
+		} else if datainput.TongDiem > 50 {
+			xeploai = "Trung bình"
+		} else {
+			xeploai = "Yếu"
+		}
+
+		result := initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", sinhviendiemrenluyenxuly[0]).Updates(model.SinhVienDiemRenLuyen{
+			TongDiemLopTruong: datainput.TongDiem,
+			XepLoaiLopTruong:  xeploai,
+		})
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Update tongdiem loptruong sinhviendiemrenluyen failed",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Update diemloptruongdanhgia successful",
 		})
 	case "giangvien":
+		// Update diemgiangviendanhgia for each tieuchi
 		for _, tieuchi := range datainput.Danhsachtieuchi {
 			result := initialize.DB.Model(&model.SinhVienDiemRenLuyenChiTiet{}).Where("ma_sinh_vien_diem_ren_luyen_chi_tiet = ?", tieuchi.MaSinhVienDiemRenLuyenChiTiet).Updates(model.SinhVienDiemRenLuyenChiTiet{
 				DiemGiangVienDanhGia: tieuchi.DiemGiangVienDanhGia,
@@ -107,10 +139,40 @@ func ChamDiem(c *gin.Context) {
 				return
 			}
 		}
+
+		// Update tongdiemgiangvien in SinhVienDiemRenLuyen
+		var sinhviendiemrenluyenxuly []string
+		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
+
+		var xeploai string
+		if datainput.TongDiem > 90 {
+			xeploai = "Xuất sắc"
+		} else if datainput.TongDiem > 80 {
+			xeploai = "Giỏi"
+		} else if datainput.TongDiem > 65 {
+			xeploai = "Khá"
+		} else if datainput.TongDiem > 50 {
+			xeploai = "Trung bình"
+		} else {
+			xeploai = "Yếu"
+		}
+
+		result := initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", sinhviendiemrenluyenxuly[0]).Updates(model.SinhVienDiemRenLuyen{
+			TongDiemCoVan: datainput.TongDiem,
+			XepLoaiCoVan:  xeploai,
+		})
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Update tongdiem giangvien sinhviendiemrenluyen failed",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Update diemgiangviendanhgia successful",
 		})
 	case "truongkhoa":
+		// Update diemtruongkhoadanhgia for each tieuchi
 		for _, tieuchi := range datainput.Danhsachtieuchi {
 			result := initialize.DB.Model(&model.SinhVienDiemRenLuyenChiTiet{}).Where("ma_sinh_vien_diem_ren_luyen_chi_tiet = ?", tieuchi.MaSinhVienDiemRenLuyenChiTiet).Updates(model.SinhVienDiemRenLuyenChiTiet{
 				DiemTruongKhoaDanhGia: tieuchi.DiemTruongKhoaDanhGia,
@@ -122,10 +184,39 @@ func ChamDiem(c *gin.Context) {
 				return
 			}
 		}
+
+		// Update tongdiemtruongkhoa in SinhVienDiemRenLuyen
+		var sinhviendiemrenluyenxuly []string
+		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
+		var xeploai string
+		if datainput.TongDiem > 90 {
+			xeploai = "Xuất sắc"
+		} else if datainput.TongDiem > 80 {
+			xeploai = "Giỏi"
+		} else if datainput.TongDiem > 65 {
+			xeploai = "Khá"
+		} else if datainput.TongDiem > 50 {
+			xeploai = "Trung bình"
+		} else {
+			xeploai = "Yếu"
+		}
+
+		result := initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", sinhviendiemrenluyenxuly[0]).Updates(model.SinhVienDiemRenLuyen{
+			TongDiemTruongKhoa: datainput.TongDiem,
+			XepLoaiTruongKhoa:  xeploai,
+		})
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Update tongdiem truongkhoa sinhviendiemrenluyen failed",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Update diemtruongkhoadanhgia successful",
 		})
 	case "chuyenviendaotao":
+		// Update diemchuyenviendaotao for each tieuchi
 		for _, tieuchi := range datainput.Danhsachtieuchi {
 			result := initialize.DB.Model(&model.SinhVienDiemRenLuyenChiTiet{}).Where("ma_sinh_vien_diem_ren_luyen_chi_tiet = ?", tieuchi.MaSinhVienDiemRenLuyenChiTiet).Updates(model.SinhVienDiemRenLuyenChiTiet{
 				DiemChuyenVienDaoTao: tieuchi.DiemChuyenVienDaoTao,
@@ -137,6 +228,34 @@ func ChamDiem(c *gin.Context) {
 				return
 			}
 		}
+
+		// Update tongdiemchuyenviendaotao in SinhVienDiemRenLuyen
+		var sinhviendiemrenluyenxuly []string
+		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
+		var xeploai string
+		if datainput.TongDiem > 90 {
+			xeploai = "Xuất sắc"
+		} else if datainput.TongDiem > 80 {
+			xeploai = "Giỏi"
+		} else if datainput.TongDiem > 65 {
+			xeploai = "Khá"
+		} else if datainput.TongDiem > 50 {
+			xeploai = "Trung bình"
+		} else {
+			xeploai = "Yếu"
+		}
+
+		result := initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_diem_ren_luyen = ?", sinhviendiemrenluyenxuly[0]).Updates(model.SinhVienDiemRenLuyen{
+			TongDiemChuyenVienDaoTao: datainput.TongDiem,
+			XepLoaiChuyenVienDaoTao:  xeploai,
+		})
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Update tongdiem chuyenviendaotao sinhviendiemrenluyen failed",
+			})
+			return
+		}
+
 		c.JSON(200, gin.H{
 			"message": "Update diemchuyenviendaotao successful",
 		})
