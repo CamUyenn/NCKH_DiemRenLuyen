@@ -137,8 +137,12 @@ export default function ChamDiem() {
       };
     });
 
+    // TÍNH TOÁN VÀ THÊM TỔNG ĐIỂM VÀO PAYLOAD
+    const tongDiem = Math.min(calcAllTotal(), 100);
+
     const payload = {
       type: "sinhvien",
+      tong_diem: tongDiem, // Thêm tổng điểm vào đây
       danhsachdieminput: danhsachdieminput,
     };
 
@@ -169,54 +173,16 @@ export default function ChamDiem() {
   function handleCreate() {
     if (typeof window === "undefined" || !masinhvien || !mahocky) return;
 
-    const tongDiem = Math.min(calcAllTotal(), 100);
-    const xepLoai = getRank();
+    // Tạo chuỗi mabangdiem theo định dạng yêu cầu
+    const maBangDiemString = `${masinhvien}~${mahocky}_BD`;
 
-    // Chuẩn bị mảng điểm chi tiết để gửi lên server
-    const diemChiTiet = tieuChiList
-      .map(tc => {
-        let diemSo = 0;
-        let soLan = null;
-        let daTuongTac = false;
-
-        if (tc.loai_tieu_chi === "Textbox") {
-          const rawVal = selectedValues[tc.muc]?.[0];
-          const count = rawVal ? parseInt(rawVal) : 0;
-          if (count > 0 && !isNaN(count)) {
-            diemSo = count * (tc.diem || 0);
-            soLan = count;
-            daTuongTac = true;
-          }
-        } else if (tc.loai_tieu_chi === "Checkbox" || tc.loai_tieu_chi === "Radio") {
-          const group = tc._maCha || tc.muc;
-          const selected = selectedValues[group] || [];
-          if (selected.includes(tc.muc)) {
-            diemSo = tc.diem || 0;
-            daTuongTac = true;
-          }
-        }
-
-        // Chỉ gửi những tiêu chí mà sinh viên đã tương tác
-        if (daTuongTac) {
-          return {
-            ma_sinh_vien_diem_ren_luyen_chi_tiet: tc.ma_sinh_vien_diem_ren_luyen_chi_tiet,
-            diem_sinh_vien_danh_gia: diemSo,
-            so_lan: soLan,
-          };
-        }
-        return null;
-      })
-      .filter(Boolean); // Lọc bỏ các giá trị null
-
+    // Tạo payload chính xác như bạn yêu cầu
     const payload = {
-      ma_sinh_vien: masinhvien,
-      ma_hoc_ky: mahocky,
-      tong_diem: tongDiem,
-      xep_loai: xepLoai,
-      diem_chi_tiet: diemChiTiet,
+      mabangdiem: [maBangDiemString],
+      type: "sinhvien",
     };
 
-    // Gọi API để nộp bảng điểm và thay đổi trạng thái
+    // Gọi API để thay đổi trạng thái
     fetch("http://localhost:8080/api/thaydoitrangthai", {
       method: "POST",
       headers: {
@@ -226,16 +192,13 @@ export default function ChamDiem() {
     })
       .then(res => {
         if (!res.ok) {
-          // Nếu có lỗi, thử đọc thông báo lỗi từ server
           return res.json().then(err => { throw new Error(err.message || "Nộp bảng điểm thất bại") });
         }
         return res.json();
       })
       .then(data => {
         alert("Nộp bảng điểm thành công!");
-        // Xóa bản nháp đã lưu ở local sau khi nộp thành công
-        localStorage.removeItem("luuNhapBangDiem");
-        // Chuyển về trang dashboard của sinh viên
+        // Chuyển về trang dashboard của sinh viên sau khi nộp
         router.push("/students");
       })
       .catch(error => {
@@ -349,19 +312,14 @@ export default function ChamDiem() {
 
     const rawTotal = calculateRecursive(maChaLon);
 
-    // Nếu tổng thực tế > điểm tối đa thì lấy điểm tối đa
-    // Ví dụ: rawTotal = 25, maxTotal = 20 => finalTotal = 20
     const finalTotal = Math.min(rawTotal, maxTotal);
 
     return { rawTotal, finalTotal, maxTotal };
   }
 
-  // LOGIC MỚI: Tính tổng toàn bài dựa trên các mục lớn ĐÃ BỊ GIỚI HẠN
   const calcAllTotal = () => {
-    // 1. Lấy tất cả các mục lớn (I, II, III...) (có _maCha rỗng)
     const rootSections = tieuChiList.filter((tc) => (tc._maCha ?? "") === "");
 
-    // 2. Duyệt qua từng mục lớn, tính điểm đã giới hạn (finalTotal) rồi cộng lại
     const totalScore = rootSections.reduce((sum, section) => {
       const { finalTotal } = calcTotalForSection(section._ma || "");
       return sum + finalTotal;
@@ -372,7 +330,6 @@ export default function ChamDiem() {
 
   const getRank = () => {
     const total = calcAllTotal();
-    // Tổng tối đa toàn bài không quá 100 (đề phòng)
     const cappedTotal = Math.min(total, 100);
     
     if (cappedTotal >= 90) return "Xuất sắc";

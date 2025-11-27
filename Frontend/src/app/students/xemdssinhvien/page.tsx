@@ -69,7 +69,7 @@ function ClassListPage() {
           (session as any)?.tenLop ||
           "";
 
-        const submittedStatuses = ["Đã nộp", "Đã Phát"];
+        const submittedStatuses = ["Sinh Viên Đã Chấm", "Đã Phát"];
         // Chỉ lấy sinh viên chưa được duyệt bởi cấp trên
         const filteredList = arr
           .filter((sv: any) =>
@@ -100,9 +100,27 @@ function ClassListPage() {
   }, []);
 
   const handleViewDetail = (student: StudentScore) => {
-    const maBangDiem = student.ma_sinh_vien_diem_ren_luyen;
-    router.push(`/students/xemdssinhvien/xemchitiet?mabd=${maBangDiem}`);
-};
+    // Lấy mã học kỳ từ localStorage, giống như cách fetchStudentList đã làm
+    const sessionRaw =
+      localStorage.getItem("session") ||
+      localStorage.getItem("user") ||
+      localStorage.getItem("sessionData") ||
+      "{}";
+    let session = {};
+    try {
+      session = JSON.parse(sessionRaw);
+    } catch {}
+    const mahocky = (session as any)?.ma_hoc_ky || (session as any)?.ma_hocky || "";
+
+    if (!mahocky) {
+      alert("Không tìm thấy thông tin học kỳ để xem chi tiết.");
+      return;
+    }
+
+    // Điều hướng đến trang xem chi tiết với masinhvien và mahocky
+    // masinhvien được lấy từ dòng sinh viên mà lớp trưởng đã nhấn vào
+    router.push(`/students/xemchitiet?masinhvien=${student.ma_sinh_vien}&mahocky=${mahocky}`);
+  };
 
   const handleCopyAll = () => {
     const copiedScores: Record<string, number> = {};
