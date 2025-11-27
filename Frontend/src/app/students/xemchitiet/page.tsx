@@ -250,13 +250,69 @@ export default function ChamDiem() {
     return "Yếu";
   };
 
-  // Tạm thời vô hiệu hóa các nút Lưu/Gửi
   const handleSave = () => {
-    alert("Logic lưu điểm của lớp trưởng sẽ được thực hiện ở đây.");
-    // Ví dụ payload
-    const classPresidentTotal = calcAllTotal('classPresident');
-    console.log("Điểm lớp trưởng chấm:", classPresidentTotal);
-    console.log("Các lựa chọn của lớp trưởng:", classPresidentSelectedValues);
+    // 1. Tính toán tổng điểm và xếp loại của lớp trưởng
+    const tongDiemLopTruong = Math.min(calcAllTotal('classPresident'), 100);
+    const xepLoaiLopTruong = getRank('classPresident');
+
+    // 2. Tạo danh sách điểm chi tiết theo định dạng API yêu cầu
+    const danhsachdieminput = tieuChiList.map(tc => {
+      let diemSo = 0;
+      if (tc.loai_tieu_chi === "Textbox") {
+        const rawVal = classPresidentSelectedValues[tc.muc]?.[0];
+        const count = rawVal ? parseInt(rawVal) : 0;
+        if (count && !isNaN(count)) {
+          diemSo = count * (tc.diem || 0);
+        }
+      } else {
+        const group = tc._maCha || tc.muc;
+        const selected = classPresidentSelectedValues[group] || [];
+        if (selected.includes(tc.muc)) {
+          diemSo = tc.diem || 0;
+        }
+      }
+      
+      return {
+        ma_sinh_vien_diem_ren_luyen_chi_tiet: tc.ma_sinh_vien_diem_ren_luyen_chi_tiet,
+        diem_lop_truong_danh_gia: diemSo,
+        // Các trường khác không cần thiết cho vai trò này
+        diem_sinh_vien_danh_gia: 0,
+        diem_giang_vien_danh_gia: 0,
+        diem_truong_khoa_danh_gia: 0,
+        diem_chuyen_vien_dao_tao: 0,
+      };
+    });
+
+    // 3. Tạo payload hoàn chỉnh
+    const payload = {
+      type: "loptruong",
+      tong_diem: tongDiemLopTruong,
+      danhsachdieminput: danhsachdieminput,
+    };
+
+    // 4. Gọi API để lưu điểm
+    fetch("http://localhost:8080/api/chamdiem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    })
+    .then(res => {
+      if (!res.ok) {
+        return res.json().then(err => { throw new Error(err.message || "Lưu điểm thất bại") });
+      }
+      return res.json();
+    })
+    .then(data => {
+      alert("Lưu điểm thành công!");
+      // Tùy chọn: Tự động quay về trang danh sách sau khi lưu
+      router.push('/students/xemdssinhvien');
+    })
+    .catch(error => {
+      console.error("Lỗi khi lưu điểm:", error);
+      alert(error.message || "Đã có lỗi xảy ra khi lưu điểm.");
+    });
   }
 
   return (

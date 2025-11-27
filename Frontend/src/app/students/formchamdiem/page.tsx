@@ -27,6 +27,7 @@ export default function ChamDiem() {
   const [mahocky, setMahocky] = useState("");
   const [tieuChiList, setTieuChiList] = useState<TieuChi[]>([]);
   const [selectedValues, setSelectedValues] = useState<Record<string, any>>({});
+  const [trangThai, setTrangThai] = useState<string | null>(null); // Thêm state để lưu trạng thái
 
   // Helpers
   function getCode(id?: string | null): string {
@@ -71,6 +72,15 @@ export default function ChamDiem() {
     fetch(`http://localhost:8080/api/xemtieuchicham/${masinhvien}/${mahocky}`)
       .then((res) => res.json())
       .then((data) => {
+        // Lưu lại trạng thái từ API
+        setTrangThai(data?.trang_thai || null);
+
+        // Nếu trạng thái không phải là "Đã Phát", không cần xử lý danh sách tiêu chí
+        if (data?.trang_thai !== "Đã Phát") {
+          setTieuChiList([]); // Xóa danh sách tiêu chí để không render bảng
+          return;
+        }
+
         const danhSachRaw = data?.danh_sach_tieu_chi || [];
         const danhSach: TieuChi[] = danhSachRaw.map((item: any) => ({
           ...item,
@@ -102,6 +112,7 @@ export default function ChamDiem() {
       .catch((err) => {
         console.error("Lỗi khi fetch tiêu chí:", err);
         setTieuChiList([]);
+        setTrangThai("error"); // Đánh dấu là có lỗi để hiển thị thông báo
       });
   }, [masinhvien, mahocky]);
 
@@ -339,6 +350,37 @@ export default function ChamDiem() {
     return "Yếu";
   };
 
+  // --- LOGIC HIỂN THỊ ĐIỀU KIỆN ---
+
+  // 1. Nếu đang tải dữ liệu
+  if (trangThai === null) {
+    return (
+      <div className="bangdiem_students-container" style={{ textAlign: 'center', padding: '50px' }}>
+        <h2>Đang tải dữ liệu...</h2>
+      </div>
+    );
+  }
+
+  // 2. Nếu trạng thái không phải "Đã Phát" (đã nộp hoặc trạng thái khác)
+  if (trangThai !== "Đã Phát") {
+    return (
+      <div className="bangdiem_students-container" style={{ textAlign: 'center', padding: '50px' }}>
+        <h2>Thông báo</h2>
+        <p style={{ fontSize: '1.2em', marginTop: '20px' }}>
+          Bạn đã nộp bảng điểm này hoặc bảng điểm đang ở một trạng thái khác không thể chỉnh sửa.
+        </p>
+        <button 
+          onClick={() => router.push('/students')} 
+          className="bangdiem_students-btn" 
+          style={{ marginTop: '30px' }}
+        >
+          Quay về trang chủ
+        </button>
+      </div>
+    );
+  }
+
+  // 3. Nếu trạng thái là "Đã Phát", hiển thị bảng điểm như bình thường
   return (
     <div className="bangdiem_students-container">
       <h2>Bảng điểm rèn luyện</h2>
