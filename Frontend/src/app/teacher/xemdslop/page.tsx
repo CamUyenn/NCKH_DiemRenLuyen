@@ -81,7 +81,7 @@ export default function XemDanhSachLop() {
                   className="dslop-btn-xem"
                   onClick={() => handleViewDetails(lop.ten_lop)}
                 >
-                  Xem
+                  Xem chi tiết
                 </button>
               </td>
               <td>{lop.trang_thai}</td>

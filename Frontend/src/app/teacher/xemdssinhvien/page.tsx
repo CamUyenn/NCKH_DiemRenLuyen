@@ -60,7 +60,7 @@ export default function XemChiTietLop() {
               <td>{sv.diem_pdt}</td>
               <td>
                 <button className="xds-btn-xem" onClick={() => handleViewDetails(sv.stt)}>
-                  Xem
+                  Xem chi tiết 
                 </button>
               </td>
               <td>
@@ -75,9 +75,6 @@ export default function XemChiTietLop() {
       <div className="xds-buttons">
         <button onClick={handleCopyAll} className="xds-btn-main">
           Sao chép toàn bộ
-        </button>
-        <button onClick={handleSave} className="xds-btn-main xds-btn-save">
-          Lưu
         </button>
       </div>
     </div>
