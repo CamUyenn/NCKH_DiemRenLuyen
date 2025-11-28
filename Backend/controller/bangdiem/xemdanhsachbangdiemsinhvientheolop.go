@@ -9,81 +9,190 @@ import (
 
 func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 	// Inputs from URL
-	makhoa := c.Param("makhoa")
+	magiangvien := c.Param("magiangvien")
 	mahocky := c.Param("mahocky")
+	role := c.Param("role")
 
 	// Output structure
 	type classResult struct {
-		MaLopSinhHoat         string `json:"ma_lop_sinh_hoat"`
-		TenLop                string `json:"ten_lop"`
-		MaHocKy               string `json:"ma_hoc_ky"`
-		SoLuongSinhVien       int64  `json:"so_luong_sinh_vien"`
-		SoLuongBangDiemDaCham int64  `json:"so_luong_bang_diem_da_cham"`
+		MaLopSinhHoat string `json:"ma_lop_sinh_hoat"`
+		TenLop        string `json:"ten_lop"`
+		TenGiangVien  string `json:"ten_giang_vien"`
+		TrangThai     string `json:"trang_thai"`
 	}
 
-	// Query data lopsinhhoat by makhoa and mahocky
-	var classes []struct {
-		MaLopSinhHoat string `gorm:"column:ma_lop_sinh_hoat"`
-		TenLop        string `gorm:"column:ten_lop"`
-	}
-	result := initialize.DB.Model(&model.LopSinhHoat{}).
-		Joins("JOIN LopSinhHoatHocKy ON LopSinhHoat.ma_lop_sinh_hoat = LopSinhHoatHocKy.ma_lop_sinh_hoat_tham_chieu").
-		Where("LopSinhHoat.ma_khoa = ? AND LopSinhHoatHocKy.ma_hoc_ky_tham_chieu = ?", makhoa, mahocky).
-		Select("LopSinhHoat.ma_lop_sinh_hoat, LopSinhHoat.ten_lop").
-		Find(&classes)
-	if result.Error != nil {
-		c.JSON(400, gin.H{
-			"error": "Query classes failed",
-		})
-		return
-	}
-
-	//
-	var class_results []classResult
-
-	for _, class_item := range classes {
-		// Get masinhvien by malopsinhhoat and mahocky
-		var student_ids []string
-		result = initialize.DB.Model(&model.LopSinhHoatSinhVien{}).
-			Where("ma_lop_sinh_hoat_tham_chieu = ? AND ma_hoc_ky_tham_chieu = ?", class_item.MaLopSinhHoat, mahocky).
-			Pluck("ma_sinh_vien_tham_chieu", &student_ids)
+	// Check type
+	if role == "truongkhoa" {
+		// Get malop by matruongkhoa and mahocky
+		var malop string
+		result := initialize.DB.Model(&model.LopSinhHoatHocKy{}).Where("ma_truong_khoa = ? AND ma_hoc_ky_tham_chieu = ?", magiangvien, mahocky).Select("ma_lop_sinh_hoat_tham_chieu").First(&malop)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
-				"error": "Query students failed",
+				"error": "Get malop failed",
 			})
 			return
 		}
 
-		// Count sinhvien in lopsinhhoat
-		so_luong_sinh_vien := int64(len(student_ids))
+		// Get makhoa by malop
+		var makhoa string
+		result = initialize.DB.Model(&model.LopSinhHoat{}).Where("ma_lop_sinh_hoat = ?", malop).Select("ma_khoa").First(&makhoa)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Get makhoa failed",
+			})
+			return
+		}
+		// Query data lopsinhhoat by makhoa and mahocky
+		var classes []struct {
+			MaLopSinhHoat    string `gorm:"column:ma_lop_sinh_hoat"`
+			TenLop           string `gorm:"column:ten_lop"`
+			Magiangviencovan string `gorm:"column:ma_giang_vien_co_van"`
+		}
+		result = initialize.DB.Model(&model.LopSinhHoat{}).
+			Joins("JOIN LopSinhHoatHocKy ON LopSinhHoat.ma_lop_sinh_hoat = LopSinhHoatHocKy.ma_lop_sinh_hoat_tham_chieu").
+			Where("LopSinhHoat.ma_khoa = ? AND LopSinhHoatHocKy.ma_hoc_ky_tham_chieu = ?", makhoa, mahocky).
+			Select("LopSinhHoat.ma_lop_sinh_hoat, LopSinhHoat.ten_lop, LopSinhHoatHocKy.ma_giang_vien_co_van").
+			Find(&classes)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Query classes failed",
+			})
+			return
+		}
 
-		// Count sinhvien diemrenluyen already
-		var so_luong_bang_diem_da_cham int64
-		if so_luong_sinh_vien > 0 {
-			result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).
-				Where("ma_hoc_ky_tham_chieu = ? AND trang_thai = ? AND ma_sinh_vien_tham_chieu IN ?", mahocky, "Giảng Viên Đã Chấm", student_ids).
-				Count(&so_luong_bang_diem_da_cham)
+		var class_results []classResult
+
+		for _, class_item := range classes {
+			// Get tengiangvien by magiangviencovan
+			type Tengiangvien struct {
+				HoDem string `json:"ho_dem"`
+				Ten   string `json:"ten"`
+			}
+			var tengiangvien Tengiangvien
+			result = initialize.DB.Model(&model.GiangVien{}).Where("ma_giang_vien = ?", class_item.Magiangviencovan).Select("ho_dem", "ten").Find(&tengiangvien)
 			if result.Error != nil {
 				c.JSON(400, gin.H{
-					"error": "Count student score sheets failed",
+					"error": "Query tengiangvien failed",
 				})
 				return
 			}
-		} else {
-			so_luong_bang_diem_da_cham = 0
+
+			// Get masinhvien by malopsinhhoat
+			var danhsachsinhvien []string
+			result = initialize.DB.Model(&model.LopSinhHoatSinhVien{}).Where("ma_lop_sinh_hoat_tham_chieu = ?", class_item.MaLopSinhHoat).Select("ma_sinh_vien_tham_chieu").Find(&danhsachsinhvien)
+			if result.Error != nil {
+				c.JSON(400, gin.H{
+					"error": "Query danhsachsinhvien failed",
+				})
+				return
+			}
+
+			// Count trangthai bangdiem by sinhvien
+			var count int64
+			result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Lớp Trưởng Đã Chấm'", danhsachsinhvien, mahocky).Count(&count)
+			if result.Error != nil {
+				c.JSON(400, gin.H{
+					"error": "Count trangthai bangdiem failed",
+				})
+				return
+			}
+
+			// Set trangthai
+			var trangthai string
+			if count != 0 {
+				trangthai = "Đã Gửi Chấm Điểm"
+			} else {
+				trangthai = "Chưa Gửi Chấm Điểm"
+			}
+
+			// Append output data
+			class_results = append(class_results, classResult{
+				MaLopSinhHoat: class_item.MaLopSinhHoat,
+				TenLop:        class_item.TenLop,
+				TenGiangVien:  tengiangvien.HoDem + " " + tengiangvien.Ten,
+				TrangThai:     trangthai,
+			})
 		}
 
-		// Append output data
-		class_results = append(class_results, classResult{
-			MaLopSinhHoat:         class_item.MaLopSinhHoat,
-			TenLop:                class_item.TenLop,
-			MaHocKy:               mahocky,
-			SoLuongSinhVien:       so_luong_sinh_vien,
-			SoLuongBangDiemDaCham: so_luong_bang_diem_da_cham,
+		c.JSON(200, gin.H{
+			"danh_sach_theo_lop": class_results,
+		})
+	} else {
+		// Query data lopsinhhoat by magiangvien and mahocky
+		type Classes struct {
+			MaLopSinhHoat    string `gorm:"column:ma_lop_sinh_hoat"`
+			TenLop           string `gorm:"column:ten_lop"`
+			Magiangviencovan string `gorm:"column:ma_giang_vien_co_van"`
+		}
+		var classes []Classes
+		result := initialize.DB.Model(&model.LopSinhHoat{}).
+			Joins("JOIN LopSinhHoatHocKy ON LopSinhHoat.ma_lop_sinh_hoat = LopSinhHoatHocKy.ma_lop_sinh_hoat_tham_chieu").
+			Where("LopSinhHoatHocKy.ma_giang_vien_co_van = ? AND LopSinhHoatHocKy.ma_hoc_ky_tham_chieu = ?", magiangvien, mahocky).
+			Select("LopSinhHoat.ma_lop_sinh_hoat, LopSinhHoat.ten_lop, LopSinhHoatHocKy.ma_giang_vien_co_van").
+			Find(&classes)
+		if result.Error != nil {
+			c.JSON(400, gin.H{
+				"error": "Query classes failed",
+			})
+			return
+		}
+
+		var class_results []classResult
+
+		for _, class_item := range classes {
+			// Get tengiangvien by magiangviencovan
+			type Tengiangvien struct {
+				HoDem string `json:"ho_dem"`
+				Ten   string `json:"ten"`
+			}
+			var tengiangvien Tengiangvien
+			result = initialize.DB.Model(&model.GiangVien{}).Where("ma_giang_vien = ?", class_item.Magiangviencovan).Select("ho_dem", "ten").Find(&tengiangvien)
+			if result.Error != nil {
+				c.JSON(400, gin.H{
+					"error": "Query tengiangvien failed",
+				})
+				return
+			}
+
+			// Get masinhvien by malopsinhhoat
+			var danhsachsinhvien []string
+			result = initialize.DB.Model(&model.LopSinhHoatSinhVien{}).Where("ma_lop_sinh_hoat_tham_chieu = ?", class_item.MaLopSinhHoat).Select("ma_sinh_vien_tham_chieu").Find(&danhsachsinhvien)
+			if result.Error != nil {
+				c.JSON(400, gin.H{
+					"error": "Query danhsachsinhvien failed",
+				})
+				return
+			}
+
+			// Count trangthai bangdiem by sinhvien
+			var count int64
+			result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Lớp Trưởng Đã Chấm'", danhsachsinhvien, mahocky).Count(&count)
+			if result.Error != nil {
+				c.JSON(400, gin.H{
+					"error": "Count trangthai bangdiem failed",
+				})
+				return
+			}
+
+			// Set trangthai
+			var trangthai string
+			if count != 0 {
+				trangthai = "Đã Gửi Chấm Điểm"
+			} else {
+				trangthai = "Chưa Gửi Chấm Điểm"
+			}
+
+			// Append output data
+			class_results = append(class_results, classResult{
+				MaLopSinhHoat: class_item.MaLopSinhHoat,
+				TenLop:        class_item.TenLop,
+				TenGiangVien:  tengiangvien.HoDem + " " + tengiangvien.Ten,
+				TrangThai:     trangthai,
+			})
+		}
+
+		c.JSON(200, gin.H{
+			"danh_sach_theo_lop": class_results,
 		})
 	}
-
-	c.JSON(200, gin.H{
-		"danh_sach_theo_lop": class_results,
-	})
 }
