@@ -169,7 +169,6 @@ function ClassListPage() {
             <th>STT</th>
             <th>Họ và tên</th>
             <th>Mã sinh viên</th>
-            <th>Lớp</th>
             <th>Sinh viên tự đánh giá</th>
             <th>Sao chép</th>
             <th>BCS đánh giá</th>
@@ -183,7 +182,6 @@ function ClassListPage() {
               <td>{index + 1}</td>
               <td>{`${student.ho_dem} ${student.ten}`}</td>
               <td>{student.ma_sinh_vien}</td>
-              <td>{student.ten_lop_sinh_hoat || student.ma_lop_sinh_hoat || ""}</td>
               <td>
                 <span>{student.tong_diem_sinh_vien > 0 ? student.tong_diem_sinh_vien : ''}</span>
               </td>
