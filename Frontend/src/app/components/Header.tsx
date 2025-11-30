@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import "./../styles/Header.css";
+import "D:/NCKH/Frontend/src/app/styles/Header.css";
 import defaultLogo from "../../../public/logo_nckh.png";
 
 // Interface định nghĩa props
@@ -31,7 +31,7 @@ interface AppHeaderProps {
 }
 
 function convertMaHocKyToLabel(maHocKy: string): string {
-  // Ví dụ: 2019-2020.2 => Học kỳ 2, năm học 2019-2020
+  // Ví dụ: 2019-2020. 2 => Học kỳ 2, năm học 2019-2020
   const match = maHocKy.match(/^(\d{4}-\d{4})\.(\d)$/);
   if (match) {
     return `Học kỳ ${match[2]}, Năm học ${match[1]}`;
@@ -68,8 +68,13 @@ function AppHeader({
     // Lấy session hiện tại
     let session = null;
     try {
-      session = JSON.parse(localStorage.getItem("session") || "{}");
-    } catch {}
+      const sessionStr = localStorage.getItem("session");
+      session = sessionStr ? JSON.parse(sessionStr) : {};
+    } catch (err) {
+      console.error("Lỗi parse session:", err);
+      session = {};
+    }
+    
     const maNguoiDung = session?.ma_sinh_vien || session?.ma_giang_vien || "";
     const type = (session?.type || "").toLowerCase();
 
@@ -83,18 +88,21 @@ function AppHeader({
       const res = await fetch("http://localhost:8080/api/doihocky", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON. stringify({
           ma_hoc_ky: newHocKy,
           ma_nguoi_dung: maNguoiDung,
           type: type,
         }),
       });
       if (!res.ok) {
-        console.error("Đổi học kỳ thất bại! Status:", res.status, res.statusText);
+        console.error("Đổi học kỳ thất bại!  Status:", res.status, res.statusText);
         alert("Đổi học kỳ thất bại!");
         return;
       }
-      const data = await res.json();
+      
+      const responseText = await res.text();
+      const data = responseText ? JSON.parse(responseText) : {};
+      
       console.log("Kết quả trả về từ API đổi học kỳ:", data);
       // Cập nhật lại session trong localStorage
       const newSession = { ...session, ...data, ma_hoc_ky: newHocKy, type: data.type };
@@ -121,14 +129,19 @@ function AppHeader({
     // Lấy session từ localStorage
     let session = null;
     try {
-      session = JSON.parse(localStorage.getItem("session") || "{}");
-    } catch {}
+      const sessionStr = localStorage.getItem("session");
+      session = sessionStr ? JSON.parse(sessionStr) : {};
+    } catch (err) {
+      console.error("Lỗi parse session trong useEffect:", err);
+      session = {};
+    }
+    
     const maNguoiDung = session?.ma_sinh_vien || session?.ma_giang_vien || "";
     const type = (session?.type || "").toLowerCase();
     const maHocKyHienTai = session?.ma_hoc_ky || "";
 
     // Thêm log kiểm tra
-    console.log("Session:", session);
+    console. log("Session:", session);
     console.log("Mã học kỳ hiện tại trong session:", maHocKyHienTai);
 
     if (!maNguoiDung || !type) {
@@ -143,22 +156,34 @@ function AppHeader({
           console.error("API trả về lỗi:", res.status, res.statusText);
           return null;
         }
-        return res.json();
+        return res.text(); // Đổi sang . text() trước
       })
-      .then((data) => {
-        if (!data) {
-          console.warn("Không lấy được dữ liệu học kỳ từ API.");
+      .then((text) => {
+        if (!text) {
+          console.warn("Response rỗng từ API học kỳ.");
           setSemesterOptions([]);
           setSelectedSemester("");
           return;
         }
+        
+        // Parse JSON sau khi kiểm tra text không rỗng
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          console.error("Lỗi parse JSON học kỳ:", err, "Response text:", text);
+          setSemesterOptions([]);
+          setSelectedSemester("");
+          return;
+        }
+        
         // data.list_hocky có thể là mảng string hoặc mảng object
         let arr: string[] = [];
         if (Array.isArray(data.list_hocky)) {
           if (typeof data.list_hocky[0] === "string") {
             arr = data.list_hocky;
-          } else if (typeof data.list_hocky[0] === "object" && data.list_hocky[0].ma_hoc_ky) {
-            arr = data.list_hocky.map((hk: any) => hk.ma_hoc_ky);
+          } else if (typeof data.list_hocky[0] === "object" && data.list_hocky[0]?.ma_hoc_ky) {
+            arr = data.list_hocky. map((hk: any) => hk.ma_hoc_ky);
           }
         }
         // Log danh sách học kỳ lấy được từ API
@@ -166,7 +191,7 @@ function AppHeader({
 
         // Đảm bảo mã học kỳ hiện tại luôn có trong options
         const allArr = arr.includes(maHocKyHienTai) ? arr : [maHocKyHienTai, ...arr];
-        const uniqueArr = Array.from(new Set(allArr.filter(Boolean)));
+        const uniqueArr = Array.from(new Set(allArr. filter(Boolean)));
 
         setSemesterOptions(
           uniqueArr.map((ma) => ({
@@ -174,7 +199,7 @@ function AppHeader({
             label: convertMaHocKyToLabel(ma),
           }))
         );
-        setSelectedSemester(maHocKyHienTai || (uniqueArr.length ? uniqueArr[0] : ""));
+        setSelectedSemester(maHocKyHienTai || (uniqueArr.length ?  uniqueArr[0] : ""));
       })
       .catch((err) => {
         console.error("Lỗi fetch API học kỳ:", err);
@@ -198,12 +223,12 @@ function AppHeader({
         const v = localStorage.getItem(k);
         if (v) {
           // heuristics: nếu chuỗi có "ma_sinh_vien" hoặc "ma_giang_vien" hoặc "type" thì dùng
-          if (v.includes("ma_sinh_vien") || v.includes("ma_giang_vien") || v.includes('"type"')) {
+          if (v. includes("ma_sinh_vien") || v.includes("ma_giang_vien") || v.includes('"type"')) {
             raw = v;
             break;
           }
           // otherwise keep first found as fallback
-          if (!raw) raw = v;
+          if (! raw) raw = v;
         }
       }
 
@@ -214,22 +239,23 @@ function AppHeader({
           sessionObj = JSON.parse(raw);
         } catch (e) {
           // not JSON -> ignore
+          console.error("Không parse được session object:", e);
           sessionObj = null;
         }
       }
 
-      if (!sessionObj) {
+      if (! sessionObj) {
         // try direct keys
         const direct: any = {};
-        if (localStorage.getItem("ma_sinh_vien")) direct.ma_sinh_vien = localStorage.getItem("ma_sinh_vien");
-        if (localStorage.getItem("ma_giang_vien")) direct.ma_giang_vien = localStorage.getItem("ma_giang_vien");
+        if (localStorage.getItem("ma_sinh_vien")) direct. ma_sinh_vien = localStorage.getItem("ma_sinh_vien");
+        if (localStorage.getItem("ma_giang_vien")) direct.ma_giang_vien = localStorage. getItem("ma_giang_vien");
         if (localStorage.getItem("ma_hoc_ky")) direct.ma_hoc_ky = localStorage.getItem("ma_hoc_ky");
         if (localStorage.getItem("type")) direct.type = localStorage.getItem("type");
         if (Object.keys(direct).length > 0) sessionObj = direct;
       }
 
-      const typeRaw = sessionObj?.type ?? null;
-      const typeStr = typeof typeRaw === 'string' ? typeRaw.toLowerCase() : String(typeRaw).toLowerCase();
+      const typeRaw = sessionObj?.type ??  null;
+      const typeStr = typeof typeRaw === 'string' ? typeRaw. toLowerCase() : String(typeRaw). toLowerCase();
 
       // helper để push router (nếu cần bạn có thể thay đường dẫn)
       const goto = (path: string) => () => router.push(path);
@@ -256,7 +282,7 @@ function AppHeader({
       }
 
       // map loại chung
-      if (!typeStr) {
+      if (! typeStr) {
         // không có type -> fallback: dùng props
         setLocalDropdowns(null);
         setLocalSimples(null);
@@ -266,14 +292,14 @@ function AppHeader({
       // các điều kiện phân loại: chấp nhận nhiều giá trị đầu vào
       const isStudent = /sv|sinh|student/.test(typeStr);
       const isLopTruong = /loptruong|lop-truong|classleader|class_leader/.test(typeStr);
-      const isGiangVien = /gv|giangvien|teacher/.test(typeStr);
+      const isGiangVien = /gv|giangvien|teacher/. test(typeStr);
       const isTruongKhoa = /truongkhoa|head|truong-khoa/.test(typeStr);
       const isChuyenVien = /chuyenvien|chuyenvien|chuyenviendaotao|daotao/.test(typeStr);
 
       if (isStudent) {
         // giống hình nhưng không có mục cuối -> chỉ hai mục đầu
         dd = [{
-          ...rènLuyệnDropdownAll,
+          ... rènLuyệnDropdownAll,
           buttons: rènLuyệnDropdownAll.buttons.slice(0, 2),
         }];
       } else if (isLopTruong) {
@@ -309,8 +335,8 @@ function AppHeader({
   }, []);
 
   // chọn menus để render: ưu tiên local override nếu không null
-  const dropdownsToRender = localDropdowns ?? dropdownMenus;
-  const simplesToRender = localSimples ?? simpleMenus;
+  const dropdownsToRender = localDropdowns ??  dropdownMenus;
+  const simplesToRender = localSimples ??  simpleMenus;
 
   return (
     <div className="main-container">
@@ -326,7 +352,7 @@ function AppHeader({
           onClick={reloadPage}
           style={{ cursor: "pointer", background: "none", border: "none" }}
         >
-          <img src={logo?.src || defaultLogo.src} alt="Logo" />
+          <img src={logo?. src || defaultLogo. src} alt="Logo" />
         </button>
 
         <div className="menu-buttons">
