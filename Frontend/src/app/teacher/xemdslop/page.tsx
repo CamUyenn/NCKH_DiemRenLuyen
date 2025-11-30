@@ -1,63 +1,78 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-// Bỏ import AppHeader vì đã có ở layout
-// import AppHeader from "../../components/Header"; 
-import "../../styles/teachers/xemdslop.css"; 
+import "../../styles/teachers/xemdslop.css";
 
-// Định nghĩa kiểu dữ liệu cho một lớp học
+// Cập nhật kiểu dữ liệu để khớp với API mới
 type LopHoc = {
-  stt: number;
+  ma_lop_sinh_hoat: string;
   ten_lop: string;
-  cvht: string;
+  ten_giang_vien: string; // Đổi từ cvht sang ten_giang_vien
   trang_thai: string;
 };
 
 export default function XemDanhSachLop() {
   const router = useRouter();
+  const [danhSachLop, setDanhSachLop] = useState<LopHoc[]>([]);
+  const [userRole, setUserRole] = useState<string>(""); // 'covan' hoặc 'truongkhoa'
 
-  // Dữ liệu tĩnh dựa trên hình ảnh
-  const [danhSachLop, setDanhSachLop] = useState<LopHoc[]>([
-    {
-      stt: 1,
-      ten_lop: "K46A",
-      cvht: "Lê Quang Chiến",
-      trang_thai: "Đã chấm",
-    },
-    {
-      stt: 2,
-      ten_lop: "K46B",
-      cvht: "Đoàn Thị Hồng Phước",
-      trang_thai: "Chưa chấm",
-    },
-    {
-      stt: 3,
-      ten_lop: "K46C",
-      cvht: "Nguyễn Văn A",
-      trang_thai: "Chưa chấm",
-    },
-    {
-      stt: 4,
-      ten_lop: "K47A",
-      cvht: "Trần Thị B",
-      trang_thai: "Đã chấm",
-    },
-  ]);
+  useEffect(() => {
+    // Lấy thông tin người dùng từ localStorage
+    const sessionRaw = localStorage.getItem("session") || "{}";
+    const session = JSON.parse(sessionRaw);
+    
+    const maGiangVien = session?.ma_giang_vien || "";
+    const maHocKy = session?.ma_hoc_ky || "";
+    const role = session?.type || ""; // 'covan' hoặc 'truongkhoa'
+    
+    setUserRole(role);
 
-  // Hàm xử lý khi nhấn nút "Xem"
-  const handleViewDetails = (tenLop: string) => {
-    router.push(`/teacher/xemdssinhvien`);
-    alert(`Chuyển đến chi tiết lớp ${tenLop}`);
+    // Kiểm tra các thông tin cần thiết cho API
+    if (!maGiangVien || !maHocKy || !role) {
+      alert("Không tìm thấy thông tin Giảng viên, Học kỳ hoặc Vai trò để tải dữ liệu.");
+      return;
+    }
+
+    // Fetch dữ liệu từ API với đầy đủ tham số
+    fetch(`http://localhost:8080/api/xemdanhsachbangdiemsinhvientheolop/${maGiangVien}/${maHocKy}/${role}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Lỗi khi tải dữ liệu từ server");
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data && data.danh_sach_theo_lop) {
+          setDanhSachLop(data.danh_sach_theo_lop);
+        } else {
+          setDanhSachLop([]);
+        }
+      })
+      .catch(err => {
+        console.error("Lỗi khi fetch danh sách lớp:", err);
+        alert("Không thể tải danh sách lớp. Vui lòng kiểm tra lại.");
+      });
+
+  }, []);
+
+  // Hàm xử lý khi nhấn nút "Xem chi tiết"
+  const handleViewDetails = (lop: LopHoc) => {
+    // Lấy mã học kỳ từ session để truyền đi
+    const sessionRaw = localStorage.getItem("session") || "{}";
+    const session = JSON.parse(sessionRaw);
+    const maHocKy = session?.ma_hoc_ky || "";
+    
+    // Chuyển đến trang chi tiết lớp với mã lớp và mã học kỳ
+    router.push(`/teacher/xemdssinhvien?malop=${lop.ma_lop_sinh_hoat}&mahocky=${maHocKy}`);
   };
 
   // Hàm xử lý khi nhấn nút "Gửi"
   const handleSubmit = () => {
-    alert("Xử lý logic gửi dữ liệu...");
+    alert("Chức năng gửi đang được phát triển...");
   };
 
   return (
-    // Chỉ render phần nội dung chính
     <div className="dslop-container">
       <h2>Đánh giá điểm rèn luyện</h2>
       <table className="dslop-table">
@@ -65,23 +80,25 @@ export default function XemDanhSachLop() {
           <tr>
             <th>STT</th>
             <th>Tên lớp</th>
-            <th>CVHT</th>
+            {/* Chỉ hiển thị cột CVHT nếu là Trưởng khoa */}
+            {userRole === "truongkhoa" && <th>CVHT</th>}
             <th>Chi tiết</th>
             <th>Trạng thái</th>
           </tr>
         </thead>
         <tbody>
-          {danhSachLop.map((lop) => (
-            <tr key={lop.stt}>
-              <td>{lop.stt}</td>
+          {danhSachLop.map((lop, index) => (
+            <tr key={lop.ma_lop_sinh_hoat}>
+              <td>{index + 1}</td>
               <td>{lop.ten_lop}</td>
-              <td>{lop.cvht}</td>
+              {/* Chỉ hiển thị cột CVHT nếu là Trưởng khoa */}
+              {userRole === "truongkhoa" && <td>{lop.ten_giang_vien}</td>}
               <td>
                 <button
                   className="dslop-btn-xem"
-                  onClick={() => handleViewDetails(lop.ten_lop)}
+                  onClick={() => handleViewDetails(lop)}
                 >
-                  Xem
+                  Xem chi tiết
                 </button>
               </td>
               <td>{lop.trang_thai}</td>

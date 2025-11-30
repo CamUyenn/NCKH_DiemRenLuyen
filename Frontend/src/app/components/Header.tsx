@@ -282,12 +282,12 @@ function AppHeader({
       } else if (isGiangVien || isTruongKhoa) {
         // hiển thị nút bấm là xem danh sách lớp
         sm = [
-          { label: "Xem danh sách lớp", onClick: goto("#/danh-sach-lop") },
+          { label: "Xem danh sách lớp", onClick: goto("/teacher/xemdslop") },
         ];
       } else if (isChuyenVien) {
         // hiển thị xem danh sách khoa
         sm = [
-          { label: "Xem danh sách khoa", onClick: goto("#/danh-sach-khoa") },
+          { label: "Xem danh sách khoa", onClick: goto("/teacher/xemdskhoa") },
         ];
       } else {
         // fallback: dùng props

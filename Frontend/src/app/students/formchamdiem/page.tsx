@@ -14,7 +14,7 @@ type TieuChi = {
   ma_tieu_chi_cha: string;
   loai_tieu_chi: string;
   so_lan: number;
-  diem_sinh_vien_danh_gia: number;
+  diem_sinh_vien_danh_gia: number; // Thêm trường này
   _ma?: string;
   _maCha?: string;
 };
@@ -27,6 +27,7 @@ export default function ChamDiem() {
   const [mahocky, setMahocky] = useState("");
   const [tieuChiList, setTieuChiList] = useState<TieuChi[]>([]);
   const [selectedValues, setSelectedValues] = useState<Record<string, any>>({});
+  const [trangThai, setTrangThai] = useState<string | null>(null); // Thêm state để lưu trạng thái
 
   // Helpers
   function getCode(id?: string | null): string {
@@ -71,6 +72,15 @@ export default function ChamDiem() {
     fetch(`http://localhost:8080/api/xemtieuchicham/${masinhvien}/${mahocky}`)
       .then((res) => res.json())
       .then((data) => {
+        // Lưu lại trạng thái từ API
+        setTrangThai(data?.trang_thai || null);
+
+        // Nếu trạng thái không phải là "Đã Phát", không cần xử lý danh sách tiêu chí
+        if (data?.trang_thai !== "Đã Phát") {
+          setTieuChiList([]); // Xóa danh sách tiêu chí để không render bảng
+          return;
+        }
+
         const danhSachRaw = data?.danh_sach_tieu_chi || [];
         const danhSach: TieuChi[] = danhSachRaw.map((item: any) => ({
           ...item,
@@ -78,82 +88,112 @@ export default function ChamDiem() {
           _maCha: getParentCode(item?.ma_tieu_chi_cha),
         }));
         setTieuChiList(danhSach);
+        // Khởi tạo selectedValues từ dữ liệu đã có
+        const initialSelectedValues: Record<string, any> = {};
+        danhSach.forEach((tc) => {
+          if (tc.loai_tieu_chi === "Textbox") {
+            if (tc.diem_sinh_vien_danh_gia > 0 && tc.diem > 0) {
+              const soLanDaNhap = tc.diem_sinh_vien_danh_gia / tc.diem;
+              // Làm tròn để xử lý các trường hợp số lẻ nếu có
+              const soLanLamTron = Math.round(soLanDaNhap);
+              initialSelectedValues[tc.muc] = [soLanLamTron.toString()];
+            }
+          } else if (tc.loai_tieu_chi === "Checkbox" || tc.loai_tieu_chi === "Radio") {
+            // Nếu là checkbox/radio và có điểm > 0
+            if (tc.diem_sinh_vien_danh_gia > 0) {
+              const group = tc._maCha || tc.muc;
+              const current = initialSelectedValues[group] || [];
+              initialSelectedValues[group] = [...current, tc.muc];
+            }
+          }
+        });
+        setSelectedValues(initialSelectedValues);
       })
       .catch((err) => {
         console.error("Lỗi khi fetch tiêu chí:", err);
         setTieuChiList([]);
+        setTrangThai("error"); // Đánh dấu là có lỗi để hiển thị thông báo
       });
   }, [masinhvien, mahocky]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("luuNhapBangDiem");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setSelectedValues(parsed.selectedValues || {});
-      } catch { }
-    }
-  }, []);
-
   function handleCopy() {
     if (typeof window === "undefined") return;
-    localStorage.setItem("luuNhapBangDiem", JSON.stringify({ selectedValues }));
-    alert("Đã lưu nháp thành công!");
-    router.push(`/students/formchamdiem/luunhap`);
+
+    // Chuẩn bị dữ liệu theo định dạng mà API chamdiem.go yêu cầu
+    const danhsachdieminput = tieuChiList.map(tc => {
+      let diemSo = 0;
+      
+      if (tc.loai_tieu_chi === "Textbox") {
+        const rawVal = selectedValues[tc.muc]?.[0];
+        const count = rawVal ? parseInt(rawVal) : 0;
+        if (count && !isNaN(count)) {
+          diemSo = count * (tc.diem || 0);
+        }
+      } else {
+        const group = tc._maCha || tc.muc;
+        const selected = selectedValues[group] || [];
+        if (selected.includes(tc.muc)) {
+          diemSo = tc.diem || 0;
+        }
+      }
+
+      return {
+        ma_sinh_vien_diem_ren_luyen_chi_tiet: tc.ma_sinh_vien_diem_ren_luyen_chi_tiet,
+        diem_sinh_vien_danh_gia: diemSo,
+        // Các trường điểm khác không cần thiết cho vai trò sinh viên
+        diem_lop_truong_danh_gia: 0,
+        diem_giang_vien_danh_gia: 0,
+        diem_truong_khoa_danh_gia: 0,
+        diem_chuyen_vien_dao_tao: 0,
+      };
+    });
+
+    // TÍNH TOÁN VÀ THÊM TỔNG ĐIỂM VÀO PAYLOAD
+    const tongDiem = Math.min(calcAllTotal(), 100);
+
+    const payload = {
+      type: "sinhvien",
+      tong_diem: tongDiem, // Thêm tổng điểm vào đây
+      danhsachdieminput: danhsachdieminput,
+    };
+
+    // Gọi API chấm điểm để lưu nháp
+    fetch("http://localhost:8080/api/chamdiem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    })
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(err => { throw new Error(err.message || "Lưu nháp thất bại") });
+        }
+        return res.json();
+      })
+      .then(data => {
+        alert("Lưu nháp thành công!");
+         window.location.reload();
+      })
+      .catch(error => {
+        console.error("Lỗi khi lưu nháp:", error);
+        alert(error.message || "Đã có lỗi xảy ra khi lưu nháp.");
+      });
   }
 
   function handleCreate() {
     if (typeof window === "undefined" || !masinhvien || !mahocky) return;
 
-    const tongDiem = Math.min(calcAllTotal(), 100);
-    const xepLoai = getRank();
+    // Tạo chuỗi mabangdiem theo định dạng yêu cầu
+    const maBangDiemString = `${masinhvien}~${mahocky}_BD`;
 
-    // Chuẩn bị mảng điểm chi tiết để gửi lên server
-    const diemChiTiet = tieuChiList
-      .map(tc => {
-        let diemSo = 0;
-        let soLan = null;
-        let daTuongTac = false;
-
-        if (tc.loai_tieu_chi === "Textbox") {
-          const rawVal = selectedValues[tc.muc]?.[0];
-          const count = rawVal ? parseInt(rawVal) : 0;
-          if (count > 0 && !isNaN(count)) {
-            diemSo = count * (tc.diem || 0);
-            soLan = count;
-            daTuongTac = true;
-          }
-        } else if (tc.loai_tieu_chi === "Checkbox" || tc.loai_tieu_chi === "Radio") {
-          const group = tc._maCha || tc.muc;
-          const selected = selectedValues[group] || [];
-          if (selected.includes(tc.muc)) {
-            diemSo = tc.diem || 0;
-            daTuongTac = true;
-          }
-        }
-
-        // Chỉ gửi những tiêu chí mà sinh viên đã tương tác
-        if (daTuongTac) {
-          return {
-            ma_sinh_vien_diem_ren_luyen_chi_tiet: tc.ma_sinh_vien_diem_ren_luyen_chi_tiet,
-            diem_sinh_vien_danh_gia: diemSo,
-            so_lan: soLan,
-          };
-        }
-        return null;
-      })
-      .filter(Boolean); // Lọc bỏ các giá trị null
-
+    // Tạo payload chính xác như bạn yêu cầu
     const payload = {
-      ma_sinh_vien: masinhvien,
-      ma_hoc_ky: mahocky,
-      tong_diem: tongDiem,
-      xep_loai: xepLoai,
-      diem_chi_tiet: diemChiTiet,
+      mabangdiem: [maBangDiemString],
+      type: "sinhvien",
     };
 
-    // Gọi API để nộp bảng điểm và thay đổi trạng thái
+    // Gọi API để thay đổi trạng thái
     fetch("http://localhost:8080/api/thaydoitrangthai", {
       method: "POST",
       headers: {
@@ -163,16 +203,13 @@ export default function ChamDiem() {
     })
       .then(res => {
         if (!res.ok) {
-          // Nếu có lỗi, thử đọc thông báo lỗi từ server
           return res.json().then(err => { throw new Error(err.message || "Nộp bảng điểm thất bại") });
         }
         return res.json();
       })
       .then(data => {
         alert("Nộp bảng điểm thành công!");
-        // Xóa bản nháp đã lưu ở local sau khi nộp thành công
-        localStorage.removeItem("luuNhapBangDiem");
-        // Chuyển về trang dashboard của sinh viên
+        // Chuyển về trang dashboard của sinh viên sau khi nộp
         router.push("/students");
       })
       .catch(error => {
@@ -286,19 +323,14 @@ export default function ChamDiem() {
 
     const rawTotal = calculateRecursive(maChaLon);
 
-    // Nếu tổng thực tế > điểm tối đa thì lấy điểm tối đa
-    // Ví dụ: rawTotal = 25, maxTotal = 20 => finalTotal = 20
     const finalTotal = Math.min(rawTotal, maxTotal);
 
     return { rawTotal, finalTotal, maxTotal };
   }
 
-  // LOGIC MỚI: Tính tổng toàn bài dựa trên các mục lớn ĐÃ BỊ GIỚI HẠN
   const calcAllTotal = () => {
-    // 1. Lấy tất cả các mục lớn (I, II, III...) (có _maCha rỗng)
     const rootSections = tieuChiList.filter((tc) => (tc._maCha ?? "") === "");
 
-    // 2. Duyệt qua từng mục lớn, tính điểm đã giới hạn (finalTotal) rồi cộng lại
     const totalScore = rootSections.reduce((sum, section) => {
       const { finalTotal } = calcTotalForSection(section._ma || "");
       return sum + finalTotal;
@@ -309,7 +341,6 @@ export default function ChamDiem() {
 
   const getRank = () => {
     const total = calcAllTotal();
-    // Tổng tối đa toàn bài không quá 100 (đề phòng)
     const cappedTotal = Math.min(total, 100);
     
     if (cappedTotal >= 90) return "Xuất sắc";
@@ -319,6 +350,37 @@ export default function ChamDiem() {
     return "Yếu";
   };
 
+  // --- LOGIC HIỂN THỊ ĐIỀU KIỆN ---
+
+  // 1. Nếu đang tải dữ liệu
+  if (trangThai === null) {
+    return (
+      <div className="bangdiem_students-container" style={{ textAlign: 'center', padding: '50px' }}>
+        <h2>Đang tải dữ liệu...</h2>
+      </div>
+    );
+  }
+
+  // 2. Nếu trạng thái không phải "Đã Phát" (đã nộp hoặc trạng thái khác)
+  if (trangThai !== "Đã Phát") {
+    return (
+      <div className="bangdiem_students-container" style={{ textAlign: 'center', padding: '50px' }}>
+        <h2>Thông báo</h2>
+        <p style={{ fontSize: '1.2em', marginTop: '20px' }}>
+          Bạn đã nộp bảng điểm này hoặc bảng điểm đang ở một trạng thái khác không thể chỉnh sửa.
+        </p>
+        <button 
+          onClick={() => router.push('/students')} 
+          className="bangdiem_students-btn" 
+          style={{ marginTop: '30px' }}
+        >
+          Quay về trang chủ
+        </button>
+      </div>
+    );
+  }
+
+  // 3. Nếu trạng thái là "Đã Phát", hiển thị bảng điểm như bình thường
   return (
     <div className="bangdiem_students-container">
       <h2>Bảng điểm rèn luyện</h2>

@@ -32,7 +32,7 @@ export default function StudentsLayout({
   // Sidebar menu cho giảng viên
   const sidebarItemsTeacher = [
     { icon: <Image src={tintuc} alt="Tin tức" width={24} height={24} />, label: 'Tin tức - Thông báo', path: '/teacher' },
-    { icon: <Image src={logout} alt="Đăng xuất" width={24} height={24} />, label: 'Đăng xuất', path: '/teacher/logout' },
+    { icon: <Image src={logout} alt="Đăng xuất" width={24} height={24} />, label: 'Đăng xuất', path: '/login' },
   ];
 
   const sidebarItems = isTeacher ? sidebarItemsTeacher : sidebarItemsTeacher;

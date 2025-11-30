@@ -26,7 +26,6 @@ type StudentScore = {
 function ClassListPage() {
   const router = useRouter();
   const [studentList, setStudentList] = useState<StudentScore[]>([]);
-  const [bcsScores, setBcsScores] = useState<Record<string, number>>({});
 
   // Hàm fetch danh sách sinh viên
   const fetchStudentList = () => {
@@ -69,7 +68,7 @@ function ClassListPage() {
           (session as any)?.tenLop ||
           "";
 
-        const submittedStatuses = ["Đã nộp", "Đã Phát"];
+        const submittedStatuses = ["Sinh Viên Đã Chấm", "Đã Phát"];
         // Chỉ lấy sinh viên chưa được duyệt bởi cấp trên
         const filteredList = arr
           .filter((sv: any) =>
@@ -100,49 +99,59 @@ function ClassListPage() {
   }, []);
 
   const handleViewDetail = (student: StudentScore) => {
-    const maBangDiem = student.ma_sinh_vien_diem_ren_luyen;
-    router.push(`/students/xemdssinhvien/xemchitiet?mabd=${maBangDiem}`);
-};
+    const sessionRaw =
+      localStorage.getItem("session") ||
+      localStorage.getItem("user") ||
+      localStorage.getItem("sessionData") ||
+      "{}";
+    let session = {};
+    try {
+      session = JSON.parse(sessionRaw);
+    } catch {}
+    const mahocky = (session as any)?.ma_hoc_ky || (session as any)?.ma_hocky || "";
 
-  const handleCopyAll = () => {
-    const copiedScores: Record<string, number> = {};
-    studentList.forEach((student) => {
-      copiedScores[student.ma_sinh_vien] = student.tong_diem_sinh_vien;
-    });
-    setBcsScores(copiedScores);
+    if (!mahocky) {
+      alert("Không tìm thấy thông tin học kỳ để xem chi tiết.");
+      return;
+    }
+
+    router.push(`/students/xemchitiet?masinhvien=${student.ma_sinh_vien}&mahocky=${mahocky}`);
   };
 
+
   const handlesubmit = async () => {
-    // Kiểm tra toàn bộ sinh viên đều đã được lớp trưởng đánh giá và trạng thái là "Sinh Viên Đã Chấm"
+    // 1. Kiểm tra điều kiện: Tất cả sinh viên phải ở trạng thái "Sinh Viên Đã Chấm"
+    // và đã được lớp trưởng cho điểm (điểm > 0).
     const allRated = studentList.every(
       (student) =>
-        bcsScores[student.ma_sinh_vien] !== undefined &&
-        bcsScores[student.ma_sinh_vien] !== null &&
+        student.tong_diem_lop_truong > 0 &&
         student.trang_thai === "Sinh Viên Đã Chấm"
     );
 
     if (!allRated) {
-      alert("Bạn phải đánh giá toàn bộ sinh viên ở cột BCS đánh giá và trạng thái phải là 'Sinh Viên Đã Chấm' trước khi gửi bảng điểm cho cố vấn!");
+      alert("Bạn phải đánh giá toàn bộ sinh viên (điểm lớp trưởng > 0) và trạng thái của họ phải là 'Sinh Viên Đã Chấm' trước khi gửi bảng điểm cho cố vấn!");
       return;
     }
 
-    // Lấy danh sách mã bảng điểm
+    // 2. Chuẩn bị payload: Lấy danh sách mã bảng điểm từ studentList.
     const maBangDiemArr = studentList.map((student) => student.ma_sinh_vien_diem_ren_luyen);
 
     try {
+      // 3. Gọi API thay đổi trạng thái
       const res = await fetch("http://localhost:8080/api/thaydoitrangthai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mabangdiem: maBangDiemArr,
-          type: "loptruong",
+          mabangdiem: maBangDiemArr, // Đây là danh sách mã bảng điểm
+          type: "loptruong",         // Type là "loptruong"
         }),
       });
       const result = await res.json();
       if (res.ok) {
         alert("Gửi bảng điểm thành công! Trạng thái đã chuyển sang 'Lớp Trưởng Đã Chấm'.");
-        fetchStudentList(); // Cập nhật lại bảng
-        router.push("/students");
+        fetchStudentList(); // Tải lại danh sách để cập nhật trạng thái mới
+        // Có thể điều hướng về trang chính nếu muốn
+        // router.push("/students"); 
       } else {
         alert("Gửi bảng điểm thất bại: " + (result.error || "Lỗi không xác định"));
       }
@@ -150,27 +159,6 @@ function ClassListPage() {
       alert("Lỗi kết nối server!");
     }
   };
-
-  useEffect(() => {
-    const saved = localStorage.getItem("bangDiemBCS");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const scores: Record<string, number> = {};
-        Object.keys(parsed).forEach((studentId) => {
-          const val = (parsed as any)[studentId];
-          if (typeof val === "number") {
-            scores[studentId] = val;
-          } else if (val && typeof val === "object" && "diemBCS" in val) {
-            scores[studentId] = (val as any).diemBCS;
-          }
-        });
-        setBcsScores(scores);
-      } catch (e) {
-        console.warn("Không parse được bangDiemBCS từ localStorage", e);
-      }
-    }
-  }, []);
 
   return (
     <div className="xemds_students-container">
@@ -181,7 +169,6 @@ function ClassListPage() {
             <th>STT</th>
             <th>Họ và tên</th>
             <th>Mã sinh viên</th>
-            <th>Lớp</th>
             <th>Sinh viên tự đánh giá</th>
             <th>Sao chép</th>
             <th>BCS đánh giá</th>
@@ -195,9 +182,8 @@ function ClassListPage() {
               <td>{index + 1}</td>
               <td>{`${student.ho_dem} ${student.ten}`}</td>
               <td>{student.ma_sinh_vien}</td>
-              <td>{student.ten_lop_sinh_hoat || student.ma_lop_sinh_hoat || ""}</td>
               <td>
-                <span>{student.tong_diem_sinh_vien}</span>
+                <span>{student.tong_diem_sinh_vien > 0 ? student.tong_diem_sinh_vien : ''}</span>
               </td>
               <td>
                 <button
@@ -214,12 +200,8 @@ function ClassListPage() {
                       });
                       const result = await res.json();
                       if (res.ok) {
-                        // Lấy điểm sinh viên vừa sao chép và cập nhật vào state
-                        setBcsScores((prev) => ({
-                          ...prev,
-                          [student.ma_sinh_vien]: student.tong_diem_sinh_vien,
-                        }));
                         alert("Sao chép điểm thành công!");
+                        fetchStudentList(); // Tải lại danh sách để hiển thị điểm mới
                       } else {
                         alert("Sao chép điểm thất bại: " + (result.error || "Lỗi không xác định"));
                       }
@@ -231,7 +213,8 @@ function ClassListPage() {
                   Sao chép
                 </button>
               </td>
-              <td>{bcsScores[student.ma_sinh_vien] ?? ""}</td>
+              {/* HIỂN THỊ ĐIỂM LỚP TRƯỞNG TRỰC TIẾP TỪ DATABASE */}
+              <td>{student.tong_diem_lop_truong > 0 ? student.tong_diem_lop_truong : ''}</td>
               <td>
                 <button
                   className="button_copydiem_students"
@@ -284,15 +267,8 @@ function ClassListPage() {
               });
               const result = await res.json();
               if (res.ok) {
-                // Cập nhật lại state bcsScores cho tất cả sinh viên
-                const newScores: Record<string, number> = {};
-                studentList.forEach((student) => {
-                  newScores[student.ma_sinh_vien] = student.tong_diem_sinh_vien;
-                });
-                setBcsScores(newScores);
-
                 alert("Sao chép toàn bộ điểm thành công!");
-                fetchStudentList(); // Nếu muốn đồng bộ lại bảng
+                fetchStudentList(); // Tải lại danh sách để hiển thị điểm mới
               } else {
                 alert("Sao chép thất bại: " + (result.error || "Lỗi không xác định"));
               }
