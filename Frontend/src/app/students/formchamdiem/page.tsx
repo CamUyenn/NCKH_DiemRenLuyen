@@ -14,6 +14,7 @@ type TieuChi = {
   ma_tieu_chi_cha: string;
   loai_tieu_chi: string;
   so_lan: number;
+  diem_sinh_vien_danh_gia: number;
   _ma?: string;
   _maCha?: string;
 };
