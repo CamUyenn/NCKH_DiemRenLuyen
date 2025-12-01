@@ -115,7 +115,10 @@ function ClassListPage() {
       return;
     }
 
-    router.push(`/students/xemchitiet?masinhvien=${student.ma_sinh_vien}&mahocky=${mahocky}`);
+    const hoTen = `${student.ho_dem} ${student.ten}`;
+    const encodedHoTen = encodeURIComponent(hoTen);
+
+    router.push(`/students/xemchitiet?masinhvien=${student.ma_sinh_vien}&mahocky=${mahocky}&hoten=${encodedHoTen}`);
   };
 
 
@@ -133,25 +136,22 @@ function ClassListPage() {
       return;
     }
 
-    // 2. Chuẩn bị payload: Lấy danh sách mã bảng điểm từ studentList.
     const maBangDiemArr = studentList.map((student) => student.ma_sinh_vien_diem_ren_luyen);
 
     try {
-      // 3. Gọi API thay đổi trạng thái
       const res = await fetch("http://localhost:8080/api/thaydoitrangthai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mabangdiem: maBangDiemArr, // Đây là danh sách mã bảng điểm
-          type: "loptruong",         // Type là "loptruong"
+          mabangdiem: maBangDiemArr, 
+          type: "loptruong",      
         }),
       });
       const result = await res.json();
       if (res.ok) {
         alert("Gửi bảng điểm thành công! Trạng thái đã chuyển sang 'Lớp Trưởng Đã Chấm'.");
-        fetchStudentList(); // Tải lại danh sách để cập nhật trạng thái mới
-        // Có thể điều hướng về trang chính nếu muốn
-        // router.push("/students"); 
+        fetchStudentList(); 
+        router.push("/students"); 
       } else {
         alert("Gửi bảng điểm thất bại: " + (result.error || "Lỗi không xác định"));
       }
@@ -201,7 +201,7 @@ function ClassListPage() {
                       const result = await res.json();
                       if (res.ok) {
                         alert("Sao chép điểm thành công!");
-                        fetchStudentList(); // Tải lại danh sách để hiển thị điểm mới
+                        fetchStudentList(); 
                       } else {
                         alert("Sao chép điểm thất bại: " + (result.error || "Lỗi không xác định"));
                       }
@@ -231,7 +231,6 @@ function ClassListPage() {
       <div className="xemds_students-buttons">
         <button
           onClick={async () => {
-            // Lấy thông tin lớp và học kỳ từ session
             let sessionRaw =
               localStorage.getItem("session") ||
               localStorage.getItem("user") ||
@@ -268,7 +267,7 @@ function ClassListPage() {
               const result = await res.json();
               if (res.ok) {
                 alert("Sao chép toàn bộ điểm thành công!");
-                fetchStudentList(); // Tải lại danh sách để hiển thị điểm mới
+                fetchStudentList(); 
               } else {
                 alert("Sao chép thất bại: " + (result.error || "Lỗi không xác định"));
               }

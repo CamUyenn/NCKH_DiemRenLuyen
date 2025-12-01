@@ -15,7 +15,7 @@ type TieuChi = {
   loai_tieu_chi: string;
   so_lan: number;
   diem_sinh_vien_danh_gia: number;
-  diem_lop_truong_danh_gia: number; 
+  diem_lop_truong_danh_gia: number;
   _ma?: string;
   _maCha?: string;
 };
@@ -27,8 +27,9 @@ export default function ChamDiem() {
   const [masinhvien, setMasinhvien] = useState("");
   const [mahocky, setMahocky] = useState("");
   const [tieuChiList, setTieuChiList] = useState<TieuChi[]>([]);
+  const [studentName, setStudentName] = useState(""); // State mới để lưu tên sinh viên
 
-  // Tách state: 1 cho SV (chỉ đọc), 1 cho Lớp trưởng (để chấm)
+  // State riêng biệt: 1 cho SV (chỉ đọc), 1 cho Lớp trưởng (để chấm/lưu)
   const [studentSelectedValues, setStudentSelectedValues] = useState<Record<string, any>>({});
   const [classPresidentSelectedValues, setClassPresidentSelectedValues] = useState<Record<string, any>>({});
 
@@ -53,13 +54,20 @@ export default function ChamDiem() {
     } catch {
       session = {};
     }
-    setMasinhvien(
-      (session as any)?.ma_sinh_vien ||
-        (session as any)?.masv ||
-        (session as any)?.id ||
-        searchParams.get("masinhvien") ||
-        ""
-    );
+
+    // --- SỬA LOGIC LẤY MÃ SINH VIÊN ---
+    const maSVFromParams = searchParams.get("masinhvien");
+    const maSVFromSession = (session as any)?.ma_sinh_vien || (session as any)?.masv || (session as any)?.id;
+    setMasinhvien(maSVFromParams || maSVFromSession || "");
+    
+    // --- LẤY HỌ TÊN TỪ URL ---
+    const hoTenFromParams = searchParams.get("hoten");
+    if (hoTenFromParams) {
+      // Giải mã họ tên từ URL và set vào state
+      setStudentName(decodeURIComponent(hoTenFromParams));
+    }
+
+    // Giữ nguyên logic cho mã học kỳ
     setMahocky(
       (session as any)?.ma_hoc_ky ||
         (session as any)?.ma_hocky ||
@@ -68,13 +76,19 @@ export default function ChamDiem() {
     );
   }, [searchParams]);
 
-  // Fetch API và khởi tạo cả 2 state
+  // --- PHẦN SỬA LỖI QUAN TRỌNG Ở ĐÂY ---
+  // Fetch API và khởi tạo state
   useEffect(() => {
     if (!masinhvien || !mahocky) return;
 
     fetch(`http://localhost:8080/api/xemtieuchicham/${masinhvien}/${mahocky}`)
       .then((res) => res.json())
       .then((data) => {
+        // Không cần lấy tên từ đây nữa
+        // const hoDem = data?.ho_dem || "";
+        // const ten = data?.ten || "";
+        // setStudentName(`${hoDem} ${ten}`.trim());
+
         const danhSachRaw = data?.danh_sach_tieu_chi || [];
         const danhSach: TieuChi[] = danhSachRaw.map((item: any) => ({
           ...item,
@@ -83,45 +97,58 @@ export default function ChamDiem() {
         }));
         setTieuChiList(danhSach);
 
-        // Khởi tạo giá trị đã chọn cho SINH VIÊN và LỚP TRƯỞNG
+        // Khởi tạo giá trị
         const initialStudentValues: Record<string, any> = {};
         const initialClassPresidentValues: Record<string, any> = {};
 
-        danhSach.forEach((tc) => {
-          // Logic cho điểm sinh viên (chỉ đọc)
-          if (tc.diem_sinh_vien_danh_gia > 0) {
-            if (tc.loai_tieu_chi === "Textbox" && tc.diem > 0) {
-              const soLan = Math.round(tc.diem_sinh_vien_danh_gia / tc.diem);
-              initialStudentValues[tc.muc] = [soLan.toString()];
-            } else if (tc.loai_tieu_chi === "Checkbox" || tc.loai_tieu_chi === "Radio") {
-              const group = tc._maCha || tc.muc;
-              const current = initialStudentValues[group] || [];
-              initialStudentValues[group] = [...current, tc.muc];
+        // Helper function để fill dữ liệu vào state
+        const parseValueToState = (tc: TieuChi, diemSo: number, stateObj: Record<string, any>) => {
+          if (diemSo <= 0) return; // Nếu điểm <= 0 thì coi như không chọn
+          
+          if (tc.loai_tieu_chi === "Textbox" && tc.diem > 0) {
+            const soLan = Math.round(diemSo / tc.diem);
+            stateObj[tc.muc] = [soLan.toString()];
+          } else if (tc.loai_tieu_chi === "Checkbox" || tc.loai_tieu_chi === "Radio") {
+            const group = tc._maCha || tc.muc;
+            const current = stateObj[group] || [];
+            if (!current.includes(tc.muc)) {
+              stateObj[group] = [...current, tc.muc];
             }
           }
+        };
 
-          // Logic cho điểm lớp trưởng (để chấm)
-          if (tc.diem_lop_truong_danh_gia > 0) {
-             if (tc.loai_tieu_chi === "Textbox" && tc.diem > 0) {
-              const soLan = Math.round(tc.diem_lop_truong_danh_gia / tc.diem);
-              initialClassPresidentValues[tc.muc] = [soLan.toString()];
-            } else if (tc.loai_tieu_chi === "Checkbox" || tc.loai_tieu_chi === "Radio") {
-              const group = tc._maCha || tc.muc;
-              const current = initialClassPresidentValues[group] || [];
-              initialClassPresidentValues[group] = [...current, tc.muc];
-            }
+        // KIỂM TRA: Lớp trưởng đã chấm bài này bao giờ chưa?
+        // Nếu có bất kỳ tiêu chí nào lớp trưởng > 0 thì coi như đã chấm.
+        const daCoDiemLopTruong = danhSach.some((tc) => tc.diem_lop_truong_danh_gia > 0);
+
+        danhSach.forEach((tc) => {
+          // 1. Luôn load đúng điểm của Sinh viên vào cột Sinh viên
+          parseValueToState(tc, tc.diem_sinh_vien_danh_gia, initialStudentValues);
+
+          // 2. Xử lý cột Lớp trưởng
+          let diemLT = 0;
+          if (daCoDiemLopTruong) {
+             // Nếu đã chấm trước đó: Load chính xác những gì database trả về (kể cả điểm thấp hơn SV hoặc bằng 0)
+             diemLT = tc.diem_lop_truong_danh_gia;
+          } else {
+             // Nếu chưa chấm bao giờ: Copy điểm SV sang để fill sẵn
+             diemLT = tc.diem_sinh_vien_danh_gia;
           }
+          
+          parseValueToState(tc, diemLT, initialClassPresidentValues);
         });
+
         setStudentSelectedValues(initialStudentValues);
         setClassPresidentSelectedValues(initialClassPresidentValues);
       })
       .catch((err) => {
         console.error("Lỗi khi fetch tiêu chí:", err);
+        setStudentName(""); // Reset tên nếu có lỗi
         setTieuChiList([]);
       });
   }, [masinhvien, mahocky]);
+  // -------------------------------------
 
-  // Các hàm handle... bây giờ sẽ cập nhật state của LỚP TRƯỞNG
   const handleCheckbox = (tc: TieuChi) => {
     const group = tc._maCha || tc.muc;
     setClassPresidentSelectedValues((prev) => {
@@ -143,10 +170,9 @@ export default function ChamDiem() {
     setClassPresidentSelectedValues((prev) => ({ ...prev, [tc.muc]: [value] }));
   };
 
-  // Hàm tính điểm được tham số hóa để dùng cho cả 2 vai trò
   const getDiemTieuChi = (tc: TieuChi, role: 'student' | 'classPresident') => {
     const values = role === 'student' ? studentSelectedValues : classPresidentSelectedValues;
-    
+
     if (tc.loai_tieu_chi === "Textbox") {
       const rawVal = values[tc.muc]?.[0];
       const count = rawVal ? parseInt(rawVal) : 0;
@@ -158,7 +184,6 @@ export default function ChamDiem() {
     return selected.includes(tc.muc) ? (tc.diem || 0) + "đ" : "";
   };
 
-  // Sắp xếp tiêu chí (giữ nguyên)
   function sortBangDiem(data: TieuChi[]) {
     const romanOrder = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
     const numberOrder = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
@@ -195,7 +220,6 @@ export default function ChamDiem() {
     return [...sorted, ...missing];
   }
 
-  // Hàm tính tổng được tham số hóa
   function calcTotalForSection(maChaLon: string, role: 'student' | 'classPresident') {
     const values = role === 'student' ? studentSelectedValues : classPresidentSelectedValues;
     const section = tieuChiList.find((tc) => tc._ma === maChaLon);
@@ -242,7 +266,7 @@ export default function ChamDiem() {
   const getRank = (role: 'student' | 'classPresident') => {
     const total = calcAllTotal(role);
     const cappedTotal = Math.min(total, 100);
-    
+
     if (cappedTotal >= 90) return "Xuất sắc";
     if (cappedTotal >= 80) return "Giỏi";
     if (cappedTotal >= 65) return "Khá";
@@ -251,12 +275,9 @@ export default function ChamDiem() {
   };
 
   const handleSave = () => {
-    // 1. Tính toán tổng điểm và xếp loại của lớp trưởng
     const tongDiemLopTruong = Math.min(calcAllTotal('classPresident'), 100);
-    const xepLoaiLopTruong = getRank('classPresident');
 
-    // 2. Tạo danh sách điểm chi tiết theo định dạng API yêu cầu
-    const danhsachdieminput = tieuChiList.map(tc => {
+    const danhsachdieminput = tieuChiList.map((tc) => {
       let diemSo = 0;
       if (tc.loai_tieu_chi === "Textbox") {
         const rawVal = classPresidentSelectedValues[tc.muc]?.[0];
@@ -271,26 +292,23 @@ export default function ChamDiem() {
           diemSo = tc.diem || 0;
         }
       }
-      
+
       return {
         ma_sinh_vien_diem_ren_luyen_chi_tiet: tc.ma_sinh_vien_diem_ren_luyen_chi_tiet,
         diem_lop_truong_danh_gia: diemSo,
-        // Các trường khác không cần thiết cho vai trò này
-        diem_sinh_vien_danh_gia: 0,
+        diem_sinh_vien_danh_gia: 0, 
         diem_giang_vien_danh_gia: 0,
         diem_truong_khoa_danh_gia: 0,
         diem_chuyen_vien_dao_tao: 0,
       };
     });
 
-    // 3. Tạo payload hoàn chỉnh
     const payload = {
       type: "loptruong",
       tong_diem: tongDiemLopTruong,
       danhsachdieminput: danhsachdieminput,
     };
 
-    // 4. Gọi API để lưu điểm
     fetch("http://localhost:8080/api/chamdiem", {
       method: "POST",
       headers: {
@@ -298,26 +316,28 @@ export default function ChamDiem() {
       },
       body: JSON.stringify(payload),
     })
-    .then(res => {
-      if (!res.ok) {
-        return res.json().then(err => { throw new Error(err.message || "Lưu điểm thất bại") });
-      }
-      return res.json();
-    })
-    .then(data => {
-      alert("Lưu điểm thành công!");
-      // Tùy chọn: Tự động quay về trang danh sách sau khi lưu
-      router.push('/students/xemdssinhvien');
-    })
-    .catch(error => {
-      console.error("Lỗi khi lưu điểm:", error);
-      alert(error.message || "Đã có lỗi xảy ra khi lưu điểm.");
-    });
-  }
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((err) => {
+            throw new Error(err.message || "Lưu điểm thất bại");
+          });
+        }
+        return res.json();
+      })
+      .then(() => {
+        alert("Lưu điểm thành công!");
+        router.push("/students/xemdssinhvien");
+      })
+      .catch((error) => {
+        console.error("Lỗi khi lưu điểm:", error);
+        alert(error.message || "Đã có lỗi xảy ra khi lưu điểm.");
+      });
+  };
 
   return (
     <div className="bangdiem_students-container">
-      <h2>Bảng điểm rèn luyện - Lớp trưởng đánh giá</h2>
+      {/* Cập nhật tiêu đề để hiển thị tên sinh viên */}
+      <h2>Đánh giá điểm rèn luyện: {studentName}</h2>
 
       <table className="bangdiem_students-table">
         <thead>
@@ -326,8 +346,8 @@ export default function ChamDiem() {
             <th>Nội dung</th>
             <th>Mô tả</th>
             <th>Số Điểm</th>
-            <th>Hành động</th>
             <th>Điểm Sinh Viên</th>
+            <th>Hành động</th>
             <th>Điểm Lớp trưởng</th>
           </tr>
         </thead>
@@ -346,8 +366,7 @@ export default function ChamDiem() {
               }
 
               const diemBackend = tc.diem > 0 ? `+${tc.diem}` : tc.diem < 0 ? `${tc.diem}` : "0";
-              
-              // Lấy giá trị đã chọn của lớp trưởng để hiển thị trên input
+
               const classPresidentSelected = classPresidentSelectedValues[tc._maCha || tc.muc] || [];
               const isClassPresidentSelected = classPresidentSelected.includes(tc.muc);
 
@@ -357,10 +376,16 @@ export default function ChamDiem() {
                   <td style={{ fontWeight: isBig ? "bold" : "normal" }}>{tc.ten_tieu_chi}</td>
                   <td>{tc.mo_ta_diem || ""}</td>
                   <td style={{ fontWeight: "bold" }}>{diemBackend}</td>
+                  <td style={{ fontWeight: "bold" }}>{getDiemTieuChi(tc, 'student')}</td>
+
                   <td>
                     {tc.loai_tieu_chi === "None" && <span>_</span>}
                     {tc.loai_tieu_chi === "Checkbox" && (
-                      <input type="checkbox" checked={isClassPresidentSelected} onChange={() => handleCheckbox(tc)} />
+                      <input
+                        type="checkbox"
+                        checked={isClassPresidentSelected}
+                        onChange={() => handleCheckbox(tc)}
+                      />
                     )}
                     {tc.loai_tieu_chi === "Radio" && (
                       <input
@@ -382,7 +407,7 @@ export default function ChamDiem() {
                       />
                     )}
                   </td>
-                  <td style={{ fontWeight: "bold" }}>{getDiemTieuChi(tc, 'student')}</td>
+
                   <td style={{ fontWeight: "bold" }}>{getDiemTieuChi(tc, 'classPresident')}</td>
                 </tr>
               );
@@ -394,13 +419,14 @@ export default function ChamDiem() {
               if (isNextNewSection || isEndOfList) {
                 const studentSection = calcTotalForSection(currentSectionMa, 'student');
                 const classPresidentSection = calcTotalForSection(currentSectionMa, 'classPresident');
-                
+
                 rows.push(
                   <tr key={`total-${currentSectionMa}`} className="section-total">
-                    <td colSpan={5} className="total-label">
+                    <td colSpan={4} className="total-label">
                       Tổng điểm mục {currentSectionLabel} (Tối đa: {studentSection.maxTotal}đ)
                     </td>
                     <td className="total-value">{studentSection.finalTotal}</td>
+                    <td></td>
                     <td className="total-value loptruong-score">{classPresidentSection.finalTotal}</td>
                   </tr>
                 );
@@ -412,16 +438,18 @@ export default function ChamDiem() {
 
             rows.push(
               <tr className="all-total" key="all-total">
-                <td colSpan={5} className="total-label">Tổng cộng</td>
+                <td colSpan={4} className="total-label">Tổng cộng</td>
                 <td className="total-value grand-total">{studentGrandTotal}</td>
+                <td></td>
                 <td className="total-value grand-total loptruong-score">{classPresidentGrandTotal}</td>
               </tr>
             );
 
             rows.push(
               <tr className="rank-row" key="rank-row">
-                <td colSpan={5} className="total-label">Xếp loại</td>
+                <td colSpan={4} className="total-label">Xếp loại</td>
                 <td className="total-value">{getRank('student')}</td>
+                <td></td>
                 <td className="total-value loptruong-score">{getRank('classPresident')}</td>
               </tr>
             );
