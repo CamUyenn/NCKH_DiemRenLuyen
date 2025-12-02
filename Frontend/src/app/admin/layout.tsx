@@ -19,7 +19,7 @@ export default function AdminLayout({
   const sidebarItems = [
     {icon: <Image src={tintuc} alt="Home" width={24} height={24} />, label: 'Tin tức - Thông báo', path: '/admin' },
     {icon: <Image src={userprofile} alt="Thông tin admin" width={24} height={24} />, label: 'Thông tin admin', path: '/admin/userprofile' },
-    {icon: <Image src={logout} alt="Đăng xuất" width={24} height={24} />, label: 'Đăng xuất', path: '/admin/logout' },
+    {icon: <Image src={logout} alt="Đăng xuất" width={24} height={24} />, label: 'Đăng xuất', path: '/login' },
   ];
 
   return (

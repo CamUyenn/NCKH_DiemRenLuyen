@@ -313,7 +313,7 @@ const DaTaoBangDiem: React.FC = () => {
       <table className="bangdiem-table">
         <thead>
           <tr>
-            <th className="bangdiem-th">Mức điểm</th>
+            <th className="bangdiem-th">Mức phân loại</th>
             <th className="bangdiem-th">Mục cha</th>
             <th className="bangdiem-th">Mục</th>
             <th className="bangdiem-th">Loại tiêu chí</th>

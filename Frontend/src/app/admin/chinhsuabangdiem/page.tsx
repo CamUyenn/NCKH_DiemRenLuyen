@@ -200,7 +200,8 @@ const ChinhSuaBangDiem: React.FC = () => {
     fetch(`http://localhost:8080/api/xemtieuchi/${raw}`)
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) {
+        // Sửa logic: Nếu data là mảng và có phần tử thì mới map
+        if (Array.isArray(data) && data.length > 0) {
           setRows(
             data.map((item: any) => ({
               tenTieuChi: item.ten_tieu_chi || "",
@@ -216,6 +217,7 @@ const ChinhSuaBangDiem: React.FC = () => {
             }))
           );
         } else {
+          // Nếu không, bao gồm cả trường hợp mảng rỗng, thì tạo một hàng trống
           setRows([
             {
               tenTieuChi: "",
@@ -464,7 +466,7 @@ const getMucOptions = (level: string, currentIndex: number) => {
       <table className="bangdiem-table">
         <thead>
           <tr>
-            <th className="bangdiem-th">Mức điểm</th>
+            <th className="bangdiem-th">Mức phân loại</th>
             <th className="bangdiem-th">Mục cha</th>
             <th className="bangdiem-th">Mục</th>
             <th className="bangdiem-th">Loại tiêu chí</th>
