@@ -84,10 +84,6 @@ export default function ChamDiem() {
     fetch(`http://localhost:8080/api/xemtieuchicham/${masinhvien}/${mahocky}`)
       .then((res) => res.json())
       .then((data) => {
-        // Không cần lấy tên từ đây nữa
-        // const hoDem = data?.ho_dem || "";
-        // const ten = data?.ten || "";
-        // setStudentName(`${hoDem} ${ten}`.trim());
 
         const danhSachRaw = data?.danh_sach_tieu_chi || [];
         const danhSach: TieuChi[] = danhSachRaw.map((item: any) => ({
@@ -103,7 +99,7 @@ export default function ChamDiem() {
 
         // Helper function để fill dữ liệu vào state
         const parseValueToState = (tc: TieuChi, diemSo: number, stateObj: Record<string, any>) => {
-          if (diemSo <= 0) return; // Nếu điểm <= 0 thì coi như không chọn
+          if (diemSo <= 0) return;
           
           if (tc.loai_tieu_chi === "Textbox" && tc.diem > 0) {
             const soLan = Math.round(diemSo / tc.diem);
@@ -117,21 +113,16 @@ export default function ChamDiem() {
           }
         };
 
-        // KIỂM TRA: Lớp trưởng đã chấm bài này bao giờ chưa?
         // Nếu có bất kỳ tiêu chí nào lớp trưởng > 0 thì coi như đã chấm.
         const daCoDiemLopTruong = danhSach.some((tc) => tc.diem_lop_truong_danh_gia > 0);
 
         danhSach.forEach((tc) => {
-          // 1. Luôn load đúng điểm của Sinh viên vào cột Sinh viên
           parseValueToState(tc, tc.diem_sinh_vien_danh_gia, initialStudentValues);
 
-          // 2. Xử lý cột Lớp trưởng
           let diemLT = 0;
           if (daCoDiemLopTruong) {
-             // Nếu đã chấm trước đó: Load chính xác những gì database trả về (kể cả điểm thấp hơn SV hoặc bằng 0)
              diemLT = tc.diem_lop_truong_danh_gia;
           } else {
-             // Nếu chưa chấm bao giờ: Copy điểm SV sang để fill sẵn
              diemLT = tc.diem_sinh_vien_danh_gia;
           }
           
@@ -143,11 +134,10 @@ export default function ChamDiem() {
       })
       .catch((err) => {
         console.error("Lỗi khi fetch tiêu chí:", err);
-        setStudentName(""); // Reset tên nếu có lỗi
+        setStudentName("");
         setTieuChiList([]);
       });
   }, [masinhvien, mahocky]);
-  // -------------------------------------
 
   const handleCheckbox = (tc: TieuChi) => {
     const group = tc._maCha || tc.muc;
@@ -336,7 +326,6 @@ export default function ChamDiem() {
 
   return (
     <div className="bangdiem_students-container">
-      {/* Cập nhật tiêu đề để hiển thị tên sinh viên */}
       <h2>Đánh giá điểm rèn luyện: {studentName}</h2>
 
       <table className="bangdiem_students-table">

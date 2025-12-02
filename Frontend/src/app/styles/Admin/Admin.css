@@ -3,14 +3,12 @@
   padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
   box-sizing: border-box;
 }
 
 .hocKy-table {
-  width: 100%;
   border-collapse: collapse;
-  flex: 1;
   table-layout: fixed;
   font-size: 16px;
   margin-top: 20px;
@@ -20,9 +18,8 @@
 .hocKy-table td {
   border: 1px solid #999;
   padding: 12px;
-  text-align: center; /* căn giữa ngang */
-  vertical-align: middle; /* căn giữa dọc */
-  width: 70px !important;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .hocKy-table thead {
@@ -35,6 +32,10 @@
   cursor: pointer;
 }
 
+.hocKy-table th:nth-child(1) {
+  width: 60px; 
+}
+
 .hocKy-button {
   align-self: flex-end;
   padding: 12px 24px;
@@ -44,7 +45,7 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-top: 20px;
+  margin-top: auto; 
 }
 
 .hocKy-button:hover {

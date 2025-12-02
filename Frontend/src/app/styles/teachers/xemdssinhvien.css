@@ -1,102 +1,126 @@
 .xds-container {
-  background-color: #fff;
-  margin: 0;
-  padding: 20px; 
-  border-radius: 0;
-  box-shadow: none;
-  min-height: 100vh;
-  width: 100%;
-  font-family: Arial, sans-serif; 
+ background-color: #fff;
+ margin: 0;
+ padding: 20px; 
+ border-radius: 0;
+ box-shadow: none;
+ min-height: 100vh;
+ width: 100%;
+ font-family: Arial, sans-serif; 
 }
 
 .xds-container h2 {
-  font-size: 1.5em;
-  font-weight: bold;
-  color: #000;
-  margin-bottom: 20px;
-  border: none; 
-  padding-bottom: 0;
+ font-size: 1.5em;
+ font-weight: bold;
+ color: #000;
+ margin-bottom: 20px;
+ border: none; 
+ padding-bottom: 0;
 }
 
 .xds-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95em;
-  color: #333;
+ width: 100%;
+ border-collapse: collapse;
+ font-size: 0.95em;
+ color: #333;
+ table-layout: fixed; 
 }
 
 
 .xds-table th {
-  background-color: #d9d9d9; 
-  font-weight: bold;
-  color: #000;
-  border: 1px solid #999; 
-  padding: 10px;
-  text-align: center;
-  vertical-align: middle;
-  white-space: nowrap; 
+ background-color: #d9d9d9; 
+ font-weight: bold;
+ color: #000;
+ border: 1px solid #999; 
+ padding: 10px 5px; 
+ text-align: center;
+ vertical-align: middle;
+ white-space: nowrap; 
 }
 
 .xds-table td {
-  border: 1px solid #ccc; 
-  padding: 10px;
-  text-align: center;
-  vertical-align: middle;
+ border: 1px solid #ccc; 
+ padding: 10px 5px; 
+ text-align: center;
+ vertical-align: middle;
 }
 
-/* Căn trái cho cột Họ tên */
-.xds-table td.align-left {
-  text-align: left;
+/* Định nghĩa chiều rộng cho các cột cố định */
+.xds-table th:nth-child(1), .xds-table td:nth-child(1) { 
+    width: 4%; 
+}
+.xds-table th:nth-child(2), .xds-table td:nth-child(2) { 
+    width: 10%; 
+}
+.xds-table th:nth-child(3), .xds-table td:nth-child(3) { 
+    width: 16%; 
+    text-align: center; 
+}
+
+.xds-table th.score-column, 
+.xds-table td.score-column {
+    width: 8%; 
+    min-width: 50px; 
+}
+
+/* Định nghĩa chiều rộng cho cột Chi tiết (có nút) và Trạng thái */
+.xds-table th:nth-last-child(2), .xds-table td:nth-last-child(2) { 
+    width: 11%;
+}
+.xds-table th:last-child, .xds-table td:last-child { 
+    width: 8%;
 }
 
 .xds-table tbody tr:nth-child(even) {
-  background-color: #fff;
+ background-color: #fff;
 }
 
 .xds-table tbody tr:hover {
-  background-color: #f5f5f5;
+ background-color: #f5f5f5;
 }
 
 /* Các nút nhỏ trong bảng */
 .xds-btn-icon {
-  background: none;
-  border: none;
-  color: #003366;
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: 0.9em;
+ background: none;
+ border: none;
+ color: #003366;
+ text-decoration: underline;
+ cursor: pointer;
+ font-size: 0.9em;
 }
 
 .xds-btn-xem, .xds-btn-copy {
-  background-color:#0055a5;
-  color: white;
-  border: none;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor:pointer;
+ background-color:#0055a5;
+ color: white;
+ border: none;
+ padding: 4px 6px;
+ border-radius: 6px;
+ cursor:pointer;
+ font-size: 0.85em; 
+ white-space: nowrap;
 }
 
 /* Khu vực nút bấm phía dưới */
 .xds-buttons {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end; 
-  gap: 20px; 
+ margin-top: 20px;
+ display: flex;
+ justify-content: flex-end; 
+ gap: 20px; 
 }
 
 .xds-btn-main {
-  background-color: #003366; 
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.95em;
-  font-weight: normal;
-  transition: opacity 0.3s ease;
-  white-space: nowrap;
+ background-color: #003366; 
+ color: white;
+ border: none;
+ padding: 10px 20px;
+ border-radius: 4px;
+ cursor: pointer;
+ font-size: 0.95em;
+ font-weight: normal;
+ transition: opacity 0.3s ease;
+ white-space: nowrap;
 }
 
 .xds-btn-main:hover {
-  opacity: 0.9;
+ opacity: 0.9;
 }
