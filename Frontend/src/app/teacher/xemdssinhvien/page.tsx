@@ -136,13 +136,12 @@ export default function XemChiTietLop() {
     }
   };
 
-  // --- HÀM SAO CHÉP TOÀN BỘ (ĐÃ FIX LỖI JSON) ---
   const handleCopyAll = async () => {
     let apiType = "";
     
     // Xác định type gửi lên API
     if (userRole === 'giangvien') {
-      apiType = 'giangvien'; // SỬA LẠI: 'covan' -> 'giangvien' để khớp với backend
+      apiType = 'giangvien'; 
     } else if (userRole === 'truongkhoa') {
       apiType = 'truongkhoa';
     } else {
@@ -155,20 +154,17 @@ export default function XemChiTietLop() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          malopsinhhoat: [maLop], // API yêu cầu mảng
+          malopsinhhoat: [maLop], 
           ma_hoc_ky: maHocKy,
           type: apiType,
         }),
       });
 
-      // Lấy phản hồi dưới dạng text
       const textResponse = await res.text();
 
       // Nếu thành công
       if (res.ok) {
-        alert("Sao chép toàn bộ điểm thành công!");
-        
-        // Cập nhật UI hàng loạt đúng theo logic role
+        alert("Sao chép toàn bộ điểm thành công!");        
         const newScores: Record<string, number> = {};
         danhSachSV.forEach(sv => {
           let scoreToCopy = 0;
