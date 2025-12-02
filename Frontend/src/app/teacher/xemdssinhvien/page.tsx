@@ -9,8 +9,8 @@ type SinhVien = {
   ma_sinh_vien: string;
   ho_dem: string;
   ten: string;
-  ten_lop_sinh_hoat: string; // Thêm trường lớp
-  trang_thai: string;        // Thêm trường trạng thái
+  ten_lop_sinh_hoat: string; 
+  trang_thai: string;        
   tong_diem_sinh_vien: number;
   tong_diem_lop_truong: number;
   tong_diem_co_van: number;
@@ -74,7 +74,7 @@ export default function XemChiTietLop() {
       });
   }, [searchParams]);
 
-  // Hàm xử lý thay đổi điểm (dù đã ẩn textbox nhưng vẫn giữ hàm này để logic không bị gãy nếu cần dùng lại)
+  // Hàm xử lý thay đổi điểm (giữ lại logic nếu cần dùng textbox)
   const handleScoreChange = (maSV: string, diem: string) => {
     const newScore = parseInt(diem, 10);
     setEditedScores(prev => ({
@@ -83,33 +83,121 @@ export default function XemChiTietLop() {
     }));
   };
 
-  // Hàm sao chép điểm cho một hàng
-  const handleCopyRow = (sv: SinhVien) => {
+  // --- HÀM SAO CHÉP ĐIỂM 1 HÀNG (ĐÃ FIX LỖI JSON) ---
+  const handleCopyRow = async (sv: SinhVien) => {
+    let apiType = "";
     let scoreToCopy = 0;
+
+    // Logic: Cố vấn lấy điểm Lớp trưởng, Trưởng khoa lấy điểm Cố vấn
     if (userRole === 'giangvien') {
+      apiType = 'giangvien'; // SỬA LẠI: 'covan' -> 'giangvien' để khớp với backend
       scoreToCopy = sv.tong_diem_lop_truong;
     } else if (userRole === 'truongkhoa') {
+      apiType = 'truongkhoa';
       scoreToCopy = sv.tong_diem_co_van;
+    } else {
+      alert("Quyền của bạn không xác định để thực hiện sao chép.");
+      return;
     }
-    setEditedScores(prev => ({ ...prev, [sv.ma_sinh_vien]: scoreToCopy }));
-  };
 
-  // Hàm sao chép điểm cho toàn bộ lớp
-  const handleCopyAll = () => {
-    const newScores: Record<string, number> = {};
-    danhSachSV.forEach(sv => {
-      let scoreToCopy = 0;
-      if (userRole === 'giangvien') {
-        scoreToCopy = sv.tong_diem_lop_truong;
-      } else if (userRole === 'truongkhoa') {
-        scoreToCopy = sv.tong_diem_co_van;
+    try {
+      const res = await fetch("http://localhost:8080/api/saochepdiem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ma_bang_diem: sv.ma_sinh_vien_diem_ren_luyen,
+          type: apiType,
+        }),
+      });
+
+      // Lấy phản hồi dưới dạng text trước để tránh lỗi nếu server trả về rỗng hoặc string
+      const textResponse = await res.text();
+
+      // Nếu thành công (200 OK)
+      if (res.ok) {
+        alert("Sao chép điểm thành công!");
+        // Cập nhật UI ngay lập tức
+        setEditedScores(prev => ({ ...prev, [sv.ma_sinh_vien]: scoreToCopy }));
+      } 
+      // Nếu thất bại
+      else {
+        let errorMessage = "Lỗi không xác định";
+        try {
+            const result = JSON.parse(textResponse);
+            errorMessage = result.message || result.error || textResponse;
+        } catch (e) {
+            errorMessage = textResponse || errorMessage;
+        }
+        alert("Sao chép thất bại: " + errorMessage);
       }
-      newScores[sv.ma_sinh_vien] = scoreToCopy;
-    });
-    setEditedScores(newScores);
+    } catch (err: any) {
+      console.error("Lỗi copy row:", err);
+      alert("Lỗi kết nối server: " + err.message);
+    }
   };
 
-  // Hàm lưu điểm
+  // --- HÀM SAO CHÉP TOÀN BỘ (ĐÃ FIX LỖI JSON) ---
+  const handleCopyAll = async () => {
+    let apiType = "";
+    
+    // Xác định type gửi lên API
+    if (userRole === 'giangvien') {
+      apiType = 'giangvien'; // SỬA LẠI: 'covan' -> 'giangvien' để khớp với backend
+    } else if (userRole === 'truongkhoa') {
+      apiType = 'truongkhoa';
+    } else {
+      alert("Quyền không hợp lệ.");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8080/api/saocheptoanbodiem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          malopsinhhoat: [maLop], // API yêu cầu mảng
+          ma_hoc_ky: maHocKy,
+          type: apiType,
+        }),
+      });
+
+      // Lấy phản hồi dưới dạng text
+      const textResponse = await res.text();
+
+      // Nếu thành công
+      if (res.ok) {
+        alert("Sao chép toàn bộ điểm thành công!");
+        
+        // Cập nhật UI hàng loạt đúng theo logic role
+        const newScores: Record<string, number> = {};
+        danhSachSV.forEach(sv => {
+          let scoreToCopy = 0;
+          if (userRole === 'giangvien') {
+            scoreToCopy = sv.tong_diem_lop_truong; // Cố vấn lấy của Lớp trưởng
+          } else if (userRole === 'truongkhoa') {
+            scoreToCopy = sv.tong_diem_co_van;     // Trưởng khoa lấy của Cố vấn
+          }
+          newScores[sv.ma_sinh_vien] = scoreToCopy;
+        });
+        setEditedScores(newScores);
+      } 
+      // Nếu thất bại
+      else {
+        let errorMessage = "Lỗi không xác định";
+        try {
+            const result = JSON.parse(textResponse);
+            errorMessage = result.message || result.error || textResponse;
+        } catch (e) {
+            errorMessage = textResponse || errorMessage;
+        }
+        alert("Sao chép thất bại: " + errorMessage);
+      }
+    } catch (err: any) {
+      console.error("Lỗi copy all:", err);
+      alert("Lỗi kết nối server: " + err.message);
+    }
+  };
+
   const handleSave = async () => {
     alert("Chức năng lưu điểm đang được phát triển (Cần API cập nhật tổng điểm).");
   };
@@ -147,7 +235,7 @@ export default function XemChiTietLop() {
             )}
 
             <th>Chi tiết</th>
-            <th>Trạng thái</th> 
+            <th>Trạng thái</th>
           </tr>
         </thead>
         <tbody>
@@ -182,7 +270,7 @@ export default function XemChiTietLop() {
                       Sao chép
                     </button>
                   </td>
-                  <td className="score-column"style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
+                  <td className="score-column" style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
                     {editedScores[sv.ma_sinh_vien] || 0}
                   </td>
                 </>
