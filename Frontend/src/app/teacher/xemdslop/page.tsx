@@ -81,7 +81,7 @@ export default function XemDanhSachLop() {
             <th>STT</th>
             <th>Tên lớp</th>
             {/* Chỉ hiển thị cột CVHT nếu là Trưởng khoa */}
-            {userRole === "truongkhoa" && <th>CVHT</th>}
+            {userRole === "truongkhoa" && <th>Cố vấn học tập</th>}
             <th>Chi tiết</th>
             <th>Trạng thái</th>
           </tr>

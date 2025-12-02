@@ -127,17 +127,22 @@ export default function XemChiTietLop() {
             <th>STT</th>
             <th>Mã sinh viên</th>
             <th>Họ và tên</th>
-            <th>SV</th>
-            <th>BCS</th>
-            <th>Sao chép</th>
+            <th>Sinh viên</th>
+            <th>Ban cán sự</th>
 
             {/* Logic hiển thị tiêu đề cột theo Role */}
-            {userRole === 'giangvien' && <th>Cố vấn đánh giá</th>}
+            {userRole === 'giangvien' && (
+              <>
+                <th>Cố vấn</th>
+                <th>Sao chép</th>
+              </>
+            )}
             
             {userRole === 'truongkhoa' && (
               <>
                 <th>Cố vấn</th>
-                <th>Trưởng khoa đánh giá</th>
+                <th>Sao chép</th>
+                <th>Trưởng khoa</th>
               </>
             )}
 
@@ -151,28 +156,33 @@ export default function XemChiTietLop() {
               <td>{index + 1}</td>
               <td>{sv.ma_sinh_vien}</td>
               <td>{`${sv.ho_dem} ${sv.ten}`}</td>
-              <td style={{ textAlign: 'center' }}>{sv.tong_diem_sinh_vien}</td>
-              <td style={{ textAlign: 'center' }}>{sv.tong_diem_lop_truong}</td>
-              <td style={{ textAlign: 'center' }}>
-                <button className="xds-btn-copy" onClick={() => handleCopyRow(sv)}>
-                  Sao chép
-                </button>
-              </td>
-
+              <td className="score-column" style={{ textAlign: 'center' }}>{sv.tong_diem_sinh_vien}</td>
+              <td className="score-column" style={{ textAlign: 'center' }}>{sv.tong_diem_lop_truong}</td>
               
+              {/* Cột động cho Cố vấn */}
               {userRole === 'giangvien' && (
-                <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
-                   {editedScores[sv.ma_sinh_vien] || 0}
-                </td>
+                <>
+                  <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
+                    {editedScores[sv.ma_sinh_vien] || 0}
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button className="xds-btn-copy" onClick={() => handleCopyRow(sv)}>
+                      Sao chép
+                    </button>
+                  </td>
+                </>
               )}
 
+              {/* Cột động cho Trưởng khoa */}
               {userRole === 'truongkhoa' && (
                 <>
-                  {/* Điểm Cố vấn */}
                   <td style={{ textAlign: 'center' }}>{sv.tong_diem_co_van}</td>
-                  
-                  {/* Điểm Trưởng khoa */}
-                  <td style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
+                  <td style={{ textAlign: 'center' }}>
+                    <button className="xds-btn-copy" onClick={() => handleCopyRow(sv)}>
+                      Sao chép
+                    </button>
+                  </td>
+                  <td className="score-column"style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
                     {editedScores[sv.ma_sinh_vien] || 0}
                   </td>
                 </>
