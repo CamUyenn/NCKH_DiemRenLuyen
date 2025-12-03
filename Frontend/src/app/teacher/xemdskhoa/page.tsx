@@ -1,51 +1,68 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-// Tái sử dụng CSS từ trang xem danh sách lớp
 import "../../styles/teachers/xemdslop.css"; 
 
-// Định nghĩa kiểu dữ liệu cho một khoa
 type Khoa = {
-  stt: number;
+  ma_khoa: string;
   ten_khoa: string;
-  truong_khoa: string;
+  ten_truong_khoa: string;
   trang_thai: string;
 };
 
 export default function XemDanhSachKhoa() {
   const router = useRouter();
 
-  // Dữ liệu tĩnh dựa trên hình ảnh
-  const [danhSachKhoa, setDanhSachKhoa] = useState<Khoa[]>([
-    {
-      stt: 1,
-      ten_khoa: "Công nghệ thông tin",
-      truong_khoa: "Nguyễn Hoàng Hà",
-      trang_thai: "Đã chấm",
-    },
-    {
-      stt: 2,
-      ten_khoa: "Công nghệ sinh học",
-      truong_khoa: "Trần Văn B",
-      trang_thai: "Chưa chấm",
-    },
-  ]);
+  const [danhSachKhoa, setDanhSachKhoa] = useState<Khoa[]>([]);
 
-  // Hàm xử lý khi nhấn nút "Xem"
-  const handleViewDetails = (tenKhoa: string) => {
-    // Chuyển hướng đến trang chi tiết của khoa đó (ví dụ: danh sách lớp trong khoa)
-    router.push(`/teacher/xemdslop?khoa=${tenKhoa}`);
-    alert(`Chuyển đến chi tiết khoa ${tenKhoa}`);
+  useEffect(() => {
+    // Lấy thông tin từ localStorage để gọi API
+    const sessionRaw = localStorage.getItem("session") || "{}";
+    const session = JSON.parse(sessionRaw);
+    
+    const maChuyenVien = session?.ma_giang_vien || ""; 
+    const maHocKy = session?.ma_hoc_ky || "";
+
+    if (!maChuyenVien || !maHocKy) {
+      alert("Không tìm thấy thông tin chuyên viên hoặc học kỳ. Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    // Gọi API để lấy danh sách khoa
+    fetch(`http://localhost:8080/api/xemdanhsachbangdiemsinhvientheokhoa/${maChuyenVien}/${maHocKy}`)
+      .then(async res => { 
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => null); 
+          const errorMessage = errorData?.error || `Lỗi HTTP: ${res.status}`;
+          throw new Error(errorMessage);
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data && Array.isArray(data.danh_sach_theo_khoa)) {
+          setDanhSachKhoa(data.danh_sach_theo_khoa);
+        } else {
+          console.error("Dữ liệu trả về không đúng định dạng:", data);
+          setDanhSachKhoa([]);
+        }
+      })
+      .catch(err => {
+        console.error("Lỗi khi fetch danh sách khoa:", err);
+        alert(`Không thể tải danh sách khoa: ${err.message}`);
+      });
+
+  }, []); 
+
+  const handleViewDetails = (maKhoa: string) => {
+    router.push(`/teacher/xemdslop?matruongkhoa=${maKhoa}`);
   };
 
-  // Hàm xử lý khi nhấn nút "Gửi"
   const handleSubmit = () => {
     alert("Xử lý logic gửi dữ liệu...");
   };
 
   return (
-    // Sử dụng lại các class CSS từ xemdslop.css
     <div className="dslop-container">
       <h2>Đánh giá điểm rèn luyện - Danh sách Khoa</h2>
       <table className="dslop-table">
@@ -59,17 +76,17 @@ export default function XemDanhSachKhoa() {
           </tr>
         </thead>
         <tbody>
-          {danhSachKhoa.map((khoa) => (
-            <tr key={khoa.stt}>
-              <td>{khoa.stt}</td>
+          {danhSachKhoa.map((khoa, index) => (
+            <tr key={khoa.ma_khoa}>
+              <td>{index + 1}</td>
               <td>{khoa.ten_khoa}</td>
-              <td>{khoa.truong_khoa}</td>
+              <td>{khoa.ten_truong_khoa}</td>
               <td>
                 <button
                   className="dslop-btn-xem"
-                  onClick={() => handleViewDetails(khoa.ten_khoa)}
+                  onClick={() => handleViewDetails(khoa.ma_khoa)}
                 >
-                  Xem
+                  Xem chi tiết
                 </button>
               </td>
               <td>{khoa.trang_thai}</td>
