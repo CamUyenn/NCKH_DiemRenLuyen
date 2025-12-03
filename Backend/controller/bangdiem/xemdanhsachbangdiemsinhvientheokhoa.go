@@ -23,7 +23,7 @@ func XemDanhSachBangDiemSinhVienTheoKhoa(c *gin.Context) {
 
 	// Query danhsachmakhoa
 	var danhsachmakhoa []string
-	result := initialize.DB.Model(model.LopSinhHoatHocKy{}).Select("ma_khoa_tham_chieu").Where("ma_chuyen_vien_dao_tao = ? AND ma_hoc_ky_tham_chieu = ?", machuyenvien, mahocky).Find(&danhsachmakhoa)
+	result := initialize.DB.Model(model.LopSinhHoatHocKy{}).Distinct("ma_khoa_tham_chieu").Select("ma_khoa_tham_chieu").Where("ma_chuyen_vien_dao_tao = ? AND ma_hoc_ky_tham_chieu = ?", machuyenvien, mahocky).Find(&danhsachmakhoa)
 	if result.Error != nil {
 		c.JSON(400, gin.H{
 			"error": "Failed query danhsachmakhoa",
