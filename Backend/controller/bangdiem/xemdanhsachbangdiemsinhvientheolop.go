@@ -11,7 +11,6 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 	// Inputs from URL
 	magiangvien := c.Param("magiangvien")
 	mahocky := c.Param("mahocky")
-	role := c.Param("role")
 
 	// Output structure
 	type classResult struct {
@@ -19,6 +18,22 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 		TenLop        string `json:"ten_lop"`
 		TenGiangVien  string `json:"ten_giang_vien"`
 		TrangThai     string `json:"trang_thai"`
+	}
+
+	// Get role by magiangvien
+	var role string
+	var count int64
+	result := initialize.DB.Model(&model.LopSinhHoatHocKy{}).Where("ma_truong_khoa = ? AND ma_hoc_ky_tham_chieu = ?", magiangvien, mahocky).Count(&count)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Failed count query",
+		})
+		return
+	}
+	if count != 0 {
+		role = "truongkhoa"
+	} else {
+		role = "giangvien"
 	}
 
 	// Check type
@@ -35,7 +50,7 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 
 		// Get makhoa by malop
 		var makhoa string
-		result = initialize.DB.Model(&model.LopSinhHoat{}).Where("ma_lop_sinh_hoat = ?", malop).Select("ma_khoa").First(&makhoa)
+		result = initialize.DB.Model(&model.LopSinhHoat{}).Where("ma_lop_sinh_hoat = ?", malop).Select("ma_khoa_tham_chieu").First(&makhoa)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"error": "Get makhoa failed",
@@ -50,7 +65,7 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 		}
 		result = initialize.DB.Model(&model.LopSinhHoat{}).
 			Joins("JOIN LopSinhHoatHocKy ON LopSinhHoat.ma_lop_sinh_hoat = LopSinhHoatHocKy.ma_lop_sinh_hoat_tham_chieu").
-			Where("LopSinhHoat.ma_khoa = ? AND LopSinhHoatHocKy.ma_hoc_ky_tham_chieu = ?", makhoa, mahocky).
+			Where("LopSinhHoat.ma_khoa_tham_chieu = ? AND LopSinhHoatHocKy.ma_hoc_ky_tham_chieu = ?", makhoa, mahocky).
 			Select("LopSinhHoat.ma_lop_sinh_hoat, LopSinhHoat.ten_lop, LopSinhHoatHocKy.ma_giang_vien_co_van").
 			Find(&classes)
 		if result.Error != nil {
