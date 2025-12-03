@@ -11,7 +11,6 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 	// Inputs from URL
 	magiangvien := c.Param("magiangvien")
 	mahocky := c.Param("mahocky")
-	role := c.Param("role")
 
 	// Output structure
 	type classResult struct {
@@ -19,6 +18,22 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 		TenLop        string `json:"ten_lop"`
 		TenGiangVien  string `json:"ten_giang_vien"`
 		TrangThai     string `json:"trang_thai"`
+	}
+
+	// Get role by magiangvien
+	var role string
+	var count int64
+	result := initialize.DB.Model(&model.LopSinhHoatHocKy{}).Where("ma_truong_khoa = ? AND ma_hoc_ky_tham_chieu", magiangvien, mahocky).Count(&count)
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "Failed count query",
+		})
+		return
+	}
+	if count != 0 {
+		role = "truongkhoa"
+	} else {
+		role = "giangvien"
 	}
 
 	// Check type
