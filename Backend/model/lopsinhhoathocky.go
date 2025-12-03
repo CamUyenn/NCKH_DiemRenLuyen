@@ -4,6 +4,7 @@ type LopSinhHoatHocKy struct {
 	MaLopSinhHoatHocKy     string `gorm:"size:256;primaryKey" json:"ma_lop_sinh_hoat_hoc_ky"`
 	MaHocKyThamChieu       string `gorm:"size:256" json:"ma_hoc_ky_tham_chieu"`
 	MaLopSinhHoatThamChieu string `gorm:"size:256" json:"ma_lop_sinh_hoat_tham_chieu"`
+	MaKhoaThamChieu        string `gorm:"size:256" json:"ma_khoa_tham_chieu"`
 	MaLopTruong            string `gorm:"size:256" json:"ma_lop_truong"`
 	MaGiangVienCoVan       string `gorm:"size:256" json:"ma_giang_vien_co_van"`
 	MaTruongKhoa           string `gorm:"size:256" json:"ma_truong_khoa"`
