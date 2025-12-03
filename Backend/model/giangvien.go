@@ -11,6 +11,7 @@ type GiangVien struct {
 
 	Admin            Admin            `gorm:"foreignKey:MaGiangVienThamChieu;references:MaGiangVien"`
 	LopSinhHoatHocKy LopSinhHoatHocKy `gorm:"foreignKey:MaGiangVienCoVan;references:MaGiangVien"`
+	Khoa             Khoa             `gorm:"foreignKey:MaTruongKhoa;references:MaGiangVien"`
 }
 
 func (GiangVien) TableName() string {
