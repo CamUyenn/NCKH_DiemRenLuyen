@@ -90,7 +90,7 @@ func ChamDiem(c *gin.Context) {
 	case "loptruong":
 		// Update tongdiemloptruong
 		var sinhviendiemrenluyenxuly []string
-		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "")
+		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
 
 		var xeploai string
 		if datainput.TongDiem >= 90 {
@@ -141,7 +141,7 @@ func ChamDiem(c *gin.Context) {
 	case "giangvien":
 		// Update tongdiemgiangvien
 		var sinhviendiemrenluyenxuly []string
-		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "")
+		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
 
 		var xeploai string
 		if datainput.TongDiem >= 90 {
@@ -192,7 +192,7 @@ func ChamDiem(c *gin.Context) {
 	case "truongkhoa":
 		// Update tongdiemtruongkhoa
 		var sinhviendiemrenluyenxuly []string
-		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "")
+		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
 
 		var xeploai string
 		if datainput.TongDiem >= 90 {
@@ -243,7 +243,7 @@ func ChamDiem(c *gin.Context) {
 	case "chuyenviendaotao":
 		// Update tongdiemchuyenviendaotao
 		var sinhviendiemrenluyenxuly []string
-		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "")
+		sinhviendiemrenluyenxuly = strings.Split(datainput.Danhsachtieuchi[0].MaSinhVienDiemRenLuyenChiTiet, "+")
 
 		var xeploai string
 		if datainput.TongDiem >= 90 {
