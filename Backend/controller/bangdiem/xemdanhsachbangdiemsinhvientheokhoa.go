@@ -62,7 +62,7 @@ func XemDanhSachBangDiemSinhVienTheoKhoa(c *gin.Context) {
 
 		// Query danhsachlopsinhhoat
 		var danhsachmalopsinhhoat []string
-		result = initialize.DB.Model(&model.LopSinhHoatHocKy{}).Select("ma_lop_sinh_hoat_tham_chieu").Where("ma_khoa_tham_chieu = ? AND ma_hoc_ky_tham_chieu = ?", makhoa, mahocky).Find(&danhsachmalopsinhhoat)
+		result = initialize.DB.Model(&model.LopSinhHoatHocKy{}).Distinct("ma_lop_sinh_hoat_tham_chieu").Select("ma_lop_sinh_hoat_tham_chieu").Where("ma_khoa_tham_chieu = ? AND ma_hoc_ky_tham_chieu = ?", makhoa, mahocky).Find(&danhsachmalopsinhhoat)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"error": "Failed query danhsachmalopsinhhoat",
@@ -72,7 +72,7 @@ func XemDanhSachBangDiemSinhVienTheoKhoa(c *gin.Context) {
 
 		// Query danhsachsinhvien
 		var danhsachmasinhvien []string
-		result = initialize.DB.Model(&model.LopSinhHoatSinhVien{}).Select("ma_sinh_vien_tham_chieu").Where("ma_lop_sinh_hoat_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ?", danhsachmalopsinhhoat, mahocky).Find(&danhsachmasinhvien)
+		result = initialize.DB.Model(&model.LopSinhHoatSinhVien{}).Distinct("ma_sinh_vien_tham_chieu").Select("ma_sinh_vien_tham_chieu").Where("ma_lop_sinh_hoat_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ?", danhsachmalopsinhhoat, mahocky).Find(&danhsachmasinhvien)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"error": "Failed query danhsachsinhvien",
