@@ -44,7 +44,7 @@ func main() {
 	router.POST("/api/sauloginsinhvien", login.SauLoginSinhVien)
 	router.POST("/api/doihocky", hocky.DoiHocKy)
 	router.POST("/api/chamdiem", tieuchi.ChamDiem)
-	router.POST("/api/thaydoitrangthai", bangdiem.ThayDoiTrangThai)
+	router.POST("/api/thaydoitrangthaisinhvien", bangdiem.ThayDoiTrangThaiSinhVien)
 	router.POST("/api/saochepdiem", tieuchi.SaoChepDiem)
 	router.POST("/api/saocheptoanbodiem", tieuchi.SaoChepToanBoDiem)
 	router.POST("/api/saulogingiangvien", login.SauLoginGiangVien)
@@ -56,6 +56,8 @@ func main() {
 	router.POST("/api/sualopsinhhoat", lopsinhhoat.SuaLopSinhHoat)
 	router.POST("/api/taolopsinhhoathocky", lopsinhhoat.TaoLopSinhHoatHocKy)
 	router.POST("/api/taolopsinhhoatsinhvien", lopsinhhoat.TaoLopSinhHoatSinhVien)
+	router.POST("/api/thaydoitrangthaigiangvien", bangdiem.ThayDoiTrangThaiGiangVien)
+	router.POST("/api/thaydoitrangthaicovan", bangdiem.ThayDoiTrangThaiCoVan)
 
 	router.GET("/api/xembangdiem", bangdiem.XemBangDiem)
 	router.GET("/api/xemtieuchi/:mabangdiem", tieuchi.XemTieuChi)
