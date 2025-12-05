@@ -114,10 +114,10 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 
 			// Set trangthai
 			var trangthai string
-			if count != 0 {
-				trangthai = "Đã Gửi Chấm Điểm"
+			if count != 0 && count == int64(len(danhsachsinhvien)) {
+				trangthai = "Cố Vấn Đã Chấm"
 			} else {
-				trangthai = "Chưa Gửi Chấm Điểm"
+				trangthai = "Lớp Trưởng Đã Chấm"
 			}
 
 			// Append output data
@@ -191,10 +191,10 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 
 			// Set trangthai
 			var trangthai string
-			if count != 0 {
-				trangthai = "Đã Gửi Chấm Điểm"
+			if count != 0 && count == int64(len(danhsachsinhvien)) {
+				trangthai = "Lớp Trưởng Đã Chấm"
 			} else {
-				trangthai = "Chưa Gửi Chấm Điểm"
+				trangthai = "Sinh Viên Đã Chấm"
 			}
 
 			// Append output data
