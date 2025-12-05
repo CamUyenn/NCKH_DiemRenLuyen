@@ -83,7 +83,7 @@ func XemDanhSachBangDiemSinhVienTheoKhoa(c *gin.Context) {
 		// Find trangthai
 		var trangthaibangdiem string
 		var count int64
-		result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Trưởng Khoa Đã Duyệt'", danhsachmasinhvien, mahocky).Count(&count)
+		result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Trưởng Khoa Đã Chấm'", danhsachmasinhvien, mahocky).Count(&count)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
 				"error": "Failed count query",
