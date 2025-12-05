@@ -49,8 +49,8 @@ func XemDiemDaChamQuaCacNam(c *gin.Context) {
 		`).
 		Where(`
 			SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu = ? 
-			AND SinhVienDiemRenLuyen.trang_thai = ?
-		`, masinhvien, "Chuyên Viên Đào Tạo Đã Duyệt").
+			AND SinhVienDiemRenLuyen.trang_thai = N'Chuyên Viên Đã Chấm'
+		`, masinhvien).
 		Group(`
 			SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu,
 			LopSinhHoat.ten_lop,
