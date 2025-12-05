@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ThayDoiTrangThaiCoVan(c *gin.Context) {
+func ThayDoiTrangThaiChuyenVien(c *gin.Context) {
 	type Datainput struct {
 		MaKhoa  []string `json:"makhoa"`
 		MaHocKy string   `json:"mahocky"`
@@ -22,7 +22,7 @@ func ThayDoiTrangThaiCoVan(c *gin.Context) {
 		return
 	}
 
-	trangthaioutput := "Giảng Viên Đã Chấm"
+	trangthaioutput := "Chuyên Viên Đã Chấm"
 
 	var danhsachmalopsinhhoat []string
 	result := initialize.DB.Model(&model.LopSinhHoatHocKy{}).Select("ma_lop_sinh_hoat_tham_chieu").Where("ma_khoa_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ?", datainput.MaKhoa, datainput.MaHocKy).Find(&danhsachmalopsinhhoat)

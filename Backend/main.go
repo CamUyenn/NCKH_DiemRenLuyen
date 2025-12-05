@@ -57,7 +57,7 @@ func main() {
 	router.POST("/api/taolopsinhhoathocky", lopsinhhoat.TaoLopSinhHoatHocKy)
 	router.POST("/api/taolopsinhhoatsinhvien", lopsinhhoat.TaoLopSinhHoatSinhVien)
 	router.POST("/api/thaydoitrangthaigiangvien", bangdiem.ThayDoiTrangThaiGiangVien)
-	router.POST("/api/thaydoitrangthaicovan", bangdiem.ThayDoiTrangThaiCoVan)
+	router.POST("/api/thaydoitrangthaichuyenvien", bangdiem.ThayDoiTrangThaiChuyenVien)
 
 	router.GET("/api/xembangdiem", bangdiem.XemBangDiem)
 	router.GET("/api/xemtieuchi/:mabangdiem", tieuchi.XemTieuChi)
