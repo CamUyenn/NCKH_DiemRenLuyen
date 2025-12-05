@@ -94,7 +94,7 @@ func XemDanhSachBangDiemSinhVienTheoKhoa(c *gin.Context) {
 		if count == int64(len(danhsachmasinhvien)) && count != 0 {
 			trangthaibangdiem = "Trưởng Khoa Đã Chấm"
 		} else {
-			trangthaibangdiem = "Lớp Trưởng Đã Chấm"
+			trangthaibangdiem = "Trưởng Khoa Chưa Chấm"
 		}
 
 		// Append to output
