@@ -67,35 +67,50 @@ export default function ChamDiem() {
   useEffect(() => {
     if (!masinhvien || !mahocky) return;
 
-    fetch(`http://localhost:8080/api/xemtieuchicham/${masinhvien}/${mahocky}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setTrangThai(data?.trang_thai || null);
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`http://localhost:8080/api/xemtieuchicham/${masinhvien}/${mahocky}`);
+        const text = await res.text();
+        let data = {};
 
-        // Nếu trạng thái không phải là "Đã Phát", không cần xử lý danh sách tiêu chí
-        if (data?.trang_thai !== "Đã Phát") {
-          setTieuChiList([]); 
+        if (text) {
+          try {
+            data = JSON.parse(text);
+          } catch (e) {
+            console.error("Lỗi parse JSON từ server:", text);
+            throw new Error("Server trả về dữ liệu không hợp lệ.");
+          }
+        }
+
+        if (!res.ok) {
+          throw new Error((data as any).error || "Lỗi không xác định từ server.");
+        }
+        
+        const trangThaiData = (data as any)?.trang_thai || null;
+        setTrangThai(trangThaiData);
+
+        if (trangThaiData !== "Đã Phát") {
+          setTieuChiList([]);
           return;
         }
 
-        const danhSachRaw = data?.danh_sach_tieu_chi || [];
+        const danhSachRaw = (data as any)?.danh_sach_tieu_chi || [];
         const danhSach: TieuChi[] = danhSachRaw.map((item: any) => ({
           ...item,
           _ma: getCode(item?.ma_sinh_vien_diem_ren_luyen_chi_tiet),
           _maCha: getParentCode(item?.ma_tieu_chi_cha),
         }));
         setTieuChiList(danhSach);
+
         const initialSelectedValues: Record<string, any> = {};
         danhSach.forEach((tc) => {
           if (tc.loai_tieu_chi === "Textbox") {
             if (tc.diem_sinh_vien_danh_gia > 0 && tc.diem > 0) {
               const soLanDaNhap = tc.diem_sinh_vien_danh_gia / tc.diem;
-              // Làm tròn để xử lý các trường hợp số lẻ nếu có
               const soLanLamTron = Math.round(soLanDaNhap);
               initialSelectedValues[tc.muc] = [soLanLamTron.toString()];
             }
           } else if (tc.loai_tieu_chi === "Checkbox" || tc.loai_tieu_chi === "Radio") {
-            // Nếu là checkbox/radio và có điểm > 0
             if (tc.diem_sinh_vien_danh_gia > 0) {
               const group = tc._maCha || tc.muc;
               const current = initialSelectedValues[group] || [];
@@ -104,15 +119,18 @@ export default function ChamDiem() {
           }
         });
         setSelectedValues(initialSelectedValues);
-      })
-      .catch((err) => {
+
+      } catch (err) {
         console.error("Lỗi khi fetch tiêu chí:", err);
         setTieuChiList([]);
         setTrangThai("error");
-      });
+      }
+    };
+
+    fetchData();
   }, [masinhvien, mahocky]);
 
-  function handleCopy() {
+  async function handleCopy() {
     if (typeof window === "undefined") return;
 
     const danhsachdieminput = tieuChiList.map(tc => {
@@ -150,30 +168,38 @@ export default function ChamDiem() {
       danhsachdieminput: danhsachdieminput,
     };
 
-    fetch("http://localhost:8080/api/chamdiem", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    })
-      .then(res => {
-        if (!res.ok) {
-          return res.json().then(err => { throw new Error(err.message || "Lưu nháp thất bại") });
-        }
-        return res.json();
-      })
-      .then(data => {
-        alert("Lưu nháp thành công!");
-         window.location.reload();
-      })
-      .catch(error => {
-        console.error("Lỗi khi lưu nháp:", error);
-        alert(error.message || "Đã có lỗi xảy ra khi lưu nháp.");
+    try {
+      const res = await fetch("http://localhost:8080/api/chamdiem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+
+      if (!res.ok) {
+        // Cố gắng đọc lỗi từ server nếu có
+        const text = await res.text();
+        let errorMsg = "Lưu nháp thất bại";
+        if (text) {
+          try {
+            const errJson = JSON.parse(text);
+            errorMsg = errJson.message || errJson.error || errorMsg;
+          } catch {
+            errorMsg = text; // Nếu không phải JSON, hiển thị text lỗi
+          }
+        }
+        throw new Error(errorMsg);
+      }
+
+      alert("Lưu nháp thành công!");
+      window.location.reload();
+
+    } catch (error: any) {
+      console.error("Lỗi khi lưu nháp:", error);
+      alert(error.message || "Đã có lỗi xảy ra khi lưu nháp.");
+    }
   }
 
-  function handleCreate() {
+  async function handleCreate() {
     if (typeof window === "undefined" || !masinhvien || !mahocky) return;
 
     const maBangDiemString = `${masinhvien}~${mahocky}_BD`;
@@ -183,27 +209,34 @@ export default function ChamDiem() {
       type: "sinhvien",
     };
 
-    fetch("http://localhost:8080/api/thaydoitrangthai", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    })
-      .then(res => {
-        if (!res.ok) {
-          return res.json().then(err => { throw new Error(err.message || "Nộp bảng điểm thất bại") });
-        }
-        return res.json();
-      })
-      .then(data => {
-        alert("Nộp bảng điểm thành công!");
-        router.push("/students");
-      })
-      .catch(error => {
-        console.error("Lỗi khi nộp bảng điểm:", error);
-        alert(error.message || "Đã có lỗi xảy ra. Vui lòng thử lại.");
+    try {
+      const res = await fetch("http://localhost:8080/api/thaydoitrangthaisinhvien", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+
+      if (!res.ok) {
+        const text = await res.text();
+        let errorMsg = "Nộp bảng điểm thất bại";
+        if (text) {
+          try {
+            const errJson = JSON.parse(text);
+            errorMsg = errJson.message || errJson.error || errorMsg;
+          } catch {
+            errorMsg = text;
+          }
+        }
+        throw new Error(errorMsg);
+      }
+
+      alert("Nộp bảng điểm thành công!");
+      router.push("/students");
+
+    } catch (error: any) {
+      console.error("Lỗi khi nộp bảng điểm:", error);
+      alert(error.message || "Đã có lỗi xảy ra. Vui lòng thử lại.");
+    }
   }
 
   const handleCheckbox = (tc: TieuChi) => {
