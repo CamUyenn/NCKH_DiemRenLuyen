@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import "../../styles/teachers/xemdssinhvien.css";
 
-// Định nghĩa kiểu dữ liệu cho sinh viên từ API
 type SinhVien = {
   ma_sinh_vien: string;
   ho_dem: string;
@@ -15,6 +14,7 @@ type SinhVien = {
   tong_diem_lop_truong: number;
   tong_diem_co_van: number;
   tong_diem_truong_khoa: number;
+  tong_diem_chuyen_vien_dao_tao: number; 
   ma_sinh_vien_diem_ren_luyen: string;
 };
 
@@ -45,7 +45,6 @@ export default function XemChiTietLop() {
       return;
     }
 
-    // 2. Fetch dữ liệu danh sách sinh viên từ API
     fetch(`http://localhost:8080/api/xemdanhsachbangdiemsinhvien/${malop}/${mahocky}`)
       .then(res => {
         if (!res.ok) throw new Error("Lỗi khi tải danh sách sinh viên.");
@@ -59,10 +58,12 @@ export default function XemChiTietLop() {
         const initialScores: Record<string, number> = {};
         studentData.forEach((sv: SinhVien) => {
           let score = 0;
-          if (role === 'giangvien') { // Cố vấn
+          if (role === 'giangvien') {
             score = sv.tong_diem_co_van;
           } else if (role === 'truongkhoa') {
             score = sv.tong_diem_truong_khoa;
+          } else if (role === 'chuyenviendaotao') { 
+            score = sv.tong_diem_chuyen_vien_dao_tao;
           }
           initialScores[sv.ma_sinh_vien] = score;
         });
@@ -83,18 +84,19 @@ export default function XemChiTietLop() {
     }));
   };
 
-  // --- HÀM SAO CHÉP ĐIỂM 1 HÀNG (ĐÃ FIX LỖI JSON) ---
   const handleCopyRow = async (sv: SinhVien) => {
     let apiType = "";
     let scoreToCopy = 0;
 
-    // Logic: Cố vấn lấy điểm Lớp trưởng, Trưởng khoa lấy điểm Cố vấn
     if (userRole === 'giangvien') {
-      apiType = 'giangvien'; // SỬA LẠI: 'covan' -> 'giangvien' để khớp với backend
+      apiType = 'giangvien'; 
       scoreToCopy = sv.tong_diem_lop_truong;
     } else if (userRole === 'truongkhoa') {
       apiType = 'truongkhoa';
       scoreToCopy = sv.tong_diem_co_van;
+    } else if (userRole === 'chuyenviendaotao') { 
+      apiType = 'chuyenvien'; 
+      scoreToCopy = sv.tong_diem_truong_khoa; 
     } else {
       alert("Quyền của bạn không xác định để thực hiện sao chép.");
       return;
@@ -110,13 +112,11 @@ export default function XemChiTietLop() {
         }),
       });
 
-      // Lấy phản hồi dưới dạng text trước để tránh lỗi nếu server trả về rỗng hoặc string
       const textResponse = await res.text();
 
       // Nếu thành công (200 OK)
       if (res.ok) {
         alert("Sao chép điểm thành công!");
-        // Cập nhật UI ngay lập tức
         setEditedScores(prev => ({ ...prev, [sv.ma_sinh_vien]: scoreToCopy }));
       } 
       // Nếu thất bại
@@ -144,6 +144,8 @@ export default function XemChiTietLop() {
       apiType = 'giangvien'; 
     } else if (userRole === 'truongkhoa') {
       apiType = 'truongkhoa';
+    } else if (userRole === 'chuyenviendaotao') { 
+      apiType = 'chuyenvien'; 
     } else {
       alert("Quyền không hợp lệ.");
       return;
@@ -169,9 +171,11 @@ export default function XemChiTietLop() {
         danhSachSV.forEach(sv => {
           let scoreToCopy = 0;
           if (userRole === 'giangvien') {
-            scoreToCopy = sv.tong_diem_lop_truong; // Cố vấn lấy của Lớp trưởng
+            scoreToCopy = sv.tong_diem_lop_truong; 
           } else if (userRole === 'truongkhoa') {
-            scoreToCopy = sv.tong_diem_co_van;     // Trưởng khoa lấy của Cố vấn
+            scoreToCopy = sv.tong_diem_co_van;     
+          } else if (userRole === 'chuyenviendaotao') { 
+            scoreToCopy = sv.tong_diem_truong_khoa; 
           }
           newScores[sv.ma_sinh_vien] = scoreToCopy;
         });
@@ -199,7 +203,10 @@ export default function XemChiTietLop() {
   };
 
   const handleViewDetails = (sv: SinhVien) => {
-    router.push(`/teacher/xemchitiet?masv=${sv.ma_sinh_vien}&mahocky=${maHocKy}`);
+    const hoTen = `${sv.ho_dem} ${sv.ten}`;
+    const encodedHoTen = encodeURIComponent(hoTen);
+
+    router.push(`/teacher/xemchitiet?masv=${sv.ma_sinh_vien}&mahocky=${maHocKy}&hoten=${encodedHoTen}`);
   };
 
   return (
@@ -227,6 +234,15 @@ export default function XemChiTietLop() {
                 <th>Cố vấn</th>
                 <th>Sao chép</th>
                 <th>Trưởng khoa</th>
+              </>
+            )}
+
+            {userRole === 'chuyenviendaotao' && ( 
+              <>
+                <th>Cố vấn</th>
+                <th>Trưởng khoa</th>
+                <th>Sao chép</th>
+                <th>Phòng đào tạo</th>
               </>
             )}
 
@@ -261,6 +277,22 @@ export default function XemChiTietLop() {
               {userRole === 'truongkhoa' && (
                 <>
                   <td style={{ textAlign: 'center' }}>{sv.tong_diem_co_van}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button className="xds-btn-copy" onClick={() => handleCopyRow(sv)}>
+                      Sao chép
+                    </button>
+                  </td>
+                  <td className="score-column" style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
+                    {editedScores[sv.ma_sinh_vien] || 0}
+                  </td>
+                </>
+              )}
+
+              {/* Thêm các cột cho Chuyên viên */}
+              {userRole === 'chuyenviendaotao' && ( 
+                <>
+                  <td style={{ textAlign: 'center' }}>{sv.tong_diem_co_van}</td>
+                  <td style={{ textAlign: 'center' }}>{sv.tong_diem_truong_khoa}</td>
                   <td style={{ textAlign: 'center' }}>
                     <button className="xds-btn-copy" onClick={() => handleCopyRow(sv)}>
                       Sao chép

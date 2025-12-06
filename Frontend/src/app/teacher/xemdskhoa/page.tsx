@@ -7,13 +7,14 @@ import "../../styles/teachers/xemdslop.css";
 type Khoa = {
   ma_khoa: string;
   ten_khoa: string;
+  ma_hoc_ky: string;
   ten_truong_khoa: string;
+  ma_truong_khoa: string; 
   trang_thai: string;
 };
 
 export default function XemDanhSachKhoa() {
   const router = useRouter();
-
   const [danhSachKhoa, setDanhSachKhoa] = useState<Khoa[]>([]);
 
   useEffect(() => {
@@ -54,8 +55,17 @@ export default function XemDanhSachKhoa() {
 
   }, []); 
 
-  const handleViewDetails = (maKhoa: string) => {
-    router.push(`/teacher/xemdslop?matruongkhoa=${maKhoa}`);
+  const handleViewDetails = (maKhoa: string, maTruongKhoa: string) => {
+    const sessionRaw = localStorage.getItem("session") || "{}";
+    const session = JSON.parse(sessionRaw);
+    const maHocKy = session?.ma_hoc_ky || "";
+
+    if (!maHocKy) {
+      alert("Không tìm thấy mã học kỳ, không thể xem chi tiết.");
+      return;
+    }
+
+    router.push(`/teacher/xemdslop?makhoa=${maKhoa}&mahocky=${maHocKy}&matruongkhoa=${maTruongKhoa}`);
   };
 
   const handleSubmit = () => {
@@ -84,7 +94,7 @@ export default function XemDanhSachKhoa() {
               <td>
                 <button
                   className="dslop-btn-xem"
-                  onClick={() => handleViewDetails(khoa.ma_khoa)}
+                  onClick={() => handleViewDetails(khoa.ma_khoa, khoa.ma_truong_khoa)}
                 >
                   Xem chi tiết
                 </button>

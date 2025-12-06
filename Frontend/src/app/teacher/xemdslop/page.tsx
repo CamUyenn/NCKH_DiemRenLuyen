@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation"; 
 import "../../styles/teachers/xemdslop.css";
 
 type LopHoc = {
@@ -14,6 +14,7 @@ type LopHoc = {
 
 export default function XemDanhSachLop() {
   const router = useRouter();
+  const searchParams = useSearchParams(); 
   const [danhSachLop, setDanhSachLop] = useState<LopHoc[]>([]);
   const [userRole, setUserRole] = useState<string>(""); 
 
@@ -23,18 +24,23 @@ export default function XemDanhSachLop() {
     
     const maGiangVien = session?.ma_giang_vien || "";
     const maHocKy = session?.ma_hoc_ky || "";
-    const role = session?.type || ""; 
     
-    setUserRole(role);
 
-    // Kiểm tra các thông tin cần thiết cho API
-    if (!maGiangVien || !maHocKy || !role) {
-      alert("Không tìm thấy thông tin Giảng viên, Học kỳ hoặc Vai trò để tải dữ liệu.");
+    const maKhoa = searchParams.get("matruongkhoa");
+
+    if (!maGiangVien || !maHocKy) {
+      alert("Không tìm thấy thông tin Giảng viên hoặc Học kỳ để tải dữ liệu.");
       return;
     }
 
-    // Fetch dữ liệu từ API với đầy đủ tham số
-    fetch(`http://localhost:8080/api/xemdanhsachbangdiemsinhvientheolop/${maGiangVien}/${maHocKy}/${role}`)
+    let apiUrl = `http://localhost:8080/api/xemdanhsachbangdiemsinhvientheolop/${maGiangVien}/${maHocKy}`;
+
+    // Nếu có mã khoa từ URL, thêm nó vào dưới dạng query parameter
+    if (maKhoa) {
+      apiUrl = `http://localhost:8080/api/xemdanhsachbangdiemsinhvientheolop/${maKhoa}/${maHocKy}`;
+    }
+
+    fetch(apiUrl)
       .then(res => {
         if (!res.ok) {
           throw new Error("Lỗi khi tải dữ liệu từ server");
@@ -53,9 +59,8 @@ export default function XemDanhSachLop() {
         alert("Không thể tải danh sách lớp. Vui lòng kiểm tra lại.");
       });
 
-  }, []);
+  }, [searchParams]); 
 
-  // Hàm xử lý khi nhấn nút "Xem chi tiết"
   const handleViewDetails = (lop: LopHoc) => {
     const sessionRaw = localStorage.getItem("session") || "{}";
     const session = JSON.parse(sessionRaw);
