@@ -14,7 +14,7 @@ type TieuChi = {
   ma_tieu_chi_cha: string;
   loai_tieu_chi: string;
   so_lan: number;
-  diem_sinh_vien_danh_gia: number; // Thêm trường này
+  diem_sinh_vien_danh_gia: number; 
   _ma?: string;
   _maCha?: string;
 };
@@ -36,7 +36,6 @@ export default function ChamDiem() {
   }
   const getParentCode = (id?: string | null) => getCode(id);
 
-  // Lấy session / params
   useEffect(() => {
     if (typeof window === "undefined") return;
     const sessionRaw =
@@ -65,19 +64,17 @@ export default function ChamDiem() {
     );
   }, [searchParams]);
 
-  // Fetch API
   useEffect(() => {
     if (!masinhvien || !mahocky) return;
 
     fetch(`http://localhost:8080/api/xemtieuchicham/${masinhvien}/${mahocky}`)
       .then((res) => res.json())
       .then((data) => {
-        // Lưu lại trạng thái từ API
         setTrangThai(data?.trang_thai || null);
 
         // Nếu trạng thái không phải là "Đã Phát", không cần xử lý danh sách tiêu chí
         if (data?.trang_thai !== "Đã Phát") {
-          setTieuChiList([]); // Xóa danh sách tiêu chí để không render bảng
+          setTieuChiList([]); 
           return;
         }
 
@@ -88,7 +85,6 @@ export default function ChamDiem() {
           _maCha: getParentCode(item?.ma_tieu_chi_cha),
         }));
         setTieuChiList(danhSach);
-        // Khởi tạo selectedValues từ dữ liệu đã có
         const initialSelectedValues: Record<string, any> = {};
         danhSach.forEach((tc) => {
           if (tc.loai_tieu_chi === "Textbox") {
@@ -112,14 +108,13 @@ export default function ChamDiem() {
       .catch((err) => {
         console.error("Lỗi khi fetch tiêu chí:", err);
         setTieuChiList([]);
-        setTrangThai("error"); // Đánh dấu là có lỗi để hiển thị thông báo
+        setTrangThai("error");
       });
   }, [masinhvien, mahocky]);
 
   function handleCopy() {
     if (typeof window === "undefined") return;
 
-    // Chuẩn bị dữ liệu theo định dạng mà API chamdiem.go yêu cầu
     const danhsachdieminput = tieuChiList.map(tc => {
       let diemSo = 0;
       
@@ -140,7 +135,6 @@ export default function ChamDiem() {
       return {
         ma_sinh_vien_diem_ren_luyen_chi_tiet: tc.ma_sinh_vien_diem_ren_luyen_chi_tiet,
         diem_sinh_vien_danh_gia: diemSo,
-        // Các trường điểm khác không cần thiết cho vai trò sinh viên
         diem_lop_truong_danh_gia: 0,
         diem_giang_vien_danh_gia: 0,
         diem_truong_khoa_danh_gia: 0,
@@ -148,16 +142,14 @@ export default function ChamDiem() {
       };
     });
 
-    // TÍNH TOÁN VÀ THÊM TỔNG ĐIỂM VÀO PAYLOAD
     const tongDiem = Math.min(calcAllTotal(), 100);
 
     const payload = {
       type: "sinhvien",
-      tong_diem: tongDiem, // Thêm tổng điểm vào đây
+      tong_diem: tongDiem,
       danhsachdieminput: danhsachdieminput,
     };
 
-    // Gọi API chấm điểm để lưu nháp
     fetch("http://localhost:8080/api/chamdiem", {
       method: "POST",
       headers: {
@@ -184,16 +176,13 @@ export default function ChamDiem() {
   function handleCreate() {
     if (typeof window === "undefined" || !masinhvien || !mahocky) return;
 
-    // Tạo chuỗi mabangdiem theo định dạng yêu cầu
     const maBangDiemString = `${masinhvien}~${mahocky}_BD`;
 
-    // Tạo payload chính xác như bạn yêu cầu
     const payload = {
       mabangdiem: [maBangDiemString],
       type: "sinhvien",
     };
 
-    // Gọi API để thay đổi trạng thái
     fetch("http://localhost:8080/api/thaydoitrangthai", {
       method: "POST",
       headers: {
@@ -209,7 +198,6 @@ export default function ChamDiem() {
       })
       .then(data => {
         alert("Nộp bảng điểm thành công!");
-        // Chuyển về trang dashboard của sinh viên sau khi nộp
         router.push("/students");
       })
       .catch(error => {
@@ -218,7 +206,6 @@ export default function ChamDiem() {
       });
   }
 
-  // Xử lý input
   const handleCheckbox = (tc: TieuChi) => {
     const group = tc._maCha || tc.muc;
     setSelectedValues((prev) => {
@@ -252,7 +239,6 @@ export default function ChamDiem() {
     return selected.includes(tc.muc) ? (tc.diem || 0) + "đ" : "";
   };
 
-  // Sắp xếp tiêu chí
   function sortBangDiem(data: TieuChi[]) {
     const romanOrder = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
     const numberOrder = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
@@ -290,11 +276,9 @@ export default function ChamDiem() {
   }
   // Tính tổng điểm cho từng mục lớn với giới hạn điểm
   function calcTotalForSection(maChaLon: string) {
-    // Tìm mục lớn (I, II...) để lấy điểm tối đa (maxTotal)
     const section = tieuChiList.find((tc) => tc._ma === maChaLon);
     const maxTotal = section?.diem || 0;
 
-    // Hàm đệ quy tính tổng điểm thực tế 
     const calculateRecursive = (parentId: string): number => {
       let sum = 0;
       const children = tieuChiList.filter((tc) => (tc._maCha ?? "") === parentId);
@@ -350,7 +334,6 @@ export default function ChamDiem() {
     return "Yếu";
   };
 
-  // --- LOGIC HIỂN THỊ ĐIỀU KIỆN ---
 
   // 1. Nếu đang tải dữ liệu
   if (trangThai === null) {

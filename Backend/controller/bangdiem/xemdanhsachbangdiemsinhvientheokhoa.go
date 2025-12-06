@@ -92,7 +92,7 @@ func XemDanhSachBangDiemSinhVienTheoKhoa(c *gin.Context) {
 		}
 
 		if count != 0 {
-			trangthaibangdiem = "Đã Chấm"
+			trangthaibangdiem = "Chuyên Viên Đã Chấm"
 		} else {
 			result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND (trang_thai = N'Đã Phát' OR trang_thai = N'Sinh Viên Đã Chấm' OR trang_thai = N'Lớp Trưởng Đã Chấm' OR trang_thai = N'Giảng Viên Đã Chấm')", danhsachmasinhvien, mahocky).Count(&count)
 			if result.Error != nil {
@@ -102,9 +102,9 @@ func XemDanhSachBangDiemSinhVienTheoKhoa(c *gin.Context) {
 				return
 			}
 			if count != 0 {
-				trangthaibangdiem = "Chưa Chấm"
+				trangthaibangdiem = "Trưởng Khoa Chưa Chấm"
 			} else {
-				trangthaibangdiem = "Đã Chấm"
+				trangthaibangdiem = "Trưởng Khoa Đã Chấm"
 			}
 		}
 

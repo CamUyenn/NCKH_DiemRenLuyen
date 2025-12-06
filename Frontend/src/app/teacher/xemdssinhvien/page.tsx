@@ -4,17 +4,17 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import "../../styles/teachers/xemdssinhvien.css";
 
-// Định nghĩa kiểu dữ liệu cho sinh viên từ API
 type SinhVien = {
   ma_sinh_vien: string;
   ho_dem: string;
   ten: string;
-  ten_lop_sinh_hoat: string; // Thêm trường lớp
-  trang_thai: string;        // Thêm trường trạng thái
+  ten_lop_sinh_hoat: string; 
+  trang_thai: string;        
   tong_diem_sinh_vien: number;
   tong_diem_lop_truong: number;
   tong_diem_co_van: number;
   tong_diem_truong_khoa: number;
+  tong_diem_chuyen_vien_dao_tao: number; 
   ma_sinh_vien_diem_ren_luyen: string;
 };
 
@@ -45,7 +45,6 @@ export default function XemChiTietLop() {
       return;
     }
 
-    // 2. Fetch dữ liệu danh sách sinh viên từ API
     fetch(`http://localhost:8080/api/xemdanhsachbangdiemsinhvien/${malop}/${mahocky}`)
       .then(res => {
         if (!res.ok) throw new Error("Lỗi khi tải danh sách sinh viên.");
@@ -59,10 +58,12 @@ export default function XemChiTietLop() {
         const initialScores: Record<string, number> = {};
         studentData.forEach((sv: SinhVien) => {
           let score = 0;
-          if (role === 'giangvien') { // Cố vấn
+          if (role === 'giangvien') {
             score = sv.tong_diem_co_van;
           } else if (role === 'truongkhoa') {
             score = sv.tong_diem_truong_khoa;
+          } else if (role === 'chuyenviendaotao') { 
+            score = sv.tong_diem_chuyen_vien_dao_tao;
           }
           initialScores[sv.ma_sinh_vien] = score;
         });
@@ -74,7 +75,7 @@ export default function XemChiTietLop() {
       });
   }, [searchParams]);
 
-  // Hàm xử lý thay đổi điểm (dù đã ẩn textbox nhưng vẫn giữ hàm này để logic không bị gãy nếu cần dùng lại)
+  // Hàm xử lý thay đổi điểm (giữ lại logic nếu cần dùng textbox)
   const handleScoreChange = (maSV: string, diem: string) => {
     const newScore = parseInt(diem, 10);
     setEditedScores(prev => ({
@@ -83,39 +84,129 @@ export default function XemChiTietLop() {
     }));
   };
 
-  // Hàm sao chép điểm cho một hàng
-  const handleCopyRow = (sv: SinhVien) => {
+  const handleCopyRow = async (sv: SinhVien) => {
+    let apiType = "";
     let scoreToCopy = 0;
+
     if (userRole === 'giangvien') {
+      apiType = 'giangvien'; 
       scoreToCopy = sv.tong_diem_lop_truong;
     } else if (userRole === 'truongkhoa') {
+      apiType = 'truongkhoa';
       scoreToCopy = sv.tong_diem_co_van;
+    } else if (userRole === 'chuyenviendaotao') { 
+      apiType = 'chuyenviendaotao'; 
+      scoreToCopy = sv.tong_diem_truong_khoa; 
+    } else {
+      alert("Quyền của bạn không xác định để thực hiện sao chép.");
+      return;
     }
-    setEditedScores(prev => ({ ...prev, [sv.ma_sinh_vien]: scoreToCopy }));
-  };
 
-  // Hàm sao chép điểm cho toàn bộ lớp
-  const handleCopyAll = () => {
-    const newScores: Record<string, number> = {};
-    danhSachSV.forEach(sv => {
-      let scoreToCopy = 0;
-      if (userRole === 'giangvien') {
-        scoreToCopy = sv.tong_diem_lop_truong;
-      } else if (userRole === 'truongkhoa') {
-        scoreToCopy = sv.tong_diem_co_van;
+    try {
+      const res = await fetch("http://localhost:8080/api/saochepdiem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ma_bang_diem: sv.ma_sinh_vien_diem_ren_luyen,
+          type: apiType,
+        }),
+      });
+
+      const textResponse = await res.text();
+
+      // Nếu thành công (200 OK)
+      if (res.ok) {
+        alert("Sao chép điểm thành công!");
+        setEditedScores(prev => ({ ...prev, [sv.ma_sinh_vien]: scoreToCopy }));
+      } 
+      // Nếu thất bại
+      else {
+        let errorMessage = "Lỗi không xác định";
+        try {
+            const result = JSON.parse(textResponse);
+            errorMessage = result.message || result.error || textResponse;
+        } catch (e) {
+            errorMessage = textResponse || errorMessage;
+        }
+        alert("Sao chép thất bại: " + errorMessage);
       }
-      newScores[sv.ma_sinh_vien] = scoreToCopy;
-    });
-    setEditedScores(newScores);
+    } catch (err: any) {
+      console.error("Lỗi copy row:", err);
+      alert("Lỗi kết nối server: " + err.message);
+    }
   };
 
-  // Hàm lưu điểm
+  const handleCopyAll = async () => {
+    let apiType = "";
+    
+    // Xác định type gửi lên API
+    if (userRole === 'giangvien') {
+      apiType = 'giangvien'; 
+    } else if (userRole === 'truongkhoa') {
+      apiType = 'truongkhoa';
+    } else if (userRole === 'chuyenviendaotao') { 
+      apiType = 'chuyenviendaotao'; 
+    } else {
+      alert("Quyền không hợp lệ.");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:8080/api/saocheptoanbodiem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          malopsinhhoat: [maLop], 
+          ma_hoc_ky: maHocKy,
+          type: apiType,
+        }),
+      });
+
+      const textResponse = await res.text();
+
+      // Nếu thành công
+      if (res.ok) {
+        alert("Sao chép toàn bộ điểm thành công!");        
+        const newScores: Record<string, number> = {};
+        danhSachSV.forEach(sv => {
+          let scoreToCopy = 0;
+          if (userRole === 'giangvien') {
+            scoreToCopy = sv.tong_diem_lop_truong; 
+          } else if (userRole === 'truongkhoa') {
+            scoreToCopy = sv.tong_diem_co_van;     
+          } else if (userRole === 'chuyenviendaotao') { 
+            scoreToCopy = sv.tong_diem_truong_khoa; 
+          }
+          newScores[sv.ma_sinh_vien] = scoreToCopy;
+        });
+        setEditedScores(newScores);
+      } 
+      // Nếu thất bại
+      else {
+        let errorMessage = "Lỗi không xác định";
+        try {
+            const result = JSON.parse(textResponse);
+            errorMessage = result.message || result.error || textResponse;
+        } catch (e) {
+            errorMessage = textResponse || errorMessage;
+        }
+        alert("Sao chép thất bại: " + errorMessage);
+      }
+    } catch (err: any) {
+      console.error("Lỗi copy all:", err);
+      alert("Lỗi kết nối server: " + err.message);
+    }
+  };
+
   const handleSave = async () => {
     alert("Chức năng lưu điểm đang được phát triển (Cần API cập nhật tổng điểm).");
   };
 
   const handleViewDetails = (sv: SinhVien) => {
-    router.push(`/teacher/xemchitiet?masv=${sv.ma_sinh_vien}&mahocky=${maHocKy}`);
+    const hoTen = `${sv.ho_dem} ${sv.ten}`;
+    const encodedHoTen = encodeURIComponent(hoTen);
+
+    router.push(`/teacher/xemchitiet?masv=${sv.ma_sinh_vien}&mahocky=${maHocKy}&hoten=${encodedHoTen}`);
   };
 
   return (
@@ -146,8 +237,17 @@ export default function XemChiTietLop() {
               </>
             )}
 
+            {userRole === 'chuyenviendaotao' && ( 
+              <>
+                <th>Cố vấn</th>
+                <th>Trưởng khoa</th>
+                <th>Sao chép</th>
+                <th>Phòng đào tạo</th>
+              </>
+            )}
+
             <th>Chi tiết</th>
-            <th>Trạng thái</th> 
+            <th>Trạng thái</th>
           </tr>
         </thead>
         <tbody>
@@ -182,7 +282,23 @@ export default function XemChiTietLop() {
                       Sao chép
                     </button>
                   </td>
-                  <td className="score-column"style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
+                  <td className="score-column" style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
+                    {editedScores[sv.ma_sinh_vien] || 0}
+                  </td>
+                </>
+              )}
+
+              {/* Thêm các cột cho Chuyên viên */}
+              {userRole === 'chuyenviendaotao' && ( 
+                <>
+                  <td style={{ textAlign: 'center' }}>{sv.tong_diem_co_van}</td>
+                  <td style={{ textAlign: 'center' }}>{sv.tong_diem_truong_khoa}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    <button className="xds-btn-copy" onClick={() => handleCopyRow(sv)}>
+                      Sao chép
+                    </button>
+                  </td>
+                  <td className="score-column" style={{ textAlign: 'center', fontWeight: 'bold', color: 'black' }}>
                     {editedScores[sv.ma_sinh_vien] || 0}
                   </td>
                 </>
