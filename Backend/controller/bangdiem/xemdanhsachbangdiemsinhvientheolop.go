@@ -104,19 +104,18 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 
 			// Count trangthai bangdiem by sinhvien
 			var count int64
-			result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Trưởng Khoa Đã Chấm'", danhsachsinhvien, mahocky).Count(&count)
+			result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND (trang_thai = N'Trưởng Khoa Đã Chấm' OR trang_thai = N'Chuyên Viên Đã Chấm')", danhsachsinhvien, mahocky).Count(&count)
 			if result.Error != nil {
 				c.JSON(400, gin.H{
-					"error": "Count trangthai bangdiem failed",
+					"error": "Failed count after trangthai",
 				})
 				return
 			}
+
 			// Set trangthai
 			var trangthai string
-			if count == int64(len(danhsachsinhvien)) {
-				trangthai = "Trưởng Khoa Đã Chấm"
-			} else if count != 0 {
-				trangthai = "Trưởng Khoa Chưa Chấm"
+			if count != 0 {
+				trangthai = "Đã Chấm"
 			} else {
 				result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Giảng Viên Đã Chấm'", danhsachsinhvien, mahocky).Count(&count)
 				if result.Error != nil {
@@ -126,10 +125,10 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 					return
 				}
 
-				if count != 0 && count == int64(len(danhsachsinhvien)) {
-					trangthai = "Giảng Viên Đã Chấm"
+				if count == int64(len(danhsachsinhvien)) {
+					trangthai = "Đã Chấm"
 				} else {
-					trangthai = "Giảng Viên Chưa Chấm"
+					trangthai = "Chưa Chấm"
 				}
 			}
 
@@ -194,20 +193,32 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 
 			// Count trangthai bangdiem by sinhvien
 			var count int64
-			result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Lớp Trưởng Đã Chấm'", danhsachsinhvien, mahocky).Count(&count)
+			result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND (trang_thai = N'Giảng Viên Đã Chấm' OR trang_thai = N'Trưởng Khoa Đã Chấm' OR trang_thai = N'Chuyên Viên Đã Chấm')", danhsachsinhvien, mahocky).Count(&count)
 			if result.Error != nil {
 				c.JSON(400, gin.H{
-					"error": "Count trangthai bangdiem failed",
+					"error": "Failed count after trangthai",
 				})
 				return
 			}
 
 			// Set trangthai
 			var trangthai string
-			if count != 0 && count == int64(len(danhsachsinhvien)) {
-				trangthai = "Lớp Trưởng Đã Chấm"
+			if count != 0 {
+				trangthai = "Giảng Viên Đã Chấm"
 			} else {
-				trangthai = "Lớp Trưởng Chưa Chấm"
+				result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Lớp Trưởng Đã Chấm'", danhsachsinhvien, mahocky).Count(&count)
+				if result.Error != nil {
+					c.JSON(400, gin.H{
+						"error": "Failed count before trangthai",
+					})
+					return
+				}
+
+				if count == int64(len(danhsachsinhvien)) {
+					trangthai = "Đã Chấm"
+				} else {
+					trangthai = "Chưa Chấm"
+				}
 			}
 
 			// Append output data

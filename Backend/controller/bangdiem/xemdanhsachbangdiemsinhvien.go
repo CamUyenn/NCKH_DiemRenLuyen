@@ -106,6 +106,7 @@ func XemDanhSachBangDiemSinhVien(c *gin.Context) {
 		XepLoaiChuyenVienDaoTao  string `json:"xep_loai_chuyen_vien_dao_tao"`
 		TongDiemChuyenVienDaoTao int    `json:"tong_diem_chuyen_vien_dao_tao"`
 	}
+	var trangthaitong string
 
 	listthongtin := make([]Thongtintrave, 0, len(danhsachdiem))
 	for _, d := range danhsachdiem {
@@ -127,9 +128,15 @@ func XemDanhSachBangDiemSinhVien(c *gin.Context) {
 			XepLoaiChuyenVienDaoTao:  d.XepLoaiChuyenVienDaoTao,
 			TongDiemChuyenVienDaoTao: d.TongDiemChuyenVienDaoTao,
 		})
+		if d.TrangThai == "Đã Phát" || d.TrangThai == "Sinh Viên Đã Chấm" {
+			trangthaitong = "Lớp Trưởng Chưa Chấm"
+		} else {
+			trangthaitong = "Lớp Trưởng Đã Chấm"
+		}
 	}
 
 	c.JSON(200, gin.H{
 		"danh_sach_bang_diem_sinh_vien": listthongtin,
+		"trang_thai_tong":               trangthaitong,
 	})
 }
