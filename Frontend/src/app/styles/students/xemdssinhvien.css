@@ -120,3 +120,6 @@
   border-radius: 6px;
   cursor:pointer;
 }
+.submitted-message {
+  text-align: center;
+}
