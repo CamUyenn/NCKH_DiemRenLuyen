@@ -1,11 +1,11 @@
-.xemchitiet_students-container {
+.bangdiem_students-container {
   padding: 20px;
-  max-width: 1200px;
+  max-width: 1600px; /* Tăng chiều rộng tối đa để chứa nhiều cột */
   margin: 0 auto;
   font-family: Arial, sans-serif;
 }
 
-.xemchitiet_students-table {
+.bangdiem_students-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
@@ -13,75 +13,70 @@
   margin-top: 20px;
 }
 
-.xemchitiet_students-table th,
-.xemchitiet_students-table td {
-  border: 1px solid #999;
-  padding: 8px 12px;
+.bangdiem_students-table th,
+.bangdiem_students-table td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
   vertical-align: middle;
+  font-size: 13px;
+  text-align: center; /* Căn giữa tất cả các cột mặc định */
 }
 
-.xemchitiet_students-table th:nth-child(1),
-.xemchitiet_students-table td:nth-child(1) {
-  width: 8%;
-  text-align: center;
+.bangdiem_students-table thead {
+  background-color: #e9ecef;
+  font-weight: bold;
+  color: #050505;
 }
 
-.xemchitiet_students-table th:nth-child(2),
-.xemchitiet_students-table td:nth-child(2) {
-  width: 35%;
+/* Căn lề trái cho cột Nội dung và Mô tả */
+.bangdiem_students-table th:nth-child(2),
+.bangdiem_students-table td:nth-child(2),
+.bangdiem_students-table th:nth-child(3),
+.bangdiem_students-table td:nth-child(3) {
+  text-align: left;
+  padding-left: 10px;
 }
 
-.xemchitiet_students-table th:nth-child(3),
-.xemchitiet_students-table td:nth-child(3) {
-  width: 7%; 
-  text-align: center;
+/* --- Cấu hình chiều rộng cho các cột --- */
+/* 1. Mục */
+.bangdiem_students-table th:nth-child(1),
+.bangdiem_students-table td:nth-child(1) { width: 5%; }
+/* 2. Nội dung */
+.bangdiem_students-table th:nth-child(2),
+.bangdiem_students-table td:nth-child(2) { width: 30%; }
+/* 3. Mô tả */
+.bangdiem_students-table th:nth-child(3),
+.bangdiem_students-table td:nth-child(3) { width: 20%; }
+/* 4. Số Điểm */
+.bangdiem_students-table th:nth-child(4),
+.bangdiem_students-table td:nth-child(4) { width: 6%; font-weight: bold; }
+
+/* Các cột điểm và hành động sẽ chia đều phần còn lại */
+
+/* --- Style cho các hàng tổng kết --- */
+.section-total td, .rank-row td, .all-total td {
+  text-align: center !important;
+  font-weight: bold;
 }
 
-.xemchitiet_students-table th:nth-child(4),
-.xemchitiet_students-table td:nth-child(4) {
-  width: 10%;
-  text-align: center;
+.section-total .total-label, .rank-row .total-label, .all-total .total-label {
+  text-align: right !important;
+  padding-right: 20px;
 }
 
-.xemchitiet_students-table th:nth-child(5),
-.xemchitiet_students-table td:nth-child(5) {
-  width: 10%;
-  text-align: center;
-}
-.xemchitiet_students-table th:nth-child(6),
-.xemchitiet_students-table td:nth-child(6) {
-  width: 10%;
-  text-align: center;
-}
-.xemchitiet_students-table th:nth-child(7),
-.xemchitiet_students-table td:nth-child(7) {
-  width: 10%;
-  text-align: center;
-}
-.xemchitiet_students-table th:nth-child(8),
-.xemchitiet_students-table td:nth-child(8) {
-  width: 10%;
-  text-align: center;
+.all-total .grand-total {
+  font-size: 15px;
 }
 
-.section-total, 
-.rank-row, 
-.all-total {
-  text-align: center;
-}
-
-.xemchitiet_students-table thead {
-  background-color: #ccc;
-}
-
-.xemchitiet_students-buttons {
+/* --- Style cho nút và input --- */
+.bangdiem_students-buttons {
   display: flex;
-  justify-content: flex-end; /* đẩy về bên phải */
+  justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
 }
 
-.xemchitiet_students-btn {
+.bangdiem_students-btn {
   padding: 10px 20px;
   background-color: #003366;
   color: white;
@@ -91,17 +86,6 @@
   font-size: 14px;
 }
 
-.xemchitiet_students-btn:hover {
-  background-color: #0055a5;
-}
-
-.xemchitiet_students-select {
-  padding: 5px;
-  font-size: 14px;
-}
-.xemchitiet_students-input {
-  padding: 5px;
-  font-size: 14px;
-  width: 100px;
-  text-align: center;
+.bangdiem_students-btn:hover {
+  background-color: black;
 }

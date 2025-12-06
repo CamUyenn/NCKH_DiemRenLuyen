@@ -50,22 +50,22 @@
     width: 4%; 
 }
 .xds-table th:nth-child(2), .xds-table td:nth-child(2) { 
-    width: 10%; 
+    width: 9%; 
 }
 .xds-table th:nth-child(3), .xds-table td:nth-child(3) { 
-    width: 16%; 
+    width: 13%; 
     text-align: center; 
 }
 
 .xds-table th.score-column, 
 .xds-table td.score-column {
-    width: 8%; 
+    width: 6%; 
     min-width: 50px; 
 }
 
 /* Định nghĩa chiều rộng cho cột Chi tiết (có nút) và Trạng thái */
 .xds-table th:nth-last-child(2), .xds-table td:nth-last-child(2) { 
-    width: 11%;
+    width: 9%;
 }
 .xds-table th:last-child, .xds-table td:last-child { 
     width: 8%;
