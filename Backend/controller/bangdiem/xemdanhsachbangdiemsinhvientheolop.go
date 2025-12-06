@@ -215,9 +215,9 @@ func XemDanhSachBangDiemSinhVienTheoLop(c *gin.Context) {
 				}
 
 				if count == int64(len(danhsachsinhvien)) {
-					trangthai = "Đã Chấm"
+					trangthai = " Lớp Trưởng Đã Chấm"
 				} else {
-					trangthai = "Chưa Chấm"
+					trangthai = "Lớp Trưởng Chưa Chấm"
 				}
 			}
 

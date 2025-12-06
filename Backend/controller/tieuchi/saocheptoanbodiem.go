@@ -101,7 +101,7 @@ func SaoChepToanBoDiem(c *gin.Context) {
 			"message": "Copy diemtruongkhoadanhgia successful",
 		})
 		return
-	case "chuyenviencovan":
+	case "chuyenviendaotao":
 		// Copy diemtruongkhoadanhgia to diemchuyenviencovan
 		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET SinhVienDiemRenLuyenChiTiet.diem_chuyen_vien_co_van = SinhVienDiemRenLuyenChiTiet.diem_truong_khoa_danh_gia FROM SinhVienDiemRenLuyen JOIN SinhVienDiemRenLuyenChiTiet ON SinhVienDiemRenLuyen.ma_sinh_vien_diem_ren_luyen = SinhVienDiemRenLuyenChiTiet.ma_sinh_vien_diem_ren_luyen_tham_chieu WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Trưởng Khoa Đã Duyệt'", listmasinhvien, datainput.Mahocky)
 		if result.Error != nil {
