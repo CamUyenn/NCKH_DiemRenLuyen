@@ -83,18 +83,29 @@ func XemDanhSachBangDiemSinhVienTheoKhoa(c *gin.Context) {
 		// Find trangthai
 		var trangthaibangdiem string
 		var count int64
-		result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Trưởng Khoa Đã Chấm'", danhsachmasinhvien, mahocky).Count(&count)
+		result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Chuyên Viên Đã Chấm'", danhsachmasinhvien, mahocky).Count(&count)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
-				"error": "Failed count query",
+				"error": "Failed count until trangthai",
 			})
 			return
 		}
 
-		if count == int64(len(danhsachmasinhvien)) && count != 0 {
-			trangthaibangdiem = "Trưởng Khoa Đã Chấm"
+		if count != 0 {
+			trangthaibangdiem = "Đã Chấm"
 		} else {
-			trangthaibangdiem = "Trưởng Khoa Chưa Chấm"
+			result = initialize.DB.Model(&model.SinhVienDiemRenLuyen{}).Where("ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND (trang_thai = N'Đã Phát' OR trang_thai = N'Sinh Viên Đã Chấm' OR trang_thai = N'Lớp Trưởng Đã Chấm' OR trang_thai = N'Giảng Viên Đã Chấm')", danhsachmasinhvien, mahocky).Count(&count)
+			if result.Error != nil {
+				c.JSON(400, gin.H{
+					"error": "Failed count before trangthai",
+				})
+				return
+			}
+			if count != 0 {
+				trangthaibangdiem = "Chưa Chấm"
+			} else {
+				trangthaibangdiem = "Đã Chấm"
+			}
 		}
 
 		// Append to output
