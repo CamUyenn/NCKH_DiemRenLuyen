@@ -27,7 +27,7 @@ export default function ChamDiem() {
   const [masinhvien, setMasinhvien] = useState("");
   const [mahocky, setMahocky] = useState("");
   const [tieuChiList, setTieuChiList] = useState<TieuChi[]>([]);
-  const [studentName, setStudentName] = useState(""); // State mới để lưu tên sinh viên
+  const [studentName, setStudentName] = useState("");
 
   // State riêng biệt: 1 cho SV (chỉ đọc), 1 cho Lớp trưởng (để chấm/lưu)
   const [studentSelectedValues, setStudentSelectedValues] = useState<Record<string, any>>({});
@@ -40,7 +40,6 @@ export default function ChamDiem() {
   }
   const getParentCode = (id?: string | null) => getCode(id);
 
-  // Lấy session / params
   useEffect(() => {
     if (typeof window === "undefined") return;
     const sessionRaw =
@@ -55,19 +54,15 @@ export default function ChamDiem() {
       session = {};
     }
 
-    // --- SỬA LOGIC LẤY MÃ SINH VIÊN ---
     const maSVFromParams = searchParams.get("masinhvien");
     const maSVFromSession = (session as any)?.ma_sinh_vien || (session as any)?.masv || (session as any)?.id;
     setMasinhvien(maSVFromParams || maSVFromSession || "");
     
-    // --- LẤY HỌ TÊN TỪ URL ---
     const hoTenFromParams = searchParams.get("hoten");
     if (hoTenFromParams) {
-      // Giải mã họ tên từ URL và set vào state
       setStudentName(decodeURIComponent(hoTenFromParams));
     }
 
-    // Giữ nguyên logic cho mã học kỳ
     setMahocky(
       (session as any)?.ma_hoc_ky ||
         (session as any)?.ma_hocky ||
@@ -76,8 +71,6 @@ export default function ChamDiem() {
     );
   }, [searchParams]);
 
-  // --- PHẦN SỬA LỖI QUAN TRỌNG Ở ĐÂY ---
-  // Fetch API và khởi tạo state
   useEffect(() => {
     if (!masinhvien || !mahocky) return;
 
@@ -93,7 +86,6 @@ export default function ChamDiem() {
         }));
         setTieuChiList(danhSach);
 
-        // Khởi tạo giá trị
         const initialStudentValues: Record<string, any> = {};
         const initialClassPresidentValues: Record<string, any> = {};
 

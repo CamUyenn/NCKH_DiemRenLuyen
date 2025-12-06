@@ -139,7 +139,7 @@ function ClassListPage() {
     const maBangDiemArr = studentList.map((student) => student.ma_sinh_vien_diem_ren_luyen);
 
     try {
-      const res = await fetch("http://localhost:8080/api/thaydoitrangthai", {
+      const res = await fetch("http://localhost:8080/api/thaydoitrangthaisinhvien", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
