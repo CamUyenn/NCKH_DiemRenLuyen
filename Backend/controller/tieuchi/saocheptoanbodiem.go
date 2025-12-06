@@ -101,27 +101,27 @@ func SaoChepToanBoDiem(c *gin.Context) {
 			"message": "Copy diemtruongkhoadanhgia successful",
 		})
 		return
-	case "chuyenviencovan":
-		// Copy diemtruongkhoadanhgia to diemchuyenviencovan
-		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET SinhVienDiemRenLuyenChiTiet.diem_chuyen_vien_co_van = SinhVienDiemRenLuyenChiTiet.diem_truong_khoa_danh_gia FROM SinhVienDiemRenLuyen JOIN SinhVienDiemRenLuyenChiTiet ON SinhVienDiemRenLuyen.ma_sinh_vien_diem_ren_luyen = SinhVienDiemRenLuyenChiTiet.ma_sinh_vien_diem_ren_luyen_tham_chieu WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Trưởng Khoa Đã Duyệt'", listmasinhvien, datainput.Mahocky)
+	case "chuyenviendaotao":
+		// Copy diemtruongkhoadanhgia to diemchuyenviendaotao
+		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET SinhVienDiemRenLuyenChiTiet.diem_chuyen_vien_dao_tao = SinhVienDiemRenLuyenChiTiet.diem_truong_khoa_danh_gia FROM SinhVienDiemRenLuyen JOIN SinhVienDiemRenLuyenChiTiet ON SinhVienDiemRenLuyen.ma_sinh_vien_diem_ren_luyen = SinhVienDiemRenLuyenChiTiet.ma_sinh_vien_diem_ren_luyen_tham_chieu WHERE SinhVienDiemRenLuyen.ma_sinh_vien_tham_chieu IN ? AND SinhVienDiemRenLuyen.ma_hoc_ky_tham_chieu = ? AND SinhVienDiemRenLuyen.trang_thai = N'Trưởng Khoa Đã Chấm'", listmasinhvien, datainput.Mahocky)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
-				"error": "Failed to copy diemchuyenviencovan",
+				"error": "Failed to copy diemchuyenviendaotao",
 			})
 			return
 		}
 
 		// Copy tongdiemtruongkhoa to tongdiemchuyenviendaotao and xeploaitruongkhoa to xeploaichuyenviendaotao
-		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyen SET tong_diem_chuyen_vien_dao_tao = tong_diem_truong_khoa, xep_loai_chuyen_vien_dao_tao = xep_loai_truong_khoa WHERE ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Trưởng Khoa Đã Duyệt'", listmasinhvien, datainput.Mahocky)
+		result = initialize.DB.Exec("UPDATE SinhVienDiemRenLuyen SET tong_diem_chuyen_vien_dao_tao = tong_diem_truong_khoa, xep_loai_chuyen_vien_dao_tao = xep_loai_truong_khoa WHERE ma_sinh_vien_tham_chieu IN ? AND ma_hoc_ky_tham_chieu = ? AND trang_thai = N'Trưởng Khoa Đã Chấm'", listmasinhvien, datainput.Mahocky)
 		if result.Error != nil {
 			c.JSON(400, gin.H{
-				"error": "Failed to copy diemchuyenviencovan to SinhVienDiemRenLuyen",
+				"error": "Failed to copy diemchuyenviendaotao to SinhVienDiemRenLuyen",
 			})
 			return
 		}
 
 		c.JSON(200, gin.H{
-			"message": "Copy diemchuyenviencovan successful",
+			"message": "Copy diemchuyenviendaotao successful",
 		})
 		return
 	}

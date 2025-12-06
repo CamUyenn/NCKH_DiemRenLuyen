@@ -91,7 +91,7 @@ func SaoChepDiem(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Copy diemtruongkhoadanhgia success",
 		})
-	case "chuyenvien":
+	case "chuyenviendaotao":
 		// Copy diemtruongkhoa to diemchuyenviendaotao in SinhVienDiemRenLuyenChiTiet
 		result := initialize.DB.Exec("UPDATE SinhVienDiemRenLuyenChiTiet SET diem_chuyen_vien_dao_tao = diem_truong_khoa_danh_gia WHERE ma_sinh_vien_diem_ren_luyen_tham_chieu = ?", datainput.MaBangDiem)
 		if result.Error != nil {
