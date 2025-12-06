@@ -95,7 +95,7 @@ export default function XemChiTietLop() {
       apiType = 'truongkhoa';
       scoreToCopy = sv.tong_diem_co_van;
     } else if (userRole === 'chuyenviendaotao') { 
-      apiType = 'chuyenvien'; 
+      apiType = 'chuyenviendaotao'; 
       scoreToCopy = sv.tong_diem_truong_khoa; 
     } else {
       alert("Quyền của bạn không xác định để thực hiện sao chép.");
@@ -145,7 +145,7 @@ export default function XemChiTietLop() {
     } else if (userRole === 'truongkhoa') {
       apiType = 'truongkhoa';
     } else if (userRole === 'chuyenviendaotao') { 
-      apiType = 'chuyenvien'; 
+      apiType = 'chuyenviendaotao'; 
     } else {
       alert("Quyền không hợp lệ.");
       return;

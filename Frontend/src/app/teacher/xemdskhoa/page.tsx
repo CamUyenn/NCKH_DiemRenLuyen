@@ -13,15 +13,26 @@ type Khoa = {
   trang_thai: string;
 };
 
+const getDisplayStatus = (rawStatus: string, role: string): string => {
+  if (role === 'chuyenviendaotao') {
+    if (rawStatus === 'Chuyên Viên Đã Chấm') return 'Chuyên Viên Đã Chấm';
+    if (rawStatus === 'Trưởng Khoa Đã Chấm') return 'Trưởng Khoa Đã Chấm';
+    return 'Trưởng Khoa Chưa Chấm';
+  }
+  return rawStatus; 
+};
+
 export default function XemDanhSachKhoa() {
   const router = useRouter();
   const [danhSachKhoa, setDanhSachKhoa] = useState<Khoa[]>([]);
+  const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
-    // Lấy thông tin từ localStorage để gọi API
     const sessionRaw = localStorage.getItem("session") || "{}";
     const session = JSON.parse(sessionRaw);
     
+    setUserRole(session?.type || "");
+
     const maChuyenVien = session?.ma_giang_vien || ""; 
     const maHocKy = session?.ma_hoc_ky || "";
 
@@ -30,7 +41,6 @@ export default function XemDanhSachKhoa() {
       return;
     }
 
-    // Gọi API để lấy danh sách khoa
     fetch(`http://localhost:8080/api/xemdanhsachbangdiemsinhvientheokhoa/${maChuyenVien}/${maHocKy}`)
       .then(async res => { 
         if (!res.ok) {
@@ -50,7 +60,6 @@ export default function XemDanhSachKhoa() {
       })
       .catch(err => {
         console.error("Lỗi khi fetch danh sách khoa:", err);
-        alert(`Không thể tải danh sách khoa: ${err.message}`);
       });
 
   }, []); 
@@ -65,11 +74,55 @@ export default function XemDanhSachKhoa() {
       return;
     }
 
-    router.push(`/teacher/xemdslop?makhoa=${maKhoa}&mahocky=${maHocKy}&matruongkhoa=${maTruongKhoa}`);
+    router.push(`/teacher/xemdslop?makhoa=${maKhoa}&matruongkhoa=${maTruongKhoa}&mahocky=${maHocKy}`);
   };
 
-  const handleSubmit = () => {
-    alert("Xử lý logic gửi dữ liệu...");
+  const handleSubmit = async () => {
+    const sessionRaw = localStorage.getItem("session") || "{}";
+    const session = JSON.parse(sessionRaw);
+    const maHocKy = session?.ma_hoc_ky || "";
+
+    if (!maHocKy) {
+      alert("Không tìm thấy mã học kỳ. Không thể gửi.");
+      return;
+    }
+
+    const khoasCanGui = danhSachKhoa.filter(
+      (khoa) => khoa.trang_thai === "Trưởng Khoa Đã Chấm"
+    );
+
+    if (khoasCanGui.length === 0) {
+      alert("Không có khoa nào mới để gửi đi.");
+      return;
+    }
+
+    // Lấy danh sách mã khoa cần gửi
+    const maKhoaArray = khoasCanGui.map((khoa) => khoa.ma_khoa);
+
+    const payload = {
+      makhoa: maKhoaArray,
+      mahocky: maHocKy,
+      type: "chuyenviendaotao", 
+    };
+
+    try {
+      const response = await fetch("http://localhost:8080/api/thaydoitrangthaichuyenvien", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Server trả về lỗi khi cố gắng gửi.");
+      }
+
+      alert("Gửi thành công!");
+      window.location.reload(); 
+    } catch (error: any) {
+      console.error("Lỗi khi gửi:", error);
+      alert(`Gửi thất bại: ${error.message}`);
+    }
   };
 
   return (
@@ -99,7 +152,7 @@ export default function XemDanhSachKhoa() {
                   Xem chi tiết
                 </button>
               </td>
-              <td>{khoa.trang_thai}</td>
+              <td>{getDisplayStatus(khoa.trang_thai, userRole)}</td>
             </tr>
           ))}
         </tbody>
