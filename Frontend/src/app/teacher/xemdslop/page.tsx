@@ -140,7 +140,7 @@ export default function XemDanhSachLop() {
           <tr>
             <th>STT</th>
             <th>Tên lớp</th>
-            <th>Cố vấn học tập</th>
+            {userRole !== 'giangvien' && <th>Cố vấn học tập</th>}
             <th>Chi tiết</th>
             <th>Trạng thái</th>
           </tr>
@@ -150,7 +150,7 @@ export default function XemDanhSachLop() {
             <tr key={lop.ma_lop_sinh_hoat}>
               <td>{index + 1}</td>
               <td>{lop.ten_lop}</td>
-              <td>{lop.ten_giang_vien}</td>
+              {userRole !== 'giangvien' && <td>{lop.ten_giang_vien}</td>}
               <td>
                 <button onClick={() => handleViewDetails(lop)} className="dslop-btn-xem">
                   Xem chi tiết
